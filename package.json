@@ -1,0 +1,37 @@
+{ "name": "cozy-template"
+, "version": "0.0.1"
+, "engines": ["node >= 0.6.0"]
+, "description": "A template project for cozy applications"
+, "repository":
+  {
+    "type": "git"
+  , "url": "https://github.com/mycozycloud/cozy-template.git"
+  }
+, "main": "server.coffee"
+, "dependencies":
+  { "jade":             ">= 0"
+  , "jade-ext":         ">= 0"
+  , "express":          ">= 2.5.8"
+  , "connect":          ">= 1.8.6"
+  , "railway":          ">= 0.2.11"
+  , "coffee-script":    ">= 1.1.1"
+  , "mime":             ">= 1.2.2"
+  , "qs":               ">= 0.1.0"
+  , "mongoose":         ">= 2.5.10"
+  , "jugglingdb":       ">= 0"
+  , "connect-redis":    ">= 0"
+  , "passport":         ">= 0"
+  , "async":            ">= 0"
+  , "request":          ">= 0"
+  }
+, "devDependencies": 
+  { "should":           ">= 0"
+  , "mocha":            ">= 0"
+  , "zombie":           "= 1.1.4"
+  }
+, "scripts":
+  { "test": "cake tests"
+  , "start": "coffee server.coffee"
+  }
+}
+

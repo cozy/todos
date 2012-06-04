@@ -21,6 +21,18 @@ returnTasks = (err, tasks) ->
         send number: tasks.length, rows: tasks
 
 
+before 'load task', ->
+    Task.find params.id, (err, task) =>
+        if err
+            send error: 'An error occured', 500
+        else if task is null
+            send error: 'Task not found', 404
+        else
+            @task = task
+            next()
+, only: ['update', 'destroy', 'show']
+
+
 action 'create', ->
     task = new Task body
     Task.create task, (err, note) =>
@@ -33,4 +45,14 @@ action 'create', ->
 action 'all', ->
     Task.all returnTasks
 
+action 'update', ->
+    @task.updateAttributes body, (err) =>
+        if err
+            console.log err
+            send error: 'Task can not be updated', 500
+        else
+            send success: 'Task updated'
+
+action 'show', ->
+    returnTasks null, [@task]
 

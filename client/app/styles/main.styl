@@ -1,88 +1,63 @@
 @import 'nib'
+@import 'base'
 
-body
-  background: #91A2C0
-  font: bold 18px "Helvetica Neue", Arial, Helvetica, sans-serif
-
-ul
-  list-style-type: none
-
-a, a:visited
-  color: #F95A5A
-  text-decoration: none
-
-a:hover
-  color: #665248
+// layout
 
 #home-view
-  width: 600px
-  height: 200px
-  margin: 20px auto
+  height 100%
+  margin 0
+  padding 0
 
-  #content
-    background: #FFF
-    padding: 20px
-    border-radius: 4px
-
-/* Default font settings */
-body
-  font-size: 15px
-  color: #666
-  background: #fff
-  font-family: "KievitPro", "ff-kievit-web-pro-1","ff-kievit-web-pro-2", "Helvetica Neue", Arial, Helvetica, sans-serif
-
-/* Headings */
-h1, h2, h3, h4, h5
-  font-weight: normal
-  color: #222
-  clear: left
-
-h1
-  font-size: 5em
-  line-height: 1.4
-  margin-bottom: 0.5em
-
-h2
-  font-size: 2em
-  line-height: 1
-  margin-bottom: 0.5em
-
-/* Text elements */
-p
-  margin: 0 0 1.5em
-
-a:focus, a:hover
-  color: #F95A5A
-  text-decoration: underline
-a
-  color: #F95A5A
-  text-decoration: none
-
-/* Lists */
-ul, ol
-  margin: 0 1.5em 1.5em 0
-  list-style-type: none
-
-/* Style */
 #content
-  width: 605px
-  margin: 0 auto
-  margin-top: 40px
-  margin-bottom: 60px
+  height 100%
+  background-color bgcolor
+  margin 0
+  min-width 400px
 
-h1
-  background: #91A2C0
-  background-repeat: no-repeat
-  background-position: 2px
-  color: #fff
-  width: 330px
-  padding-left: 18px
-  border-radius: 5px
+#nav
+  margin 0
+  padding 0
 
-#props
-  position: relative
-  top: 36px
-  font-size: 18px
-  padding-left: 373px
-  color: #eee
-  font-style: italic
+#task-list
+  shadow 2px 2px 5px bgshadowcolor 
+  border 1px solid objectbordercolor
+  background-color #FCFCFC
+
+
+// To do list
+
+.todo
+  padding 10px
+
+.todo:hover
+ background-color #EEFFEE
+
+.todo button
+  float left
+
+.todo input 
+  width 50px
+  height 50px
+  border 2px solid black
+
+.todo .description
+  margin-left 10px
+  font-size 22px
+  line-height 28px
+
+.todo-title
+  border-bottom 1px solid #CCC
+
+.todo-title .description
+  font-weight bold
+  font-size 30px
+  font-variant small-caps
+  line-height 40px
+  margin-left 0
+
+.todo-title button
+  float right
+
+.done .description
+  color #AAA
+  text-decoration line-through

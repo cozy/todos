@@ -1,8 +1,16 @@
+nav
 #content
-  h1 Cozy template
-  h2 Welcome
-  ul
-    li 
-      a(href="https://github.com/mycozycloud/cozy-notes/wiki/Development-environment") Documentation
-    li 
-      a(href="https://github.com/mycozycloud") Github
+    #task-list
+        .todo.todo-title.clearfix
+            button(class="btn btn-large btn-success") new task
+            span.description(contenteditable="true") My task list
+        .todo
+            button(class="btn btn-info") todo
+            span.description(contenteditable="true") 
+        .todo
+            button(class="btn btn-info") todo
+            span.description(contenteditable="true") my first task
+        .todo.done
+            button(class="btn disabled") done
+            span.description my completed task, longer text
+

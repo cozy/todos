@@ -1,6 +1,6 @@
-# Cozy Template
+# Cozy Todos
 
-Cozy Template is a template project to start quickly Cozy application
+Cozy Template is a simple task management application.
 
 
 # About Cozy

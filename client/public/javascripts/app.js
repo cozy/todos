@@ -120,7 +120,7 @@
     TaskCollection.prototype.addTask = function(task) {
       var taskLine;
       taskLine = new TaskLine(task);
-      return this.view.append(taskLine.render());
+      return this.view.prepend(taskLine.render());
     };
 
     return TaskCollection;
@@ -240,7 +240,18 @@
       for (property in task) {
         this[property] = task[property];
       }
+      if (this.id) this.url = "tasks/" + this.id + "/";
     }
+
+    Task.prototype.setDone = function() {
+      this.done = true;
+      return this.view.done();
+    };
+
+    Task.prototype.setUndone = function() {
+      this.done = false;
+      return this.view.undone();
+    };
 
     return Task;
 
@@ -309,7 +320,7 @@
       var task;
       task = new Task({
         done: false,
-        description: ""
+        description: "my task"
       });
       this.tasks.add(task);
       return task.save();
@@ -334,6 +345,7 @@
   "views/task_view": function(exports, require, module) {
     (function() {
   var template,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
@@ -347,15 +359,50 @@
 
     TaskLine.prototype.tagName = "div";
 
+    TaskLine.prototype.events = {
+      "click button": "onButtonClicked"
+    };
+
     /* Constructor
     */
 
     function TaskLine(model) {
       this.model = model;
+      this.onButtonClicked = __bind(this.onButtonClicked, this);
       TaskLine.__super__.constructor.call(this);
       this.id = this.model._id;
       this.model.view = this;
     }
+
+    TaskLine.prototype.onButtonClicked = function(event) {
+      if (this.model.done) {
+        this.model.setUndone();
+      } else {
+        this.model.setDone();
+      }
+      return this.model.save({
+        done: true
+      }, {
+        success: function() {},
+        error: function() {
+          return alert("An error occured, modification was not saved.");
+        }
+      });
+    };
+
+    TaskLine.prototype.done = function() {
+      this.$("button").html("done");
+      this.$("button").addClass("disabled");
+      this.$("button").removeClass("btn-info");
+      return $(this.el).addClass("done");
+    };
+
+    TaskLine.prototype.undone = function() {
+      this.$("button").html("todo");
+      this.$("button").removeClass("disabled");
+      this.$("button").addClass("btn-info");
+      return $(this.el).removeClass("done");
+    };
 
     TaskLine.prototype.remove = function() {
       return $(this.el).remove();
@@ -363,6 +410,7 @@
 
     TaskLine.prototype.render = function() {
       $(this.el).html(require('./templates/task'));
+      if (this.model.done) this.done();
       return this.el;
     };
 

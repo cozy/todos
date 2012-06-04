@@ -10,3 +10,13 @@ class exports.Task extends BaseModel
         super()
         for property of task
             @[property] = task[property]
+        if @id
+            @url = "tasks/#{@id}/"
+
+    setDone: ->
+        @done = true
+        @view.done()
+
+    setUndone: ->
+        @done = false
+        @view.undone()

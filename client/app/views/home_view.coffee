@@ -11,7 +11,7 @@ class exports.HomeView extends Backbone.View
         super()
        
     onAddClicked: (event) ->
-        task = new Task done: false, description: ""
+        task = new Task done: false, description: "my task"
         @tasks.add(task)
         task.save()
 

@@ -18,7 +18,7 @@
   margin 0
   padding 0
 
-#task-list
+#todo-list
   shadow 2px 2px 5px bgshadowcolor 
   border 1px solid objectbordercolor
   background-color #FCFCFC
@@ -26,16 +26,16 @@
 
 // To do list
 
-.todo
+.task
   padding 10px
 
-.todo:hover
+.task:hover
  background-color #EEFFEE
 
-.todo button
+.task button
   float left
 
-.todo input 
+.task input 
   width 50px
   height 50px
   border 2px solid black
@@ -45,19 +45,21 @@
   font-size 20px
   line-height 26px
 
-.todo-title
-  border-bottom 1px solid #CCC
+.todo-list-title
+    border-bottom 1px solid #CCC
+    padding 10px
 
-.todo-title .description
+.todo-list-title .description
   font-weight bold
   font-size 30px
   font-variant small-caps
   line-height 40px
   margin-left 0
 
-.todo-title button
+.todo-list-title button
   float right
 
 .done .description
   color #AAA
   text-decoration line-through
+

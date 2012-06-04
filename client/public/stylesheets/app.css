@@ -223,15 +223,15 @@ ul,ol{margin:0 1.5em 1.5em 0;list-style-type:none}
 #home-view{height:100%;margin:0;padding:0}
 #content{height:100%;background-color:#9999ad;margin:0;min-width:400px}
 #nav{margin:0;padding:0}
-#task-list{-moz-box-shadow:2px 2px 5px #668;-webkit-box-shadow:2px 2px 5px #668;-webkit-box-shadow:2px 2px 5px #668;-moz-box-shadow:2px 2px 5px #668;box-shadow:2px 2px 5px #668;border:1px solid #ebe5e2;background-color:#fcfcfc}
-.todo{padding:10px}
-.todo:hover{background-color:#efe}
-.todo button{float:left}
-.todo input{width:50px;height:50px;border:2px solid #000}
+#todo-list{-moz-box-shadow:2px 2px 5px #668;-webkit-box-shadow:2px 2px 5px #668;-webkit-box-shadow:2px 2px 5px #668;-moz-box-shadow:2px 2px 5px #668;box-shadow:2px 2px 5px #668;border:1px solid #ebe5e2;background-color:#fcfcfc}
+.task{padding:10px}
+.task:hover{background-color:#efe}
+.task button{float:left}
+.task input{width:50px;height:50px;border:2px solid #000}
 .todo .description{margin-left:10px;font-size:20px;line-height:26px}
-.todo-title{border-bottom:1px solid #ccc}
-.todo-title .description{font-weight:bold;font-size:30px;font-variant:small-caps;line-height:40px;margin-left:0}
-.todo-title button{float:right}
+.todo-list-title{border-bottom:1px solid #ccc;padding:10px}
+.todo-list-title .description{font-weight:bold;font-size:30px;font-variant:small-caps;line-height:40px;margin-left:0}
+.todo-list-title button{float:right}
 .done .description{color:#aaa;text-decoration:line-through}
 /*!
  * Bootstrap v2.0.0

@@ -10,16 +10,20 @@ class exports.TaskCollection extends Backbone.Collection
         super()
         @view = view
         @bind "add", @addTask
+        @bind "reset", @addTasks
 
     # Select which field from backend response to use for parsing to populate
     # collection.
     parse: (response) ->
         response.rows
 
+    addTasks: (tasks) =>
+        tasks.forEach (task) =>
+            @addTask task
+
     # View binding: when a task is added to collection, a line is created
     # inside view.
     addTask: (task) =>
-        console.log @view
         taskLine = new TaskLine task
         @view.append taskLine.render()
 

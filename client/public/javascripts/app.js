@@ -99,18 +99,26 @@
     TaskCollection.prototype.url = 'tasks/';
 
     function TaskCollection(view) {
-      this.addTask = __bind(this.addTask, this);      TaskCollection.__super__.constructor.call(this);
+      this.addTask = __bind(this.addTask, this);
+      this.addTasks = __bind(this.addTasks, this);      TaskCollection.__super__.constructor.call(this);
       this.view = view;
       this.bind("add", this.addTask);
+      this.bind("reset", this.addTasks);
     }
 
     TaskCollection.prototype.parse = function(response) {
       return response.rows;
     };
 
+    TaskCollection.prototype.addTasks = function(tasks) {
+      var _this = this;
+      return tasks.forEach(function(task) {
+        return _this.addTask(task);
+      });
+    };
+
     TaskCollection.prototype.addTask = function(task) {
       var taskLine;
-      console.log(this.view);
       taskLine = new TaskLine(task);
       return this.view.append(taskLine.render());
     };
@@ -298,15 +306,19 @@
     }
 
     HomeView.prototype.onAddClicked = function(event) {
-      return this.tasks.add(new Task({
+      var task;
+      task = new Task({
         done: false,
         description: ""
-      }));
+      });
+      this.tasks.add(task);
+      return task.save();
     };
 
     HomeView.prototype.render = function() {
       $(this.el).html(require('./templates/home'));
       this.tasks = new TaskCollection(this.$("#task-list"));
+      this.tasks.fetch();
       return this;
     };
 
@@ -341,7 +353,7 @@
     function TaskLine(model) {
       this.model = model;
       TaskLine.__super__.constructor.call(this);
-      this.id = this.model.slug;
+      this.id = this.model._id;
       this.model.view = this;
     }
 

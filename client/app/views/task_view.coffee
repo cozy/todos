@@ -10,7 +10,7 @@ class exports.TaskLine extends Backbone.View
     constructor: (@model) ->
         super()
 
-        @id = @model.slug
+        @id = @model._id
         @model.view = @
 
     remove: ->

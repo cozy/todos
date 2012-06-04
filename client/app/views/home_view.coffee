@@ -11,9 +11,12 @@ class exports.HomeView extends Backbone.View
         super()
        
     onAddClicked: (event) ->
-        @tasks.add(new Task done: false, description: "")
+        task = new Task done: false, description: ""
+        @tasks.add(task)
+        task.save()
 
     render: ->
         $(@el).html require('./templates/home')
         @tasks = new TaskCollection(@.$("#task-list"))
+        @tasks.fetch()
         this

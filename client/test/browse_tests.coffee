@@ -22,7 +22,6 @@ describe "Create task", ->
         helpers.cleandb ->
             done()
 
-
     it "When I display todo list", ->
         
     it "Then I see three tasks", ->

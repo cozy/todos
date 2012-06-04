@@ -52,6 +52,26 @@ describe "/tasks", ->
             @body.number.should.equal 1
             @body.rows.length.should.equal 1
             @body.rows[0].description.should.equal "my first task"
+            @id = @body.rows[0].id
 
 
+    describe "PUT /tasks/:id/ Modify given task",   ->
+        it "When I send a modification request for first task", (done) ->
+            client.put "tasks/#{@id}/", done: true, (error, response, body) =>
+                @response = response
+                @body = body
+                done()
+
+        it "And I send a request to retrieve tasks", (done) ->
+            client.get "tasks/", (error, response, body) =>
+                @response = response
+                @body = JSON.parse body
+                done()
+
+        it "Then my task has been modified", ->
+            should.exist @body
+            should.exist @body.rows
+            @body.number.should.equal 1
+            @body.rows.length.should.equal 1
+            @body.rows[0].done.should.be.ok
 

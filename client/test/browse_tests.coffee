@@ -1,14 +1,16 @@
 should = require("should")
 Browser = require("../../common/test/browser").Browser
+helpers = require("./helpers")
 
 app = require("../../server")
 
 
-describe "Test Section", ->
+describe "Create task", ->
 
     before (done) ->
         app.listen 8888
-        done()
+        helpers.cleandb ->
+            helpers.initdb done
 
     before (done) ->
         @browser = new Browser()
@@ -17,12 +19,14 @@ describe "Test Section", ->
 
     after (done) ->
         app.close()
-        done()
+        helpers.cleandb ->
+            done()
 
 
-    it "When I connect to root page I expect that there is a body", ->
-        should.exist @browser.query("body")
-
-
+    it "When I display todo list", ->
         
+    it "Then I see three tasks", ->
+        @browser.evaluate('$(".task").length').should.equal 3
+
+
 

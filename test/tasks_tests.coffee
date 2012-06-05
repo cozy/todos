@@ -10,6 +10,12 @@ client = new Client("http://localhost:8888/")
 responseTest = null
 bodyTest = null
 
+testLength = (body, length) ->
+    should.exist body
+    should.exist body.rows
+    body.number.should.equal length
+    body.rows.length.should.equal length
+
 
 describe "/tasks", ->
 
@@ -47,10 +53,7 @@ describe "/tasks", ->
                 done()
 
         it "Then I got one tasks", ->
-            should.exist @body
-            should.exist @body.rows
-            @body.number.should.equal 1
-            @body.rows.length.should.equal 1
+            testLength @body, 1
             @body.rows[0].description.should.equal "my first task"
             @id = @body.rows[0].id
 
@@ -62,16 +65,22 @@ describe "/tasks", ->
                 @body = body
                 done()
 
-        it "And I send a request to retrieve tasks", (done) ->
-            client.get "tasks/", (error, response, body) =>
+        it "And I send a request to retrieve done tasks", (done) ->
+            client.get "tasks/archives", (error, response, body) =>
                 @response = response
                 @body = JSON.parse body
                 done()
 
         it "Then my task has been modified", ->
-            should.exist @body
-            should.exist @body.rows
-            @body.number.should.equal 1
-            @body.rows.length.should.equal 1
+            testLength @body, 1
             @body.rows[0].done.should.be.ok
+
+        it "When I send a request to retrieve tasks", (done) ->
+            client.get "tasks/", (error, response, body) =>
+                @response = response
+                @body = JSON.parse body
+                done()
+
+        it "Then I got no tasks", ->
+            testLength @body, 0
 

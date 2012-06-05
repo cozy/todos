@@ -33,6 +33,12 @@ before 'load task', ->
 , only: ['update', 'destroy', 'show']
 
 
+action 'all', ->
+    Task.all {"where": { "done": false } }, returnTasks
+
+action 'archives', ->
+    Task.all {"where": { "done": true } }, returnTasks
+
 action 'create', ->
     task = new Task body
     Task.create task, (err, note) =>
@@ -41,9 +47,6 @@ action 'create', ->
             send error: 'Task can not be created'
         else
             send task, 201
-
-action 'all', ->
-    Task.all returnTasks
 
 action 'update', ->
     @task.updateAttributes body, (err) =>

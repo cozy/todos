@@ -18,7 +18,7 @@ class exports.TaskLine extends Backbone.View
 
     onButtonClicked: (event) =>
         if @model.done then @model.setUndone() else @model.setDone()
-        @model.save { done:true },
+        @model.save { done: @model.done },
             success: ->
             error: ->
                 alert "An error occured, modification was not saved."

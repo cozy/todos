@@ -381,7 +381,7 @@
         this.model.setDone();
       }
       return this.model.save({
-        done: true
+        done: this.model.done
       }, {
         success: function() {},
         error: function() {

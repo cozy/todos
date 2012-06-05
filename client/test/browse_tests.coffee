@@ -25,7 +25,8 @@ describe "Create task", ->
     it "When I display todo list", ->
         
     it "Then I see three tasks", ->
-        @browser.evaluate('$(".task").length').should.equal 3
+        @browser.evaluate('$("#task-list .task").length').should.equal 3
+        @browser.evaluate('$("#archive-list .task").length').should.equal 1
 
 
 

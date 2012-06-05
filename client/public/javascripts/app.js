@@ -329,7 +329,10 @@
     HomeView.prototype.render = function() {
       $(this.el).html(require('./templates/home'));
       this.tasks = new TaskCollection(this.$("#task-list"));
+      this.archivedTasks = new TaskCollection(this.$("#archive-list"));
       this.tasks.fetch();
+      this.archivedTasks.url = "tasks/archives/";
+      this.archivedTasks.fetch();
       return this;
     };
 
@@ -441,6 +444,8 @@ buf.push('>new task\n</button><span');
 buf.push(attrs({ "class": ('description') }));
 buf.push('>To-do list</span></header><div');
 buf.push(attrs({ 'id':('task-list') }));
+buf.push('></div><h2>archives</h2><div');
+buf.push(attrs({ 'id':('archive-list') }));
 buf.push('></div></div></div>');
 }
 return buf.join("");

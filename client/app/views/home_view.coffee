@@ -18,5 +18,8 @@ class exports.HomeView extends Backbone.View
     render: ->
         $(@el).html require('./templates/home')
         @tasks = new TaskCollection(@.$("#task-list"))
+        @archivedTasks = new TaskCollection(@.$("#archive-list"))
         @tasks.fetch()
+        @archivedTasks.url = "tasks/archives/"
+        @archivedTasks.fetch()
         this

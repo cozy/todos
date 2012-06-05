@@ -74,6 +74,7 @@ describe "/tasks", ->
         it "Then my task has been modified", ->
             testLength @body, 1
             @body.rows[0].done.should.be.ok
+            @body.rows[0].completionDate.should.be.ok
 
         it "When I send a request to retrieve tasks", (done) ->
             client.get "tasks/", (error, response, body) =>

@@ -33,11 +33,14 @@ before 'load task', ->
 , only: ['update', 'destroy', 'show']
 
 
+
 action 'all', ->
     Task.all {"where": { "done": false } }, returnTasks
 
+
 action 'archives', ->
     Task.all {"where": { "done": true } }, returnTasks
+
 
 action 'create', ->
     task = new Task body
@@ -48,13 +51,22 @@ action 'create', ->
         else
             send task, 201
 
+
 action 'update', ->
+
+    # Update completion depending on task is complete or not.
+    if body.done? and body.done
+        body.completionDate = Date.now()
+    else if body.done? and not body.done
+        body.completionDate = null
+
     @task.updateAttributes body, (err) =>
         if err
             console.log err
             send error: 'Task can not be updated', 500
         else
             send success: 'Task updated'
+
 
 action 'show', ->
     returnTasks null, [@task]

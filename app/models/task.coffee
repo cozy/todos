@@ -1,9 +1,8 @@
 
 # DestroyTask corresponding to given condition
-# TODO optimise deletion : each deletion requires on request.
 Task.destroySome = (condition, callback) ->
 
-    # Replace this with async lib call.
+    # TODO Replace this with async lib call.
     wait = 0
     error = null
     done = (err) ->

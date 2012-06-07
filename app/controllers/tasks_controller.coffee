@@ -47,14 +47,14 @@ action 'create', ->
     Task.create task, (err, note) =>
         if err
             console.log err
-            send error: 'Task can not be created'
+            send error: 'Task cannot be created'
         else
             send task, 201
 
-
+# Update task and perform completionDate modification depending on whether
+# is finished or not.
 action 'update', ->
 
-    # Update completion depending on task is complete or not.
     if body.done? and body.done
         body.completionDate = Date.now()
     else if body.done? and not body.done
@@ -63,7 +63,7 @@ action 'update', ->
     @task.updateAttributes body, (err) =>
         if err
             console.log err
-            send error: 'Task can not be updated', 500
+            send error: 'Task cannot be updated', 500
         else
             send success: 'Task updated'
 
@@ -72,7 +72,7 @@ action 'destroy', ->
     @task.destroy (err) ->
         if err
             console.log err
-            send error: 'Can not destroy task', 500
+            send error: 'Cannot destroy task', 500
         else
             send success: 'Task succesfuly deleted'
 

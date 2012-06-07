@@ -5,7 +5,7 @@ class exports.HomeView extends Backbone.View
     id: 'home-view'
  
     events:
-        "click #new-task-button": "onEditClicked"
+        "click #new-task-button": "onAddClicked"
         "click #edit-button": "onEditClicked"
 
     constructor: ->

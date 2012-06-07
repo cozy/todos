@@ -6,7 +6,8 @@ class exports.TaskLine extends Backbone.View
     tagName: "div"
 
     events:
-        "click .todo-button": "onButtonClicked"
+        "click .todo-button": "onTodoButtonClicked"
+        "click .del-task-button": "onDelButtonClicked"
         "keyup span": "onDescriptionChanged"
 
     ### Constructor ####
@@ -18,12 +19,20 @@ class exports.TaskLine extends Backbone.View
         @id = @model._id
         @model.view = @
 
-    onButtonClicked: (event) =>
+    onTodoButtonClicked: (event) =>
         if @model.done then @model.setUndone() else @model.setDone()
         @model.save { done: @model.done },
             success: ->
             error: ->
                 alert "An error occured, modifications were not saved."
+
+    onDelButtonClicked: (event) =>
+        @model.destroy
+            success: =>
+                @remove()
+            error: ->
+                alert "An error occured, deletion was not saved."
+
 
     onDescriptionChanged: (event) =>
         if not @saving
@@ -51,6 +60,7 @@ class exports.TaskLine extends Backbone.View
         $(@el).removeClass "done"
 
     remove: ->
+        @unbind()
         $(@el).remove()
 
     render: ->

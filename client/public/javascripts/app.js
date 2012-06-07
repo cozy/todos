@@ -309,7 +309,7 @@
     HomeView.prototype.id = 'home-view';
 
     HomeView.prototype.events = {
-      "click #new-task-button": "onEditClicked",
+      "click #new-task-button": "onAddClicked",
       "click #edit-button": "onEditClicked"
     };
 
@@ -384,7 +384,8 @@
     TaskLine.prototype.tagName = "div";
 
     TaskLine.prototype.events = {
-      "click .todo-button": "onButtonClicked",
+      "click .todo-button": "onTodoButtonClicked",
+      "click .del-task-button": "onDelButtonClicked",
       "keyup span": "onDescriptionChanged"
     };
 
@@ -394,14 +395,15 @@
     function TaskLine(model) {
       this.model = model;
       this.onDescriptionChanged = __bind(this.onDescriptionChanged, this);
-      this.onButtonClicked = __bind(this.onButtonClicked, this);
+      this.onDelButtonClicked = __bind(this.onDelButtonClicked, this);
+      this.onTodoButtonClicked = __bind(this.onTodoButtonClicked, this);
       TaskLine.__super__.constructor.call(this);
       this.saving = false;
       this.id = this.model._id;
       this.model.view = this;
     }
 
-    TaskLine.prototype.onButtonClicked = function(event) {
+    TaskLine.prototype.onTodoButtonClicked = function(event) {
       if (this.model.done) {
         this.model.setUndone();
       } else {
@@ -413,6 +415,18 @@
         success: function() {},
         error: function() {
           return alert("An error occured, modifications were not saved.");
+        }
+      });
+    };
+
+    TaskLine.prototype.onDelButtonClicked = function(event) {
+      var _this = this;
+      return this.model.destroy({
+        success: function() {
+          return _this.remove();
+        },
+        error: function() {
+          return alert("An error occured, deletion was not saved.");
         }
       });
     };
@@ -451,6 +465,7 @@
     };
 
     TaskLine.prototype.remove = function() {
+      this.unbind();
       return $(this.el).remove();
     };
 

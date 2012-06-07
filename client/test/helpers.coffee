@@ -13,3 +13,6 @@ exports.initdb = (callback) ->
                     { done: true, description: "My third task" }, ->
                     callback()
     
+exports.waits = (done, time) ->
+    func = -> done()
+    setTimeout(func, time)

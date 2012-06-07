@@ -22,11 +22,12 @@ describe "Create task", ->
 
 
     it "When todo list is empty", ->
-        @browser.evaluate('$(".task").length').should.equal 0
+        @browser.length(".task").should.equal 0
         
-    it "And I click on new task button", ->
+    it "And I click on new task button", (done) ->
         @browser.click "#new-task-button"
+        helpers.waits done, 200
 
     it "Then I expect to see a new task line", ->
-        @browser.evaluate('$(".task").length').should.equal 1
+        @browser.length(".task").should.equal 1
 

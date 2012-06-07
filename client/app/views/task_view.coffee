@@ -10,7 +10,9 @@ class exports.TaskLine extends Backbone.View
         "click .del-task-button": "onDelButtonClicked"
         "keyup span": "onDescriptionChanged"
 
-    ### Constructor ####
+    ### 
+    # Initializers 
+    ###
 
     constructor: (@model) ->
         super()
@@ -19,6 +21,34 @@ class exports.TaskLine extends Backbone.View
         @id = @model._id
         @model.view = @
 
+    render: ->
+        template = require('./templates/task')
+        $(@el).html template("model": @model)
+        @el.id = @model.id
+        @done() if @model.done
+
+        @setListeners()
+
+        @.$(".task-buttons").hide()
+
+        @el
+
+    setListeners: ->
+        @.$("span.description").live 'blur keyup paste', ->
+            @ = $(@)
+            if @data('before') isnt @html()
+                @data 'before', @html()
+                @trigger('change')
+            return @
+        @.$("span.description").bind "change", @onDescriptionChanged
+
+    ###
+    # Listeners
+    ###
+
+    # On todo button clicked, update task state and send modifications to 
+    # backend.
+    # TODO: display indicator to say that it is saving.
     onTodoButtonClicked: (event) =>
         if @model.done then @model.setUndone() else @model.setDone()
         @model.save { done: @model.done },
@@ -26,6 +56,9 @@ class exports.TaskLine extends Backbone.View
             error: ->
                 alert "An error occured, modifications were not saved."
 
+    # On delete clicked, send delete request to server then remove task line
+    # from DOM.
+    # TODO: display indicator to say that it is saving.
     onDelButtonClicked: (event) =>
         @model.destroy
             success: =>
@@ -33,7 +66,9 @@ class exports.TaskLine extends Backbone.View
             error: ->
                 alert "An error occured, deletion was not saved."
 
-
+    # When description is changed, model is saved to backend after 2 seconds
+    # to avoid making too much requests.
+    # TODO : force saving when window is closed.
     onDescriptionChanged: (event) =>
         if not @saving
             @saving = true
@@ -47,12 +82,18 @@ class exports.TaskLine extends Backbone.View
                             alert "An error occured, modifications were not saved."
                 , 2000)
 
+    ###
+    # Functions
+    ###
+
+    # Change styles and text to display done state.
     done: ->
         @.$(".todo-button").html "done"
         @.$(".todo-button").addClass "disabled"
         @.$(".todo-button").removeClass "btn-info"
         $(@el).addClass "done"
 
+    # Change styles and text to display todo state.
     undone: ->
         @.$(".todo-button").html "todo"
         @.$(".todo-button").removeClass "disabled"
@@ -62,24 +103,4 @@ class exports.TaskLine extends Backbone.View
     remove: ->
         @unbind()
         $(@el).remove()
-
-    render: ->
-        template = require('./templates/task')
-        $(@el).html template("model": @model)
-        @el.id = @model.id
-
-        @.$("span.description").live 'blur keyup paste', ->
-            $this = $(this)
-            if $this.data('before') isnt $this.html()
-                $this.data 'before', $this.html()
-                $this.trigger('change')
-            return $this
-        @.$("span.description").bind "change", @onDescriptionChanged
-
-        @.$(".del-task-button").hide()
-
-        if @model.done
-            @done()
-
-        @el
 

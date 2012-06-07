@@ -1,6 +1,6 @@
 BaseModel = require("./models").BaseModel
 
-# Model that describes a single task.
+
 class exports.Task extends BaseModel
 
     url: 'tasks/'
@@ -13,10 +13,12 @@ class exports.Task extends BaseModel
         if @id
             @url = "tasks/#{@id}/"
 
+    # View binding: when task state is set to done, update view.
     setDone: ->
         @done = true
         @view.done()
 
+    # View binding: when task state is set to todo, update view.
     setUndone: ->
         @done = false
         @view.undone()

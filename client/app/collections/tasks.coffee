@@ -1,6 +1,7 @@
 {Task} = require "../models/task"
 {TaskLine} = require "../views/task_view"
 
+
 class exports.TaskCollection extends Backbone.Collection
     
     model: Task
@@ -17,6 +18,7 @@ class exports.TaskCollection extends Backbone.Collection
     parse: (response) ->
         response.rows
 
+    # View binding : for each task added, add a task line inside view.
     addTasks: (tasks) =>
         tasks.forEach (task) =>
             @addTask task

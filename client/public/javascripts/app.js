@@ -339,10 +339,10 @@
 
     HomeView.prototype.onEditClicked = function(event) {
       if (!this.isEditMode) {
-        this.$(".del-task-button").show();
+        this.$(".task-buttons").show();
         return this.isEditMode = true;
       } else {
-        this.$(".del-task-button").hide();
+        this.$(".task-buttons").hide();
         return this.isEditMode = false;
       }
     };
@@ -485,7 +485,7 @@
         return $this;
       });
       this.$("span.description").bind("change", this.onDescriptionChanged);
-      this.$(".del-task-button").hide();
+      this.$(".task-buttons").hide();
       if (this.model.done) this.done();
       return this.el;
     };
@@ -538,9 +538,15 @@ buf.push('<button');
 buf.push(attrs({ "class": ('btn') + ' ' + ('btn-info') + ' ' + ('todo-button') }));
 buf.push('>todo</button><span');
 buf.push(attrs({ 'contenteditable':("true"), "class": ('description') }));
-buf.push('>' + escape((interp = model.description) == null ? '' : interp) + ' </span><button');
+buf.push('>' + escape((interp = model.description) == null ? '' : interp) + ' </span><div');
+buf.push(attrs({ "class": ('task-buttons') }));
+buf.push('><button');
+buf.push(attrs({ "class": ('up-task-button') }));
+buf.push('>up</button><button');
+buf.push(attrs({ "class": ('down-task-button') }));
+buf.push('>down</button><button');
 buf.push(attrs({ "class": ('del-task-button') }));
-buf.push('>X</button>');
+buf.push('>X</button></div>');
 }
 return buf.join("");
 };

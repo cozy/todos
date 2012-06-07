@@ -230,7 +230,7 @@ ul,ol{margin:0 1.5em 1.5em 0;list-style-type:none}
 .task button{float:left}
 .task input{width:50px;height:50px;border:2px solid #000}
 .task .description{margin-left:10px;font-size:20px;line-height:26px}
-.task .del-task-button{float:right}
+.task-buttons{float:right}
 .todo-list-title{border-bottom:1px solid #ccc;padding:10px}
 .todo-list-title .description{font-weight:bold;font-size:30px;font-variant:small-caps;line-height:40px;margin-left:0}
 .todo-list-title button{float:right}

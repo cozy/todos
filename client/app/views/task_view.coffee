@@ -29,6 +29,7 @@ class exports.TaskLine extends Backbone.View
 
         @setListeners()
 
+        # TODO check if edit mode is on before hiding
         @.$(".task-buttons").hide()
 
         @el

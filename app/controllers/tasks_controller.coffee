@@ -68,6 +68,14 @@ action 'update', ->
             send success: 'Task updated'
 
 
+action 'destroy', ->
+    @task.destroy (err) ->
+        if err
+            console.log err
+            send error: 'Can not destroy task', 500
+        else
+            send success: 'Task succesfuly deleted'
+
 action 'show', ->
     returnTasks null, [@task]
 

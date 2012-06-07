@@ -85,3 +85,35 @@ describe "/tasks", ->
         it "Then I got no tasks", ->
             testLength @body, 0
 
+    describe "GET /tasks/:id/ Show given task",   ->
+        it "When I send a show request for first task", (done) ->
+            @body = null
+            client.get "tasks/#{@id}/", (error, response, body) =>
+                @response = response
+                @body = JSON.parse body
+                done()
+
+        it "Then I got all its data", ->
+            testLength @body, 1
+            @body.rows[0].done.should.be.ok
+            @body.rows[0].completionDate.should.be.ok
+            @body.rows[0].description.should.be.equal "my first task"
+
+
+    describe "DELETE /tasks/:id/ Delete given task",   ->
+        it "When I send a deletion request for first task", (done) ->
+            client.delete "tasks/#{@id}/", (error, response, body) =>
+                @response = response
+                @body = body
+                done()
+
+        it "And I send a show request for first task", (done) ->
+            @body = null
+            client.get "tasks/#{@id}/", (error, response, body) =>
+                @response = response
+                @body = JSON.parse body
+                done()
+
+        it "Then I got a 404 response", ->
+             @response.statusCode.should.equal 404
+

@@ -5,3 +5,4 @@ exports.routes = (map) ->
     map.post '/tasks', 'tasks#create'
     map.get '/tasks/:id/', 'tasks#show'
     map.put '/tasks/:id/', 'tasks#update'
+    map.del '/tasks/:id/', 'tasks#destroy'

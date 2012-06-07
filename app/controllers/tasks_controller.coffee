@@ -34,7 +34,7 @@ before 'load task', ->
 # Controllers
 
 
-action 'all', ->
+action 'todo', ->
     Task.all {"where": { "done": false } }, returnTasks
 
 

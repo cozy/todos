@@ -6,13 +6,15 @@ class exports.TaskLine extends Backbone.View
     tagName: "div"
 
     events:
-        "click button": "onButtonClicked"
+        "click .todo-button": "onButtonClicked"
+        "keyup span": "onDescriptionChanged"
 
     ### Constructor ####
 
     constructor: (@model) ->
         super()
 
+        @saving = false
         @id = @model._id
         @model.view = @
 
@@ -21,25 +23,51 @@ class exports.TaskLine extends Backbone.View
         @model.save { done: @model.done },
             success: ->
             error: ->
-                alert "An error occured, modification was not saved."
+                alert "An error occured, modifications were not saved."
+
+    onDescriptionChanged: (event) =>
+        if not @saving
+            @saving = true
+            setTimeout(
+                =>
+                    @saving = false
+                    @model.description = @.$("span.description").html()
+                    @model.save { description: @model.description },
+                        success: ->
+                        error: ->
+                            alert "An error occured, modifications were not saved."
+                , 2000)
 
     done: ->
-        @.$("button").html "done"
-        @.$("button").addClass "disabled"
-        @.$("button").removeClass "btn-info"
+        @.$(".todo-button").html "done"
+        @.$(".todo-button").addClass "disabled"
+        @.$(".todo-button").removeClass "btn-info"
         $(@el).addClass "done"
 
     undone: ->
-        @.$("button").html "todo"
-        @.$("button").removeClass "disabled"
-        @.$("button").addClass "btn-info"
+        @.$(".todo-button").html "todo"
+        @.$(".todo-button").removeClass "disabled"
+        @.$(".todo-button").addClass "btn-info"
         $(@el).removeClass "done"
 
     remove: ->
         $(@el).remove()
 
     render: ->
-        $(@el).html require('./templates/task')
+        template = require('./templates/task')
+        $(@el).html template("model": @model)
+        @el.id = @model.id
+
+        @.$("span.description").live 'blur keyup paste', ->
+            $this = $(this)
+            if $this.data('before') isnt $this.html()
+                $this.data 'before', $this.html()
+                $this.trigger('change')
+            return $this
+        @.$("span.description").bind "change", @onDescriptionChanged
+
+        @.$(".del-task-button").hide()
+
         if @model.done
             @done()
 

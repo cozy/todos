@@ -7,7 +7,7 @@ class exports.Task extends BaseModel
 
     # Copy note properties to current model.
     constructor: (task) ->
-        super()
+        super(task)
         for property of task
             @[property] = task[property]
         if @id

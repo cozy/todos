@@ -236,7 +236,7 @@
 
     function Task(task) {
       var property;
-      Task.__super__.constructor.call(this);
+      Task.__super__.constructor.call(this, task);
       for (property in task) {
         this[property] = task[property];
       }
@@ -309,21 +309,42 @@
     HomeView.prototype.id = 'home-view';
 
     HomeView.prototype.events = {
-      "click #new-task-button": "onAddClicked"
+      "click #new-task-button": "onEditClicked",
+      "click #edit-button": "onEditClicked"
     };
 
     function HomeView() {
       HomeView.__super__.constructor.call(this);
+      this.isEditMode = false;
     }
 
     HomeView.prototype.onAddClicked = function(event) {
-      var task;
+      var task,
+        _this = this;
       task = new Task({
         done: false,
-        description: "my task"
+        description: "new task"
       });
-      this.tasks.add(task);
-      return task.save();
+      return task.save(null, {
+        success: function(data) {
+          data.url = "tasks/" + data.id + "/";
+          _this.tasks.add(data);
+          return $("" + data.id + " span").contents().focus();
+        },
+        error: function() {
+          return alert("An error occured while saving data");
+        }
+      });
+    };
+
+    HomeView.prototype.onEditClicked = function(event) {
+      if (!this.isEditMode) {
+        this.$(".del-task-button").show();
+        return this.isEditMode = true;
+      } else {
+        this.$(".del-task-button").hide();
+        return this.isEditMode = false;
+      }
     };
 
     HomeView.prototype.render = function() {
@@ -363,7 +384,8 @@
     TaskLine.prototype.tagName = "div";
 
     TaskLine.prototype.events = {
-      "click button": "onButtonClicked"
+      "click .todo-button": "onButtonClicked",
+      "keyup span": "onDescriptionChanged"
     };
 
     /* Constructor
@@ -371,8 +393,10 @@
 
     function TaskLine(model) {
       this.model = model;
+      this.onDescriptionChanged = __bind(this.onDescriptionChanged, this);
       this.onButtonClicked = __bind(this.onButtonClicked, this);
       TaskLine.__super__.constructor.call(this);
+      this.saving = false;
       this.id = this.model._id;
       this.model.view = this;
     }
@@ -388,22 +412,41 @@
       }, {
         success: function() {},
         error: function() {
-          return alert("An error occured, modification was not saved.");
+          return alert("An error occured, modifications were not saved.");
         }
       });
     };
 
+    TaskLine.prototype.onDescriptionChanged = function(event) {
+      var _this = this;
+      if (!this.saving) {
+        this.saving = true;
+        return setTimeout(function() {
+          _this.saving = false;
+          _this.model.description = _this.$("span.description").html();
+          return _this.model.save({
+            description: _this.model.description
+          }, {
+            success: function() {},
+            error: function() {
+              return alert("An error occured, modifications were not saved.");
+            }
+          });
+        }, 2000);
+      }
+    };
+
     TaskLine.prototype.done = function() {
-      this.$("button").html("done");
-      this.$("button").addClass("disabled");
-      this.$("button").removeClass("btn-info");
+      this.$(".todo-button").html("done");
+      this.$(".todo-button").addClass("disabled");
+      this.$(".todo-button").removeClass("btn-info");
       return $(this.el).addClass("done");
     };
 
     TaskLine.prototype.undone = function() {
-      this.$("button").html("todo");
-      this.$("button").removeClass("disabled");
-      this.$("button").addClass("btn-info");
+      this.$(".todo-button").html("todo");
+      this.$(".todo-button").removeClass("disabled");
+      this.$(".todo-button").addClass("btn-info");
       return $(this.el).removeClass("done");
     };
 
@@ -412,7 +455,22 @@
     };
 
     TaskLine.prototype.render = function() {
-      $(this.el).html(require('./templates/task'));
+      template = require('./templates/task');
+      $(this.el).html(template({
+        "model": this.model
+      }));
+      this.el.id = this.model.id;
+      this.$("span.description").live('blur keyup paste', function() {
+        var $this;
+        $this = $(this);
+        if ($this.data('before') !== $this.html()) {
+          $this.data('before', $this.html());
+          $this.trigger('change');
+        }
+        return $this;
+      });
+      this.$("span.description").bind("change", this.onDescriptionChanged);
+      this.$(".del-task-button").hide();
       if (this.model.done) this.done();
       return this.el;
     };
@@ -440,7 +498,9 @@ buf.push('><header');
 buf.push(attrs({ "class": ('todo-list-title') + ' ' + ('clearfix') }));
 buf.push('><button');
 buf.push(attrs({ 'id':("new-task-button"), "class": ("btn btn-large btn-success") }));
-buf.push('>new task\n</button><span');
+buf.push('>new task\n</button><button');
+buf.push(attrs({ 'id':("edit-button"), "class": ("btn btn-large") }));
+buf.push('>edit mode\n</button><span');
 buf.push(attrs({ "class": ('description') }));
 buf.push('>To-do list</span></header><div');
 buf.push(attrs({ 'id':('task-list') }));
@@ -460,10 +520,12 @@ var buf = [];
 with (locals || {}) {
 var interp;
 buf.push('<button');
-buf.push(attrs({ "class": ("btn btn-info") }));
+buf.push(attrs({ "class": ('btn') + ' ' + ('btn-info') + ' ' + ('todo-button') }));
 buf.push('>todo</button><span');
 buf.push(attrs({ 'contenteditable':("true"), "class": ('description') }));
-buf.push('></span>');
+buf.push('>' + escape((interp = model.description) == null ? '' : interp) + ' </span><button');
+buf.push(attrs({ "class": ('del-task-button') }));
+buf.push('>X</button>');
 }
 return buf.join("");
 };

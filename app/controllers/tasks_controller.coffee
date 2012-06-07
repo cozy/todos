@@ -7,8 +7,6 @@ action 'index', ->
        title: "Cozy To-do"
 
 
-
-
 # Helpers
 
 # Return to client a task list like this
@@ -32,6 +30,8 @@ before 'load task', ->
             next()
 , only: ['update', 'destroy', 'show']
 
+
+# Controllers
 
 
 action 'all', ->

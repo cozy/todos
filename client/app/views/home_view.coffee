@@ -5,15 +5,33 @@ class exports.HomeView extends Backbone.View
     id: 'home-view'
  
     events:
-        "click #new-task-button": "onAddClicked"
+        "click #new-task-button": "onEditClicked"
+        "click #edit-button": "onEditClicked"
 
     constructor: ->
         super()
+
+        @isEditMode = false
        
     onAddClicked: (event) ->
-        task = new Task done: false, description: "my task"
-        @tasks.add(task)
-        task.save()
+        task = new Task done: false, description: "new task"
+        task.save null,
+            success: (data) =>
+                data.url = "tasks/#{data.id}/"
+                @tasks.add(data)
+                $("#{data.id} span").contents().focus()
+            error: ->
+                alert "An error occured while saving data"
+ 
+    onEditClicked: (event) ->
+        if not @isEditMode
+            @.$(".del-task-button").show()
+            @isEditMode = true
+        else
+            @.$(".del-task-button").hide()
+            @isEditMode = false
+            
+
 
     render: ->
         $(@el).html require('./templates/home')

@@ -34,7 +34,7 @@ saveTask = (task, callback) ->
         if err
             send error: "An error occured while modifying task", 500
         else
-            callback()
+            callback(task)
 
 # Update previous task link with current task ID
 # If this update is due to a link removal, the next task of current task is
@@ -64,6 +64,22 @@ updateNextTask = (task, isRemoveLink, callback) ->
     else
         callback()
 
+setFirstTask = (task, callback) ->
+    Task.all {"where": { "done": false } }, (err, tasks) ->
+        if err
+            console.log err
+            send error: "Retrieve tasks failed.", 500
+        else if not tasks.length or tasks[0].id == task.id
+            callback()
+        else
+            i = 0
+            firstTask = tasks[i]
+            while firstTask.previousTask? and i < tasks.length
+                firstTask = tasks[i]
+                i++
+            
+            firstTask.previousTask = task.id
+            saveTask firstTask, callback
 
 before 'load task', ->
     Task.find params.id, (err, task) =>
@@ -94,7 +110,7 @@ action 'todo', ->
             result.push(task)
         send number: result.length, rows: result
 
-    Task.all {"where": { "done": false } }, (err, tasks) ->
+    Task.all { "where": { "done": false } }, (err, tasks) ->
         if err
             console.log err
             send error: "Retrieve tasks failed.", 500
@@ -118,16 +134,28 @@ action 'create', ->
             else
                 callback(task)
 
-    createTask newTask, (task) ->
-        updatePreviousTask task, false, ->
-            updateNextTask task, false, ->
-                send task, 201
+    if not newTask.done and not newTask.previousTask? and not newTask.nextTask?
+        createTask newTask, (createdTask) ->
+            setFirstTask createdTask, (firstTask) ->
+                if firstTask?
+                    createdTask.nextTask = firstTask.id
+                    saveTask createdTask, (task) ->
+                        send task, 201
+                else
+                    send createdTask, 201
+    else
+        createTask newTask, (task) ->
+            updatePreviousTask task, false, ->
+                updateNextTask task, false, ->
+                    send task, 201
 
     
 # * Update task attributes
 # * perform completionDate modification depending on whether is finished or not.
 # * update linked list depending on previous and next task values
 action 'update', ->
+
+    # TODO when task go to undone
 
     # set completion date
     if body.done? and body.done
@@ -180,6 +208,12 @@ action 'update', ->
                 body.previousTask = null
                 body.nextTask = null
                 updateTaskAttributes()
+
+    else if body.done? and not body.done
+        
+        setFirstTask @task, ->
+            updateTaskAttributes()
+
     else
         tmpTask = new Task
             previousTask: @task.previousTask

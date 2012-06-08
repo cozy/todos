@@ -201,3 +201,31 @@ describe "/tasks", ->
 
             @id = @body.rows[0].id
 
+
+    describe "POST /tasks/:id/ New task and update order",   ->
+        it "When I create one new task", (done) ->
+            task =
+                description: "my first task"
+
+            client.post "tasks/", task, (error, response, body) =>
+                @id = body.id
+                done()
+
+        it "And I send a request to retrieve tasks", (done) ->
+            client.get "tasks/", (error, response, body) =>
+                @body = JSON.parse body
+                done()
+
+        it "My new task is set as first one", ->
+            testLength @body, 3
+            @body.rows[0].description.should.equal "my first task"
+            should.not.exist @body.rows[0].previousTask
+            @body.rows[0].nextTask.should.equal @id2
+            @body.rows[1].description.should.equal "my second task"
+            @body.rows[1].previousTask.should.equal @id
+            @body.rows[1].nextTask.should.equal @id3
+            @body.rows[2].description.should.equal "my third task"
+            @body.rows[2].previousTask.should.equal @id2
+            should.not.exist @body.rows[2].nextTask
+
+

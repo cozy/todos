@@ -36,11 +36,11 @@ class exports.TaskLine extends Backbone.View
 
     setListeners: ->
         @.$("span.description").live 'blur keyup paste', ->
-            @ = $(@)
-            if @data('before') isnt @html()
-                @data 'before', @html()
-                @trigger('change')
-            return @
+            el = $(@)
+            if data('before') isnt el.html()
+                el.data 'before', el.html()
+                el.trigger('change')
+            return el
         @.$("span.description").bind "change", @onDescriptionChanged
 
     ###

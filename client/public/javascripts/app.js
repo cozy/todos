@@ -313,10 +313,32 @@
       "click #edit-button": "onEditClicked"
     };
 
+    /*
+        # Initializers
+    */
+
     function HomeView() {
       HomeView.__super__.constructor.call(this);
       this.isEditMode = false;
     }
+
+    HomeView.prototype.render = function() {
+      $(this.el).html(require('./templates/home'));
+      this.tasks = new TaskCollection(this.$("#task-list"));
+      this.archivedTasks = new TaskCollection(this.$("#archive-list"));
+      this.loadData();
+      return this;
+    };
+
+    HomeView.prototype.loadData = function() {
+      this.tasks.fetch();
+      this.archivedTasks.url = "tasks/archives/";
+      return this.archivedTasks.fetch();
+    };
+
+    /*
+        # Listeners
+    */
 
     HomeView.prototype.onAddClicked = function(event) {
       var task,
@@ -345,16 +367,6 @@
         this.$(".task-buttons").hide();
         return this.isEditMode = false;
       }
-    };
-
-    HomeView.prototype.render = function() {
-      $(this.el).html(require('./templates/home'));
-      this.tasks = new TaskCollection(this.$("#task-list"));
-      this.archivedTasks = new TaskCollection(this.$("#archive-list"));
-      this.tasks.fetch();
-      this.archivedTasks.url = "tasks/archives/";
-      this.archivedTasks.fetch();
-      return this;
     };
 
     return HomeView;
@@ -389,7 +401,8 @@
       "keyup span": "onDescriptionChanged"
     };
 
-    /* Constructor
+    /* 
+    # Initializers
     */
 
     function TaskLine(model) {
@@ -402,6 +415,35 @@
       this.id = this.model._id;
       this.model.view = this;
     }
+
+    TaskLine.prototype.render = function() {
+      template = require('./templates/task');
+      $(this.el).html(template({
+        "model": this.model
+      }));
+      this.el.id = this.model.id;
+      if (this.model.done) this.done();
+      this.setListeners();
+      this.$(".task-buttons").hide();
+      return this.el;
+    };
+
+    TaskLine.prototype.setListeners = function() {
+      this.$("span.description").live('blur keyup paste', function() {
+        var el;
+        el = $(this);
+        if (data('before') !== el.html()) {
+          el.data('before', el.html());
+          el.trigger('change');
+        }
+        return el;
+      });
+      return this.$("span.description").bind("change", this.onDescriptionChanged);
+    };
+
+    /*
+        # Listeners
+    */
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
       if (this.model.done) {
@@ -450,6 +492,10 @@
       }
     };
 
+    /*
+        # Functions
+    */
+
     TaskLine.prototype.done = function() {
       this.$(".todo-button").html("done");
       this.$(".todo-button").addClass("disabled");
@@ -467,27 +513,6 @@
     TaskLine.prototype.remove = function() {
       this.unbind();
       return $(this.el).remove();
-    };
-
-    TaskLine.prototype.render = function() {
-      template = require('./templates/task');
-      $(this.el).html(template({
-        "model": this.model
-      }));
-      this.el.id = this.model.id;
-      this.$("span.description").live('blur keyup paste', function() {
-        var $this;
-        $this = $(this);
-        if ($this.data('before') !== $this.html()) {
-          $this.data('before', $this.html());
-          $this.trigger('change');
-        }
-        return $this;
-      });
-      this.$("span.description").bind("change", this.onDescriptionChanged);
-      this.$(".task-buttons").hide();
-      if (this.model.done) this.done();
-      return this.el;
     };
 
     return TaskLine;

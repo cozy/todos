@@ -3,6 +3,8 @@ Task = define 'Task', ->
     property 'creationDate', Date, default: Date.now
     property 'completionDate', Date
     property 'description', String
+    property 'previousTask', String
+    property 'nextTask', String
 
 # User defines user that interacts with the Cozy instance.
 # This schema is required for authentication.

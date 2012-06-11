@@ -18,6 +18,7 @@ Task.destroySome = (condition, callback) ->
         data.forEach (obj) ->
             obj.destroy done
 
+
 # Delete all notes.
 Task.destroyAll = (callback) ->
     Task.destroySome {}, callback

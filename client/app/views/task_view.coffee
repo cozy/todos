@@ -35,11 +35,15 @@ class exports.TaskLine extends Backbone.View
         @el
 
     setListeners: ->
-        @.$("span.description").live 'blur keyup paste', ->
+        @.$("span.description").keypress (event) ->
+            return event.which != 13
+
+        @.$("span.description").live 'blur keyup paste', (event) ->
             el = $(@)
-            if data('before') isnt el.html()
+
+            if el.data('before') isnt el.html()
                 el.data 'before', el.html()
-                el.trigger('change')
+                el.trigger('change', event.which)
             return el
         @.$("span.description").bind "change", @onDescriptionChanged
 
@@ -70,8 +74,10 @@ class exports.TaskLine extends Backbone.View
     # When description is changed, model is saved to backend after 2 seconds
     # to avoid making too much requests.
     # TODO : force saving when window is closed.
-    onDescriptionChanged: (event) =>
-        if not @saving
+    onDescriptionChanged: (event, keyCode) =>
+        if keyCode == 13
+            event.preventDefault()
+        else if not @saving
             @saving = true
             setTimeout(
                 =>

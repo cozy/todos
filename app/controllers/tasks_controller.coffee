@@ -1,5 +1,7 @@
 load 'application'
 
+async = require 'async'
+
 
 # Entry point
 action 'index', ->
@@ -8,6 +10,7 @@ action 'index', ->
 
 
 # Helpers
+
 
 # Return to client a task list like this
 # { length: number of taks, rows: task list }
@@ -18,12 +21,12 @@ returnTasks = (err, tasks) ->
     else
         send number: tasks.length, rows: tasks
 
-# Find task based on its id and check for errors.
-findTask = (taskId, isRemoveLink, callback) ->
+# Find task based on its id and check for errors only if it is required
+findTask = (taskId, checkError, callback) ->
     Task.find taskId, (err, task) =>
-        if err and not isRemoveLink
+        if err and not checkError
             send error: 'An error occured while getting task', 500
-        else if not task? and not isRemoveLink
+        else if not task? and not checkError
             send error: 'Linked task not found', 400
         else
             callback(task)
@@ -78,8 +81,11 @@ setFirstTask = (task, callback) ->
                 firstTask = tasks[i]
                 i++
             
-            firstTask.previousTask = task.id
-            saveTask firstTask, callback
+            if firstTask?
+                firstTask.previousTask = task.id
+                saveTask firstTask, callback
+            else
+                callback null
 
 before 'load task', ->
     Task.find params.id, (err, task) =>
@@ -94,6 +100,10 @@ before 'load task', ->
 
 
 # Controllers
+
+
+action 'all', ->
+    Task.all {}, returnTasks
 
 action 'todo', ->
     orderTasks = (tasks) ->
@@ -120,7 +130,8 @@ action 'todo', ->
             orderTasks(tasks)
 
 action 'archives', ->
-    Task.all {"where": { "done": true } }, returnTasks
+    Task.all {"where": { "done": true }, "sort": {"completionDate"} }, \
+             returnTasks
 
 
 action 'create', ->
@@ -202,19 +213,21 @@ action 'update', ->
         else
             callback()
 
-    if body.done? and body.done
+    if body.done? and body.done and @task.done != body.done
         updatePreviousTask @task, true, =>
             updateNextTask @task, true, =>
                 body.previousTask = null
                 body.nextTask = null
                 updateTaskAttributes()
 
-    else if body.done? and not body.done
-        
-        setFirstTask @task, ->
+    else if body.done? and not body.done and @task.done != body.done
+        setFirstTask @task, (firstTask) ->
+            body.previousTask = null
+            if firstTask?
+                body.nextTask = firstTask.id
             updateTaskAttributes()
 
-    else
+    else if body.previousTask != undefined or body.nextTask != undefined
         tmpTask = new Task
             previousTask: @task.previousTask
             nextTask: @task.nextTask
@@ -226,7 +239,8 @@ action 'update', ->
                 id: @task.id
             updateNextLink tmpTask, =>
                 updateTaskAttributes()
-
+    else
+        updateTaskAttributes()
 
 action 'destroy', ->
     

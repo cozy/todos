@@ -27,5 +27,5 @@ class exports.TaskCollection extends Backbone.Collection
     # inside view.
     addTask: (task) =>
         taskLine = new TaskLine task
-        @view.prepend taskLine.render()
+        @view.append taskLine.render()
 

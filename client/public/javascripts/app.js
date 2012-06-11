@@ -120,7 +120,7 @@
     TaskCollection.prototype.addTask = function(task) {
       var taskLine;
       taskLine = new TaskLine(task);
-      return this.view.prepend(taskLine.render());
+      return this.view.append(taskLine.render());
     };
 
     return TaskCollection;
@@ -351,7 +351,7 @@
         success: function(data) {
           data.url = "tasks/" + data.id + "/";
           _this.tasks.add(data);
-          return $("" + data.id + " span").contents().focus();
+          return $("" + data.id + " span.description").contents().focus();
         },
         error: function() {
           return alert("An error occured while saving data");
@@ -429,12 +429,15 @@
     };
 
     TaskLine.prototype.setListeners = function() {
-      this.$("span.description").live('blur keyup paste', function() {
+      this.$("span.description").keypress(function(event) {
+        return event.which !== 13;
+      });
+      this.$("span.description").live('blur keyup paste', function(event) {
         var el;
         el = $(this);
-        if (data('before') !== el.html()) {
+        if (el.data('before') !== el.html()) {
           el.data('before', el.html());
-          el.trigger('change');
+          el.trigger('change', event.which);
         }
         return el;
       });
@@ -473,9 +476,11 @@
       });
     };
 
-    TaskLine.prototype.onDescriptionChanged = function(event) {
+    TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
       var _this = this;
-      if (!this.saving) {
+      if (keyCode === 13) {
+        return event.preventDefault();
+      } else if (!this.saving) {
         this.saving = true;
         return setTimeout(function() {
           _this.saving = false;

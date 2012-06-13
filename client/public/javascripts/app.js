@@ -99,10 +99,12 @@
     TaskCollection.prototype.url = 'tasks/';
 
     function TaskCollection(view) {
-      this.addTask = __bind(this.addTask, this);
+      this.up = __bind(this.up, this);
+      this.prependTask = __bind(this.prependTask, this);
+      this.appendTask = __bind(this.appendTask, this);
       this.addTasks = __bind(this.addTasks, this);      TaskCollection.__super__.constructor.call(this);
       this.view = view;
-      this.bind("add", this.addTask);
+      this.bind("add", this.prependTask);
       this.bind("reset", this.addTasks);
     }
 
@@ -113,14 +115,54 @@
     TaskCollection.prototype.addTasks = function(tasks) {
       var _this = this;
       return tasks.forEach(function(task) {
-        return _this.addTask(task);
+        task.collection = _this;
+        return _this.appendTask(task);
       });
     };
 
-    TaskCollection.prototype.addTask = function(task) {
+    TaskCollection.prototype.appendTask = function(task) {
       var taskLine;
       taskLine = new TaskLine(task);
       return this.view.append(taskLine.render());
+    };
+
+    TaskCollection.prototype.prependTask = function(task) {
+      var nextTask, taskLine;
+      task.collection = this;
+      nextTask = this.at(1);
+      if (nextTask != null) nextTask.set("previousTask", task.id);
+      taskLine = new TaskLine(task);
+      return this.view.prepend(taskLine.render());
+    };
+
+    TaskCollection.prototype.up = function(task) {
+      var index, nextTask, oldPreviousTask, previousTask;
+      index = this.toArray().indexOf(task);
+      console.log(index);
+      if (index === 0) return false;
+      if (index > 0) oldPreviousTask = this.at(index - 1);
+      if (index > 1) previousTask = this.at(index - 2);
+      nextTask = this.at(index + 1);
+      if (nextTask != null) {
+        nextTask.set("previousTask", oldPreviousTask.id);
+        oldPreviousTask.set("nextTask", nextTask.id);
+      } else {
+        oldPreviousTask.set("nextTask", null);
+      }
+      if (previousTask != null) {
+        previousTask.set("nextTask", task.id);
+        task.set("previousTask", previousTask.id);
+      } else {
+        task.set("previousTask", null);
+      }
+      task.set("nextTask", oldPreviousTask.id);
+      task.view.up(oldPreviousTask.id);
+      this.remove(task);
+      this.add(task, {
+        at: index - 1,
+        silent: true
+      });
+      return true;
     };
 
     return TaskCollection;
@@ -350,7 +392,9 @@
       return task.save(null, {
         success: function(data) {
           data.url = "tasks/" + data.id + "/";
-          _this.tasks.add(data);
+          _this.tasks.add(data, {
+            at: 0
+          });
           return $("" + data.id + " span.description").contents().focus();
         },
         error: function() {
@@ -398,6 +442,8 @@
     TaskLine.prototype.events = {
       "click .todo-button": "onTodoButtonClicked",
       "click .del-task-button": "onDelButtonClicked",
+      "click .up-task-button": "onUpButtonClicked",
+      "click .down-task-button": "onDownButtonClicked",
       "keyup span": "onDescriptionChanged"
     };
 
@@ -408,6 +454,8 @@
     function TaskLine(model) {
       this.model = model;
       this.onDescriptionChanged = __bind(this.onDescriptionChanged, this);
+      this.onDownButtonClicked = __bind(this.onDownButtonClicked, this);
+      this.onUpButtonClicked = __bind(this.onUpButtonClicked, this);
       this.onDelButtonClicked = __bind(this.onDelButtonClicked, this);
       this.onTodoButtonClicked = __bind(this.onTodoButtonClicked, this);
       TaskLine.__super__.constructor.call(this);
@@ -476,24 +524,41 @@
       });
     };
 
+    TaskLine.prototype.onUpButtonClicked = function(event) {
+      if (this.model.collection.up(this.model)) {
+        return this.model.save({
+          success: function() {},
+          error: function() {
+            return alert("An error occured, modifications were not saved.");
+          }
+        });
+      }
+    };
+
+    TaskLine.prototype.onDownButtonClicked = function(event) {
+      return true;
+    };
+
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
-      var _this = this;
+      var saveDescription,
+        _this = this;
+      saveDescription = function() {
+        _this.saving = false;
+        _this.model.description = _this.$("span.description").html();
+        return _this.model.save({
+          description: _this.model.description
+        }, {
+          success: function() {},
+          error: function() {
+            return alert("An error occured, modifications were not saved.");
+          }
+        });
+      };
       if (keyCode === 13) {
         return event.preventDefault();
       } else if (!this.saving) {
         this.saving = true;
-        return setTimeout(function() {
-          _this.saving = false;
-          _this.model.description = _this.$("span.description").html();
-          return _this.model.save({
-            description: _this.model.description
-          }, {
-            success: function() {},
-            error: function() {
-              return alert("An error occured, modifications were not saved.");
-            }
-          });
-        }, 2000);
+        return setTimeout(saveDescription, 2000);
       }
     };
 
@@ -513,6 +578,10 @@
       this.$(".todo-button").removeClass("disabled");
       this.$(".todo-button").addClass("btn-info");
       return $(this.el).removeClass("done");
+    };
+
+    TaskLine.prototype.up = function(previousLineId) {
+      return $(this.el).insertBefore($("#" + previousLineId));
     };
 
     TaskLine.prototype.remove = function() {

@@ -44,7 +44,7 @@ class exports.HomeView extends Backbone.View
         task.save null,
             success: (data) =>
                 data.url = "tasks/#{data.id}/"
-                @tasks.add(data)
+                @tasks.add(data, at: 0)
                 $("#{data.id} span.description").contents().focus()
             error: ->
                 alert "An error occured while saving data"

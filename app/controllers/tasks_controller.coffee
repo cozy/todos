@@ -39,51 +39,64 @@ saveTask = (task, callback) ->
         else
             callback(task)
 
-# Update previous task link with current task ID
-# If this update is due to a link removal, the next task of current task is
-# set with previous task ID.
-updatePreviousTask = (task, isRemoveLink, callback) ->
+# Change next task ID of previous task with next task ID of current task.
+removePreviousLink = (task, callback) ->
     if task.previousTask?
-        findTask task.previousTask, isRemoveLink, (previousTask) =>
-            if isRemoveLink
-                previousTask.nextTask = task.nextTask
-            else
-                previousTask.nextTask = task.id
+        findTask task.previousTask, true, (previousTask) =>
+            previousTask.nextTask = task.nextTask
+            saveTask previousTask, callback
+    else
+        callback()
+        
+# Change next task ID of previous task with current task ID.
+setPreviousLink = (task, callback) ->
+    if task.previousTask?
+        findTask task.previousTask, true, (previousTask) =>
+            previousTask.nextTask = task.id
             saveTask previousTask, callback
     else
         callback()
 
-# Update next task link of previous task with current task ID
-# If this update is due to a link removal, the previous task of current task is
-# set with next task ID.
-updateNextTask = (task, isRemoveLink, callback) ->
+# Change previous task ID of next task with previous task ID of curren task.
+removeNextLink = (task, callback) ->
     if task.nextTask?
-        findTask task.nextTask, isRemoveLink, (nextTask) =>
-            if isRemoveLink
-                nextTask.previousTask = task.previousTask
-            else
-                nextTask.previousTask = task.id
+        findTask task.nextTask, true, (nextTask) =>
+            nextTask.previousTask = task.previousTask
             saveTask nextTask, callback
     else
         callback()
+
+# Change previous task ID of next task with current task ID.
+setNextLink = (task, callback) ->
+    if task.nextTask?
+        findTask task.nextTask, true, (nextTask) =>
+            nextTask.previousTask = task.id
+            saveTask nextTask, callback
+    else
+        callback()
+
 
 setFirstTask = (task, callback) ->
     Task.all {"where": { "done": false } }, (err, tasks) ->
         if err
             console.log err
             send error: "Retrieve tasks failed.", 500
-        else if not tasks.length or tasks[0].id == task.id
-            callback()
+        else if not tasks.length \
+                or (tasks.length == 1 and tasks[0].id == task.id)
+            callback task
         else
-            i = 0
-            firstTask = tasks[i]
+            firstTask = tasks[0]
+            i = 1
             while firstTask.previousTask? and i < tasks.length
-                firstTask = tasks[i]
+                if tasks[i].id != task.id
+                    firstTask = tasks[i]
                 i++
             
             if firstTask?
                 firstTask.previousTask = task.id
-                saveTask firstTask, callback
+                task.nextTask = firstTask.id
+                saveTask firstTask, (firstTask) ->
+                    saveTask task, callback
             else
                 callback null
 
@@ -147,17 +160,12 @@ action 'create', ->
 
     if not newTask.done and not newTask.previousTask? and not newTask.nextTask?
         createTask newTask, (createdTask) ->
-            setFirstTask createdTask, (firstTask) ->
-                if firstTask?
-                    createdTask.nextTask = firstTask.id
-                    saveTask createdTask, (task) ->
-                        send task, 201
-                else
-                    send createdTask, 201
+            setFirstTask createdTask, (task) ->
+                send task, 201
     else
         createTask newTask, (task) ->
-            updatePreviousTask task, false, ->
-                updateNextTask task, false, ->
+            setPreviousLink task, ->
+                setNextLink task, ->
                     send task, 201
 
     
@@ -187,13 +195,9 @@ action 'update', ->
     updatePreviousLink = (tmpTask, callback) =>
         if body.previousTask !=  undefined \
            and tmpTask.previousTask != body.previousTask
-
-            # remove old previous link
-            updatePreviousTask tmpTask, true, (task) =>
-
-                # set new previous link
+            removePreviousLink tmpTask, (task) =>
                 tmpTask.previousTask = body.previousTask
-                updatePreviousTask tmpTask, false, (task) =>
+                setPreviousLink tmpTask, (task) =>
                     callback()
         else
             callback()
@@ -202,31 +206,27 @@ action 'update', ->
     updateNextLink = (tmpTask, callback) =>
         if body.nextTask != undefined \
            and tmpTask.nextTask != body.nextTask
-
-            # remove old next link
-            updateNextTask tmpTask, true, (task) =>
-                
-                # set new next link
+            removeNextLink tmpTask, (task) =>
                 tmpTask.nextTask = body.nextTask
-                updateNextTask tmpTask, false, (task) =>
+                setNextLink tmpTask, (task) =>
                     callback()
         else
             callback()
 
+    # Task move from todo to done
     if body.done? and body.done and @task.done != body.done
-        updatePreviousTask @task, true, =>
-            updateNextTask @task, true, =>
+        removePreviousLink @task, =>
+            removeNextLink @task, =>
                 body.previousTask = null
                 body.nextTask = null
                 updateTaskAttributes()
 
+    # Task move from done to todo
     else if body.done? and not body.done and @task.done != body.done
-        setFirstTask @task, (firstTask) ->
-            body.previousTask = null
-            if firstTask?
-                body.nextTask = firstTask.id
+        setFirstTask @task, (task) ->
             updateTaskAttributes()
 
+    # When link changes previous and next task are updated.
     else if body.previousTask != undefined or body.nextTask != undefined
         tmpTask = new Task
             previousTask: @task.previousTask
@@ -253,8 +253,8 @@ action 'destroy', ->
                 callback(task)
 
     destroyTask @task, (task) ->
-        updatePreviousTask task, true, ->
-            updateNextTask task, true, ->
+        removePreviousLink task, ->
+            removeNextLink task, ->
                 send success: 'Task succesfuly deleted'
 
 

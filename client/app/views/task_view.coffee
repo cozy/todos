@@ -8,6 +8,8 @@ class exports.TaskLine extends Backbone.View
     events:
         "click .todo-button": "onTodoButtonClicked"
         "click .del-task-button": "onDelButtonClicked"
+        "click .up-task-button": "onUpButtonClicked"
+        "click .down-task-button": "onDownButtonClicked"
         "keyup span": "onDescriptionChanged"
 
     ### 
@@ -71,23 +73,34 @@ class exports.TaskLine extends Backbone.View
             error: ->
                 alert "An error occured, deletion was not saved."
 
+    onUpButtonClicked: (event) =>
+        if @model.collection.up(@model)
+            @model.save
+                success: ->
+                error: ->
+                    alert "An error occured, modifications were not saved."
+
+    onDownButtonClicked: (event) =>
+        true
+
     # When description is changed, model is saved to backend after 2 seconds
     # to avoid making too much requests.
     # TODO : force saving when window is closed.
     onDescriptionChanged: (event, keyCode) =>
+
+        saveDescription = =>
+            @saving = false
+            @model.description = @.$("span.description").html()
+            @model.save { description: @model.description },
+                success: ->
+                error: ->
+                    alert "An error occured, modifications were not saved."
+
         if keyCode == 13
             event.preventDefault()
         else if not @saving
             @saving = true
-            setTimeout(
-                =>
-                    @saving = false
-                    @model.description = @.$("span.description").html()
-                    @model.save { description: @model.description },
-                        success: ->
-                        error: ->
-                            alert "An error occured, modifications were not saved."
-                , 2000)
+            setTimeout saveDescription, 2000
 
     ###
     # Functions
@@ -107,6 +120,11 @@ class exports.TaskLine extends Backbone.View
         @.$(".todo-button").addClass "btn-info"
         $(@el).removeClass "done"
 
+    up: (previousLineId) ->
+        #$(@el).remove()
+        $(@el).insertBefore($("##{previousLineId}"))
+
+    # Remove object from view and unbind listeners
     remove: ->
         @unbind()
         $(@el).remove()

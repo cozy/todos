@@ -79,101 +79,6 @@
   }
 }).call(this);
 (this.require.define({
-  "collections/tasks": function(exports, require, module) {
-    (function() {
-  var Task, TaskLine,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __hasProp = Object.prototype.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-  Task = require("../models/task").Task;
-
-  TaskLine = require("../views/task_view").TaskLine;
-
-  exports.TaskCollection = (function(_super) {
-
-    __extends(TaskCollection, _super);
-
-    TaskCollection.prototype.model = Task;
-
-    TaskCollection.prototype.url = 'tasks/';
-
-    function TaskCollection(view) {
-      this.up = __bind(this.up, this);
-      this.prependTask = __bind(this.prependTask, this);
-      this.appendTask = __bind(this.appendTask, this);
-      this.addTasks = __bind(this.addTasks, this);      TaskCollection.__super__.constructor.call(this);
-      this.view = view;
-      this.bind("add", this.prependTask);
-      this.bind("reset", this.addTasks);
-    }
-
-    TaskCollection.prototype.parse = function(response) {
-      return response.rows;
-    };
-
-    TaskCollection.prototype.addTasks = function(tasks) {
-      var _this = this;
-      return tasks.forEach(function(task) {
-        task.collection = _this;
-        return _this.appendTask(task);
-      });
-    };
-
-    TaskCollection.prototype.appendTask = function(task) {
-      var taskLine;
-      taskLine = new TaskLine(task);
-      return this.view.append(taskLine.render());
-    };
-
-    TaskCollection.prototype.prependTask = function(task) {
-      var nextTask, taskLine;
-      task.collection = this;
-      nextTask = this.at(1);
-      if (nextTask != null) nextTask.set("previousTask", task.id);
-      taskLine = new TaskLine(task);
-      return this.view.prepend(taskLine.render());
-    };
-
-    TaskCollection.prototype.up = function(task) {
-      var index, nextTask, oldPreviousTask, previousTask;
-      index = this.toArray().indexOf(task);
-      console.log(index);
-      if (index === 0) return false;
-      if (index > 0) oldPreviousTask = this.at(index - 1);
-      if (index > 1) previousTask = this.at(index - 2);
-      nextTask = this.at(index + 1);
-      if (nextTask != null) {
-        nextTask.set("previousTask", oldPreviousTask.id);
-        oldPreviousTask.set("nextTask", nextTask.id);
-      } else {
-        oldPreviousTask.set("nextTask", null);
-      }
-      if (previousTask != null) {
-        previousTask.set("nextTask", task.id);
-        task.set("previousTask", previousTask.id);
-      } else {
-        task.set("previousTask", null);
-      }
-      task.set("nextTask", oldPreviousTask.id);
-      task.view.up(oldPreviousTask.id);
-      this.remove(task);
-      this.add(task, {
-        at: index - 1,
-        silent: true
-      });
-      return true;
-    };
-
-    return TaskCollection;
-
-  })(Backbone.Collection);
-
-}).call(this);
-
-  }
-}));
-(this.require.define({
   "helpers": function(exports, require, module) {
     (function() {
 
@@ -262,48 +167,6 @@
   }
 }));
 (this.require.define({
-  "models/task": function(exports, require, module) {
-    (function() {
-  var BaseModel,
-    __hasProp = Object.prototype.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-  BaseModel = require("./models").BaseModel;
-
-  exports.Task = (function(_super) {
-
-    __extends(Task, _super);
-
-    Task.prototype.url = 'tasks/';
-
-    function Task(task) {
-      var property;
-      Task.__super__.constructor.call(this, task);
-      for (property in task) {
-        this[property] = task[property];
-      }
-      if (this.id) this.url = "tasks/" + this.id + "/";
-    }
-
-    Task.prototype.setDone = function() {
-      this.done = true;
-      return this.view.done();
-    };
-
-    Task.prototype.setUndone = function() {
-      this.done = false;
-      return this.view.undone();
-    };
-
-    return Task;
-
-  })(BaseModel);
-
-}).call(this);
-
-  }
-}));
-(this.require.define({
   "routers/main_router": function(exports, require, module) {
     (function() {
   var __hasProp = Object.prototype.hasOwnProperty,
@@ -328,94 +191,6 @@
     return MainRouter;
 
   })(Backbone.Router);
-
-}).call(this);
-
-  }
-}));
-(this.require.define({
-  "views/home_view": function(exports, require, module) {
-    (function() {
-  var Task, TaskCollection,
-    __hasProp = Object.prototype.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-  TaskCollection = require("../collections/tasks").TaskCollection;
-
-  Task = require("../models/task").Task;
-
-  exports.HomeView = (function(_super) {
-
-    __extends(HomeView, _super);
-
-    HomeView.prototype.id = 'home-view';
-
-    HomeView.prototype.events = {
-      "click #new-task-button": "onAddClicked",
-      "click #edit-button": "onEditClicked"
-    };
-
-    /*
-        # Initializers
-    */
-
-    function HomeView() {
-      HomeView.__super__.constructor.call(this);
-      this.isEditMode = false;
-    }
-
-    HomeView.prototype.render = function() {
-      $(this.el).html(require('./templates/home'));
-      this.tasks = new TaskCollection(this.$("#task-list"));
-      this.archivedTasks = new TaskCollection(this.$("#archive-list"));
-      this.loadData();
-      return this;
-    };
-
-    HomeView.prototype.loadData = function() {
-      this.tasks.fetch();
-      this.archivedTasks.url = "tasks/archives/";
-      return this.archivedTasks.fetch();
-    };
-
-    /*
-        # Listeners
-    */
-
-    HomeView.prototype.onAddClicked = function(event) {
-      var task,
-        _this = this;
-      task = new Task({
-        done: false,
-        description: "new task"
-      });
-      return task.save(null, {
-        success: function(data) {
-          data.url = "tasks/" + data.id + "/";
-          _this.tasks.add(data, {
-            at: 0
-          });
-          return $("" + data.id + " span.description").contents().focus();
-        },
-        error: function() {
-          return alert("An error occured while saving data");
-        }
-      });
-    };
-
-    HomeView.prototype.onEditClicked = function(event) {
-      if (!this.isEditMode) {
-        this.$(".task-buttons").show();
-        return this.isEditMode = true;
-      } else {
-        this.$(".task-buttons").hide();
-        return this.isEditMode = false;
-      }
-    };
-
-    return HomeView;
-
-  })(Backbone.View);
 
 }).call(this);
 
@@ -536,7 +311,14 @@
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      return true;
+      if (this.model.collection.down(this.model)) {
+        return this.model.save({
+          success: function() {},
+          error: function() {
+            return alert("An error occured, modifications were not saved.");
+          }
+        });
+      }
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
@@ -582,6 +364,10 @@
 
     TaskLine.prototype.up = function(previousLineId) {
       return $(this.el).insertBefore($("#" + previousLineId));
+    };
+
+    TaskLine.prototype.down = function(nextLineId) {
+      return $(this.el).insertAfter($("#" + nextLineId));
     };
 
     TaskLine.prototype.remove = function() {

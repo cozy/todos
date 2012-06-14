@@ -23,6 +23,7 @@ class exports.TaskLine extends Backbone.View
         @id = @model._id
         @model.view = @
 
+    # Render wiew and bind it to model.
     render: ->
         template = require('./templates/task')
         $(@el).html template("model": @model)
@@ -36,6 +37,7 @@ class exports.TaskLine extends Backbone.View
 
         @el
 
+    # Listen for description modification
     setListeners: ->
         @.$("span.description").keypress (event) ->
             return event.which != 13
@@ -73,15 +75,21 @@ class exports.TaskLine extends Backbone.View
             error: ->
                 alert "An error occured, deletion was not saved."
 
+    # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        if @model.collection.up(@model)
+        if @model.collection.up @model
             @model.save
                 success: ->
                 error: ->
                     alert "An error occured, modifications were not saved."
 
+    # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        true
+        if @model.collection.down @model
+            @model.save
+                success: ->
+                error: ->
+                    alert "An error occured, modifications were not saved."
 
     # When description is changed, model is saved to backend after 2 seconds
     # to avoid making too much requests.
@@ -120,11 +128,15 @@ class exports.TaskLine extends Backbone.View
         @.$(".todo-button").addClass "btn-info"
         $(@el).removeClass "done"
 
+    # Put line above line correspondig to previousLineId.
     up: (previousLineId) ->
-        #$(@el).remove()
         $(@el).insertBefore($("##{previousLineId}"))
 
-    # Remove object from view and unbind listeners
+    # Put line below line correspondig to nextLineId.
+    down: (nextLineId) ->
+        $(@el).insertAfter($("##{nextLineId}"))
+
+    # Remove object from view and unbind listeners.
     remove: ->
         @unbind()
         $(@el).remove()

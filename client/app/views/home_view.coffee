@@ -1,6 +1,8 @@
 {TaskCollection} = require "../collections/tasks"
 {Task} = require "../models/task"
+{TaskList} = require "./tasks_view"
 
+# Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
     id: 'home-view'
  
@@ -17,20 +19,24 @@ class exports.HomeView extends Backbone.View
 
         @isEditMode = false
       
-    # Build widgets then load data.
+    # Build widgets (task lists) then load data.
     render: ->
         $(@el).html require('./templates/home')
 
-        @tasks = new TaskCollection(@.$("#task-list"))
-        @archivedTasks = new TaskCollection(@.$("#archive-list"))
+        @taskList = new TaskList @, @.$("#task-list")
+        @archiveList = new TaskList @, @.$("#archive-list")
+        @tasks = @taskList.tasks
+        @archiveTasks = @archiveList.tasks
 
         @loadData()
         this
 
+    # Grab data for archive and task list and display them through
+    # model-view binding.
     loadData: ->
         @tasks.fetch()
-        @archivedTasks.url = "tasks/archives/"
-        @archivedTasks.fetch()
+        @archiveTasks.url = "tasks/archives/"
+        @archiveTasks.fetch()
         
 
     ###

@@ -1,5 +1,4 @@
 {Task} = require "../models/task"
-{TaskLine} = require "../views/task_view"
 
 
 class exports.TaskCollection extends Backbone.Collection
@@ -10,7 +9,7 @@ class exports.TaskCollection extends Backbone.Collection
     constructor: (view) ->
         super()
         @view = view
-        @bind "add", @prependTask
+        @bind "add", @view.addTaskLine
         @bind "reset", @addTasks
 
     # Select which field from backend response to use for parsing to populate
@@ -22,12 +21,7 @@ class exports.TaskCollection extends Backbone.Collection
     addTasks: (tasks) =>
         tasks.forEach (task) =>
             task.collection = @
-            @appendTask task
-
-    # Append a task to the task list.
-    appendTask: (task) =>
-        taskLine = new TaskLine task
-        @view.append taskLine.render()
+            @view.addTaskLine task
 
     # Prepend a task to the task list and update previousTask field of 
     # previous first task.
@@ -36,13 +30,22 @@ class exports.TaskCollection extends Backbone.Collection
         nextTask = @at(1)
         if nextTask?
             nextTask.set("previousTask", task.id)
-        taskLine = new TaskLine task
-        @view.prepend taskLine.render()
+        @view.addTaskLineAsFirstRow task
 
+    # Return previous task, if there is no previous task, it returns null.
+    getPreviousTask: (task) ->
+        @get(task.previousTask)
+
+    # Return next task, if there is no next task, it returns null.
+    getNextTask: (task) ->
+        @get(task.nextTask)
+
+    # Change task position, decrement its index position.
+    # Links are updated.
+    # View is changed too.
     up: (task) =>
         index = @toArray().indexOf task
     
-        console.log index
         if index == 0
             return false
 
@@ -71,3 +74,40 @@ class exports.TaskCollection extends Backbone.Collection
             silent: true
 
         return true
+
+    # Change task position, increment its index position.
+    # Links are updated.
+    # View is changed too.
+    down: (task) =>
+        index = @toArray().indexOf task
+        tasksLength = @size()
+    
+        if index == tasksLength - 1
+            return false
+
+        oldNextTask = @at(index + 1) if index < tasksLength - 1
+        nextTask = @at(index + 2) if index < tasksLength - 1
+        previousTask = @at(index - 1)
+
+        if previousTask?
+            previousTask.set("nextTask", oldNextTask.id)
+            oldNextTask.set("previousTask", previousTask.id)
+        else
+            oldNextTask.set("previousTask", null)
+
+        if nextTask?
+            nextTask.set("previousTask", task.id)
+            task.set("nextTask", nextTask.id)
+        else
+            task.set("nextTask", null)
+        task.set("previousTask", oldNextTask.id)
+
+        task.view.down(oldNextTask.id)
+
+        @remove(task)
+        @add task,
+            at: index + 1
+            silent: true
+
+        return true
+

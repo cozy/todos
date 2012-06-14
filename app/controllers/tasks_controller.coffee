@@ -224,6 +224,7 @@ action 'update', ->
     # Task move from done to todo
     else if body.done? and not body.done and @task.done != body.done
         setFirstTask @task, (task) ->
+            body.nextTask = task.nextTask
             updateTaskAttributes()
 
     # When link changes previous and next task are updated.

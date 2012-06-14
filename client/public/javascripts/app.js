@@ -79,6 +79,129 @@
   }
 }).call(this);
 (this.require.define({
+  "collections/tasks": function(exports, require, module) {
+    (function() {
+  var Task,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  Task = require("../models/task").Task;
+
+  exports.TaskCollection = (function(_super) {
+
+    __extends(TaskCollection, _super);
+
+    TaskCollection.prototype.model = Task;
+
+    TaskCollection.prototype.url = 'tasks/';
+
+    function TaskCollection(view) {
+      this.down = __bind(this.down, this);
+      this.up = __bind(this.up, this);
+      this.prependTask = __bind(this.prependTask, this);
+      this.addTasks = __bind(this.addTasks, this);      TaskCollection.__super__.constructor.call(this);
+      this.view = view;
+      this.bind("add", this.view.addTaskLine);
+      this.bind("reset", this.addTasks);
+    }
+
+    TaskCollection.prototype.parse = function(response) {
+      return response.rows;
+    };
+
+    TaskCollection.prototype.addTasks = function(tasks) {
+      var _this = this;
+      return tasks.forEach(function(task) {
+        task.collection = _this;
+        return _this.view.addTaskLine(task);
+      });
+    };
+
+    TaskCollection.prototype.prependTask = function(task) {
+      var nextTask;
+      task.collection = this;
+      nextTask = this.at(1);
+      if (nextTask != null) nextTask.set("previousTask", task.id);
+      return this.view.addTaskLineAsFirstRow(task);
+    };
+
+    TaskCollection.prototype.getPreviousTask = function(task) {
+      return this.get(task.previousTask);
+    };
+
+    TaskCollection.prototype.getNextTask = function(task) {
+      return this.get(task.nextTask);
+    };
+
+    TaskCollection.prototype.up = function(task) {
+      var index, nextTask, oldPreviousTask, previousTask;
+      index = this.toArray().indexOf(task);
+      if (index === 0) return false;
+      if (index > 0) oldPreviousTask = this.at(index - 1);
+      if (index > 1) previousTask = this.at(index - 2);
+      nextTask = this.at(index + 1);
+      if (nextTask != null) {
+        nextTask.set("previousTask", oldPreviousTask.id);
+        oldPreviousTask.set("nextTask", nextTask.id);
+      } else {
+        oldPreviousTask.set("nextTask", null);
+      }
+      if (previousTask != null) {
+        previousTask.set("nextTask", task.id);
+        task.set("previousTask", previousTask.id);
+      } else {
+        task.set("previousTask", null);
+      }
+      task.set("nextTask", oldPreviousTask.id);
+      this.remove(task);
+      this.add(task, {
+        at: index - 1,
+        silent: true
+      });
+      task.view.up(oldPreviousTask.id);
+      return true;
+    };
+
+    TaskCollection.prototype.down = function(task) {
+      var index, nextTask, oldNextTask, previousTask, tasksLength;
+      index = this.toArray().indexOf(task);
+      tasksLength = this.size();
+      if (index === tasksLength - 1) return false;
+      if (index < tasksLength - 1) oldNextTask = this.at(index + 1);
+      if (index < tasksLength - 1) nextTask = this.at(index + 2);
+      previousTask = this.at(index - 1);
+      if (previousTask != null) {
+        previousTask.set("nextTask", oldNextTask.id);
+        oldNextTask.set("previousTask", previousTask.id);
+      } else {
+        oldNextTask.set("previousTask", null);
+      }
+      if (nextTask != null) {
+        nextTask.set("previousTask", task.id);
+        task.set("nextTask", nextTask.id);
+      } else {
+        task.set("nextTask", null);
+      }
+      task.set("previousTask", oldNextTask.id);
+      this.remove(task);
+      this.add(task, {
+        at: index + 1,
+        silent: true
+      });
+      task.view.down(oldNextTask.id);
+      return true;
+    };
+
+    return TaskCollection;
+
+  })(Backbone.Collection);
+
+}).call(this);
+
+  }
+}));
+(this.require.define({
   "helpers": function(exports, require, module) {
     (function() {
 
@@ -167,6 +290,70 @@
   }
 }));
 (this.require.define({
+  "models/task": function(exports, require, module) {
+    (function() {
+  var BaseModel,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  BaseModel = require("./models").BaseModel;
+
+  exports.Task = (function(_super) {
+
+    __extends(Task, _super);
+
+    Task.prototype.url = 'tasks/';
+
+    function Task(task) {
+      var property;
+      Task.__super__.constructor.call(this, task);
+      for (property in task) {
+        this[property] = task[property];
+      }
+      if (this.id) this.url = "tasks/" + this.id + "/";
+    }
+
+    Task.prototype.setDone = function() {
+      this.done = true;
+      this.set("previousTask", null);
+      this.set("nextTask", null);
+      this.cleanLinks();
+      return this.view.done();
+    };
+
+    Task.prototype.setUndone = function() {
+      this.done = false;
+      this.setLink();
+      return this.view.undone();
+    };
+
+    Task.prototype.setLink = function() {
+      if (this.collection.view.isArchive()) return console.log("ok");
+    };
+
+    Task.prototype.cleanLinks = function() {
+      var nextTask, previousTask;
+      previousTask = this.collection.getPreviousTask(this);
+      nextTask = this.collection.getNextTask(this);
+      if ((nextTask != null) && (previousTask != null)) {
+        previousTask.set("nextTask", nextTask.id);
+        return nextTask.set("previousTask", previousTask.id);
+      } else if (previousTask != null) {
+        return previousTask.set("nextTask", null);
+      } else if (nextTask != null) {
+        return nextTask.set("previousTask", null);
+      }
+    };
+
+    return Task;
+
+  })(BaseModel);
+
+}).call(this);
+
+  }
+}));
+(this.require.define({
   "routers/main_router": function(exports, require, module) {
     (function() {
   var __hasProp = Object.prototype.hasOwnProperty,
@@ -191,6 +378,98 @@
     return MainRouter;
 
   })(Backbone.Router);
+
+}).call(this);
+
+  }
+}));
+(this.require.define({
+  "views/home_view": function(exports, require, module) {
+    (function() {
+  var Task, TaskCollection, TaskList,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  TaskCollection = require("../collections/tasks").TaskCollection;
+
+  Task = require("../models/task").Task;
+
+  TaskList = require("./tasks_view").TaskList;
+
+  exports.HomeView = (function(_super) {
+
+    __extends(HomeView, _super);
+
+    HomeView.prototype.id = 'home-view';
+
+    HomeView.prototype.events = {
+      "click #new-task-button": "onAddClicked",
+      "click #edit-button": "onEditClicked"
+    };
+
+    /*
+        # Initializers
+    */
+
+    function HomeView() {
+      HomeView.__super__.constructor.call(this);
+      this.isEditMode = false;
+    }
+
+    HomeView.prototype.render = function() {
+      $(this.el).html(require('./templates/home'));
+      this.taskList = new TaskList(this, this.$("#task-list"));
+      this.archiveList = new TaskList(this, this.$("#archive-list"));
+      this.tasks = this.taskList.tasks;
+      this.archiveTasks = this.archiveList.tasks;
+      this.loadData();
+      return this;
+    };
+
+    HomeView.prototype.loadData = function() {
+      this.tasks.fetch();
+      this.archiveTasks.url = "tasks/archives/";
+      return this.archiveTasks.fetch();
+    };
+
+    /*
+        # Listeners
+    */
+
+    HomeView.prototype.onAddClicked = function(event) {
+      var task,
+        _this = this;
+      task = new Task({
+        done: false,
+        description: "new task"
+      });
+      return task.save(null, {
+        success: function(data) {
+          data.url = "tasks/" + data.id + "/";
+          _this.tasks.add(data, {
+            at: 0
+          });
+          return $("" + data.id + " span.description").contents().focus();
+        },
+        error: function() {
+          return alert("An error occured while saving data");
+        }
+      });
+    };
+
+    HomeView.prototype.onEditClicked = function(event) {
+      if (!this.isEditMode) {
+        this.$(".task-buttons").show();
+        return this.isEditMode = true;
+      } else {
+        this.$(".task-buttons").hide();
+        return this.isEditMode = false;
+      }
+    };
+
+    return HomeView;
+
+  })(Backbone.View);
 
 }).call(this);
 
@@ -226,8 +505,9 @@
     # Initializers
     */
 
-    function TaskLine(model) {
+    function TaskLine(model, list) {
       this.model = model;
+      this.list = list;
       this.onDescriptionChanged = __bind(this.onDescriptionChanged, this);
       this.onDownButtonClicked = __bind(this.onDownButtonClicked, this);
       this.onUpButtonClicked = __bind(this.onUpButtonClicked, this);
@@ -237,6 +517,7 @@
       this.saving = false;
       this.id = this.model._id;
       this.model.view = this;
+      this.list;
     }
 
     TaskLine.prototype.render = function() {
@@ -376,6 +657,56 @@
     };
 
     return TaskLine;
+
+  })(Backbone.View);
+
+}).call(this);
+
+  }
+}));
+(this.require.define({
+  "views/tasks_view": function(exports, require, module) {
+    (function() {
+  var TaskCollection, TaskLine,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  TaskCollection = require("../collections/tasks").TaskCollection;
+
+  TaskLine = require("../views/task_view").TaskLine;
+
+  exports.TaskList = (function(_super) {
+
+    __extends(TaskList, _super);
+
+    TaskList.prototype.className = "task clearfix";
+
+    TaskList.prototype.tagName = "div";
+
+    function TaskList(mainView, el) {
+      this.mainView = mainView;
+      this.el = el;
+      TaskList.__super__.constructor.call(this);
+      this.tasks = new TaskCollection(this);
+    }
+
+    TaskList.prototype.addTaskLine = function(task) {
+      var taskLine;
+      taskLine = new TaskLine(task, this);
+      return $(this.el).append(taskLine.render());
+    };
+
+    TaskList.prototype.addTaskLineAsFirstRow = function(task) {
+      var taskLine;
+      taskLine = new TaskLine(task, this);
+      return $(this.el).prepend(taskLine.render());
+    };
+
+    TaskList.prototype.isArchive = function() {
+      return $(this.el).attr("id") === "archive-list";
+    };
+
+    return TaskList;
 
   })(Backbone.View);
 

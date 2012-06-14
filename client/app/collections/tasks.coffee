@@ -66,12 +66,12 @@ class exports.TaskCollection extends Backbone.Collection
             task.set("previousTask", null)
         task.set("nextTask", oldPreviousTask.id)
 
-        task.view.up(oldPreviousTask.id)
-
         @remove(task)
         @add task,
             at: index - 1
             silent: true
+
+        task.view.up(oldPreviousTask.id)
 
         return true
 
@@ -102,12 +102,12 @@ class exports.TaskCollection extends Backbone.Collection
             task.set("nextTask", null)
         task.set("previousTask", oldNextTask.id)
 
-        task.view.down(oldNextTask.id)
-
         @remove(task)
         @add task,
             at: index + 1
             silent: true
+
+        task.view.down(oldNextTask.id)
 
         return true
 

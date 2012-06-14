@@ -30,7 +30,8 @@ class exports.Task extends BaseModel
 
     # TODO
     setLink: ->
-        #if @collection.view.id() == "archive-list"
+        if @collection.view.isArchive()
+            console.log "ok"
 
 
     # Remove link from previous and next task.

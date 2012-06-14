@@ -16,12 +16,13 @@ class exports.TaskLine extends Backbone.View
     # Initializers 
     ###
 
-    constructor: (@model) ->
+    constructor: (@model, @list) ->
         super()
 
         @saving = false
         @id = @model._id
         @model.view = @
+        @list
 
     # Render wiew and bind it to model.
     render: ->

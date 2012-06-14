@@ -64,6 +64,11 @@ class exports.HomeView extends Backbone.View
         else
             @.$(".task-buttons").hide()
             @isEditMode = false
-            
 
+    ###
+    # Functions
+    ###
+    
+    moveToTaskList: (task) ->
+        @tasks.prependTask task
 

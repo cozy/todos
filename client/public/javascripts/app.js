@@ -121,8 +121,11 @@
     TaskCollection.prototype.prependTask = function(task) {
       var nextTask;
       task.collection = this;
-      nextTask = this.at(1);
-      if (nextTask != null) nextTask.set("previousTask", task.id);
+      nextTask = this.at(0);
+      if (nextTask != null) {
+        nextTask.set("previousTask", task.id);
+        task.set("nextTask", nextTask.id);
+      }
       return this.view.addTaskLineAsFirstRow(task);
     };
 
@@ -132,6 +135,22 @@
 
     TaskCollection.prototype.getNextTask = function(task) {
       return this.get(task.nextTask);
+    };
+
+    TaskCollection.prototype.getPreviousTodoTask = function(task) {
+      task = this.getPreviousTask(task);
+      while ((task != null) && task.done) {
+        task = this.getPreviousTask(task);
+      }
+      return task;
+    };
+
+    TaskCollection.prototype.getNextTodoTask = function(task) {
+      task = this.getNextTask(task);
+      while ((task != null) && task.done) {
+        task = this.getNextTask(task);
+      }
+      return task;
     };
 
     TaskCollection.prototype.up = function(task) {
@@ -323,12 +342,33 @@
 
     Task.prototype.setUndone = function() {
       this.done = false;
+      console.log("undone");
       this.setLink();
       return this.view.undone();
     };
 
     Task.prototype.setLink = function() {
-      if (this.collection.view.isArchive()) return console.log("ok");
+      var nextTask, previousTask;
+      if (this.collection.view.isArchive()) {
+        this.view.remove();
+        return this.collection.view.moveToTaskList(this);
+      } else {
+        console.log("ok");
+        previousTask = this.collection.getPreviousTodoTask(this);
+        nextTask = this.collection.getNextTodoTask(this);
+        if (previousTask != null) {
+          this.set("previousTask", previousTask.id);
+          previousTask.set("nextTask", this.id);
+        } else {
+          this.set("previousTask", null);
+        }
+        if (nextTask != null) {
+          this.set("nextTask", nextTask.id);
+          return nextTask.set("previousTask", this.id);
+        } else {
+          return this.set("nextTask", null);
+        }
+      }
     };
 
     Task.prototype.cleanLinks = function() {
@@ -465,6 +505,14 @@
         this.$(".task-buttons").hide();
         return this.isEditMode = false;
       }
+    };
+
+    /*
+        # Functions
+    */
+
+    HomeView.prototype.moveToTaskList = function(task) {
+      return this.tasks.prependTask(task);
     };
 
     return HomeView;
@@ -704,6 +752,10 @@
 
     TaskList.prototype.isArchive = function() {
       return $(this.el).attr("id") === "archive-list";
+    };
+
+    TaskList.prototype.moveToTaskList = function(task) {
+      return this.mainView.moveToTaskList(task);
     };
 
     return TaskList;

@@ -27,9 +27,10 @@ class exports.TaskCollection extends Backbone.Collection
     # previous first task.
     prependTask: (task) =>
         task.collection = @
-        nextTask = @at(1)
+        nextTask = @at(0)
         if nextTask?
             nextTask.set("previousTask", task.id)
+            task.set("nextTask", nextTask.id)
         @view.addTaskLineAsFirstRow task
 
     # Return previous task, if there is no previous task, it returns null.
@@ -40,6 +41,20 @@ class exports.TaskCollection extends Backbone.Collection
     getNextTask: (task) ->
         @get(task.nextTask)
 
+    # Return first previous task which state is todo
+    getPreviousTodoTask: (task) ->
+        task = @getPreviousTask task
+        while task? and task.done
+            task = @getPreviousTask task
+        task
+
+    # Return first next task which state is todo
+    getNextTodoTask: (task) ->
+        task = @getNextTask task
+        while task? and task.done
+            task = @getNextTask task
+        task
+        
     # Change task position, decrement its index position.
     # Links are updated.
     # View is changed too.

@@ -24,14 +24,32 @@ class exports.Task extends BaseModel
     # View binding: when task state is set to todo, update view.
     setUndone: ->
         @done = false
+        console.log "undone"
         @setLink()
 
         @view.undone()
 
-    # TODO
+    # Set links with other task when task state becomes todo again.
     setLink: ->
         if @collection.view.isArchive()
+            @view.remove()
+            @collection.view.moveToTaskList @
+        else
             console.log "ok"
+            previousTask = @collection.getPreviousTodoTask @
+            nextTask = @collection.getNextTodoTask @
+
+            if previousTask?
+                @set "previousTask", previousTask.id
+                previousTask.set "nextTask", @id
+            else
+                @set "previousTask", null
+
+            if nextTask?
+                @set "nextTask", nextTask.id
+                nextTask.set "previousTask", @id
+            else
+                @set "nextTask", null
 
 
     # Remove link from previous and next task.

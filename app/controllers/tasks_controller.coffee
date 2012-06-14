@@ -223,9 +223,23 @@ action 'update', ->
 
     # Task move from done to todo
     else if body.done? and not body.done and @task.done != body.done
-        setFirstTask @task, (task) ->
-            body.nextTask = task.nextTask
-            updateTaskAttributes()
+        if body.previousTask != undefined or body.nextTask != undefined
+            tmpTask = new Task
+                previousTask: @task.previousTask
+                nextTask: @task.nextTask
+                id: @task.id
+            updatePreviousLink tmpTask, =>
+                tmpTask = new Task
+                    previousTask: @task.previousTask
+                    nextTask: @task.nextTask
+                    id: @task.id
+                updateNextLink tmpTask, =>
+                    updateTaskAttributes()
+
+        else
+            setFirstTask @task, (task) ->
+                body.nextTask = task.nextTask
+                updateTaskAttributes()
 
     # When link changes previous and next task are updated.
     else if body.previousTask != undefined or body.nextTask != undefined

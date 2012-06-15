@@ -102,7 +102,7 @@
       this.prependTask = __bind(this.prependTask, this);
       this.addTasks = __bind(this.addTasks, this);      TaskCollection.__super__.constructor.call(this);
       this.view = view;
-      this.bind("add", this.view.addTaskLine);
+      this.bind("add", this.prependTask);
       this.bind("reset", this.addTasks);
     }
 
@@ -486,9 +486,7 @@
       return task.save(null, {
         success: function(data) {
           data.url = "tasks/" + data.id + "/";
-          _this.tasks.add(data, {
-            at: 0
-          });
+          _this.tasks.add(data);
           return $("" + data.id + " span.description").contents().focus();
         },
         error: function() {

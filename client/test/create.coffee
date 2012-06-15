@@ -23,10 +23,10 @@ describe "Create task", ->
 
     it "When todo list is empty", ->
         @browser.length(".task").should.equal 0
-        
+
     it "And I click on new task button", (done) ->
         @browser.click "#new-task-button"
-        helpers.waits done, 200
+        helpers.waits done, 500
 
     it "Then I expect to see a new task line", ->
         @browser.length(".task").should.equal 1

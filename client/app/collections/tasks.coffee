@@ -9,7 +9,7 @@ class exports.TaskCollection extends Backbone.Collection
     constructor: (view) ->
         super()
         @view = view
-        @bind "add", @view.addTaskLine
+        @bind "add", @prependTask
         @bind "reset", @addTasks
 
     # Select which field from backend response to use for parsing to populate

@@ -342,7 +342,6 @@
 
     Task.prototype.setUndone = function() {
       this.done = false;
-      console.log("undone");
       this.setLink();
       return this.view.undone();
     };
@@ -353,7 +352,6 @@
         this.view.remove();
         return this.collection.view.moveToTaskList(this);
       } else {
-        console.log("ok");
         previousTask = this.collection.getPreviousTodoTask(this);
         nextTask = this.collection.getNextTodoTask(this);
         if (previousTask != null) {

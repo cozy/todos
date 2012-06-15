@@ -15,6 +15,7 @@ describe "Create task", ->
     before (done) ->
         @browser = new Browser()
         @browser.visit "http://localhost:8888/", =>
+            he
             done()
 
     after (done) ->

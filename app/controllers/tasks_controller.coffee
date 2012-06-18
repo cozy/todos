@@ -76,30 +76,6 @@ setNextLink = (task, callback) ->
         callback()
 
 
-setFirstTask = (task, callback) ->
-    Task.all {"where": { "done": false } }, (err, tasks) ->
-        if err
-            console.log err
-            send error: "Retrieve tasks failed.", 500
-        else if not tasks.length \
-                or (tasks.length == 1 and tasks[0].id == task.id)
-            callback task
-        else
-            firstTask = tasks[0]
-            i = 1
-            while firstTask.previousTask? and i < tasks.length
-                if tasks[i].id != task.id
-                    firstTask = tasks[i]
-                i++
-            
-            if firstTask?
-                firstTask.previousTask = task.id
-                task.nextTask = firstTask.id
-                saveTask firstTask, (firstTask) ->
-                    saveTask task, callback
-            else
-                callback null
-
 before 'load task', ->
     Task.find params.id, (err, task) =>
         if err
@@ -114,33 +90,18 @@ before 'load task', ->
 
 # Controllers
 
-
 action 'all', ->
     Task.all {}, returnTasks
 
 action 'todo', ->
-    orderTasks = (tasks) ->
-
-        idList = {}
-        for task in tasks
-            idList[task.id] = task
-            firstTask = task if not task.previousTask?
-
-        task = firstTask
-        result = [firstTask]
-        while task? and task.nextTask? and result.length <= tasks.length
-            task = idList[task.nextTask]
-            result.push(task)
-        send number: result.length, rows: result
-
-    Task.all { "where": { "done": false } }, (err, tasks) ->
+    Task.todo (err, tasks) ->
         if err
             console.log err
             send error: "Retrieve tasks failed.", 500
         else if not tasks.length
             send number: 0, rows: []
         else
-            orderTasks(tasks)
+            send number: tasks.length, rows: tasks
 
 action 'archives', ->
     Task.all {"where": { "done": true }, "sort": {"completionDate"} }, \
@@ -150,23 +111,12 @@ action 'archives', ->
 action 'create', ->
     newTask = new Task body
     
-    createTask = (task, callback) ->
-        Task.create task, (err, note) =>
-            if err
-                console.log err
-                send error: 'Task cannot be created'
-            else
-                callback(task)
-
-    if not newTask.done and not newTask.previousTask? and not newTask.nextTask?
-        createTask newTask, (createdTask) ->
-            setFirstTask createdTask, (task) ->
-                send task, 201
-    else
-        createTask newTask, (task) ->
-            setPreviousLink task, ->
-                setNextLink task, ->
-                    send task, 201
+    Task.createNew newTask, (err, task) ->
+        if err
+            console.log err
+            send error: "Creating task failed.", 500
+        else
+            send task, 201
 
     
 # * Update task attributes
@@ -237,9 +187,12 @@ action 'update', ->
                     updateTaskAttributes()
 
         else
-            setFirstTask @task, (task) ->
-                body.nextTask = task.nextTask
-                updateTaskAttributes()
+            Task.setFirstTask @task, (err) =>
+                if err
+                    send error: 'Cannot modify task', 500
+                else
+                    body.nextTask = @task.nextTask
+                    updateTaskAttributes()
 
     # When link changes previous and next task are updated.
     else if body.previousTask != undefined or body.nextTask != undefined

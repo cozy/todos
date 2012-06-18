@@ -28,7 +28,7 @@ Task.archives = (callback) ->
     
 # Returns all tasks of which state is todo. Order them following the link
 # list.
-Task.todo = (callback) ->
+Task.allTodo = (callback) ->
     orderTasks = (tasks) ->
 
         idList = {}
@@ -159,12 +159,68 @@ Task.removeNextLink = (task, callback) ->
     else
         callback null
 
-# Remove task from DB and clean links if task were inside todo list.
+Task.removeLinks = (task, callback) ->
+    Task.removePreviousLink task, (err) ->
+        return callback err if err
+
+        Task.removeNextLink task, callback
+
+# Remove task from DB and clean links if tasks were inside todo list.
 Task.remove = (task, callback) ->
+    Task.removeLinks task, (err) ->
+            return callback err if err
+
+            task.destroy callback
+
+
+Task.done = (task, attributes, callback) ->
     Task.removePreviousLink task, (err) ->
         return callback err if err
 
         Task.removeNextLink task, (err) ->
             return callback err if err
-            task.destroy callback
+
+            attributes.previousTask = null
+            attributes.nextTask = null
+            
+            task.updateAttributes attributes, callback
+
+
+Task.todo = (task, attributes, callback) ->
+    if attributes.previousTask?
+        Task.insertTask task, (err) ->
+            attributes.nextTask = task.nextTask
+            return callback err if err
+            
+            attributes.previousTask = task.previousTask
+            task.updateAttributes attributes, callback
+
+    # If now new link are set task become first task
+    else
+        Task.setFirstTask task, (err) ->
+            return callback err if err
+
+            attributes.nextTask = task.nextTask
+            task.updateAttributes attributes, callback
+
+Task.move = (task, attributes, callback) ->
+    Task.removeLinks task, (err) ->
+        return callback err if err
+
+        if attributes.previousTask?
+            Task.insertTask task, (err) ->
+                return callback err if err
+
+                attributes.nextTask = task.nextTask
+                attributes.previousTask = task.previousTask
+
+                task.updateAttributes attributes, callback
+        else
+            Task.setFirstTask task, (err) ->
+                return callback err if err
+
+                attributes.nextTask = task.nextTask
+                task.updateAttributes attributes, callback
+
+                
 

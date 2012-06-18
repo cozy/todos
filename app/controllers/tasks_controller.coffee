@@ -21,61 +21,6 @@ returnTasks = (err, tasks) ->
     else
         send number: tasks.length, rows: tasks
 
-# Find task based on its id and check for errors only if it is required
-findTask = (taskId, checkError, callback) ->
-    Task.find taskId, (err, task) =>
-        if err and not checkError
-            send error: 'An error occured while getting task', 500
-        else if not task? and not checkError
-            send error: 'Linked task not found', 400
-        else
-            callback(task)
-
-# Save task and check for errors.
-saveTask = (task, callback) ->
-    task.save (err) =>
-        if err
-            send error: "An error occured while modifying task", 500
-        else
-            callback(task)
-
-# Change next task ID of previous task with next task ID of current task.
-removePreviousLink = (task, callback) ->
-    if task.previousTask?
-        findTask task.previousTask, true, (previousTask) =>
-            previousTask.nextTask = task.nextTask
-            saveTask previousTask, callback
-    else
-        callback()
-        
-# Change next task ID of previous task with current task ID.
-setPreviousLink = (task, callback) ->
-    if task.previousTask?
-        findTask task.previousTask, true, (previousTask) =>
-            previousTask.nextTask = task.id
-            saveTask previousTask, callback
-    else
-        callback()
-
-# Change previous task ID of next task with previous task ID of curren task.
-removeNextLink = (task, callback) ->
-    if task.nextTask?
-        findTask task.nextTask, true, (nextTask) =>
-            nextTask.previousTask = task.previousTask
-            saveTask nextTask, callback
-    else
-        callback()
-
-# Change previous task ID of next task with current task ID.
-setNextLink = (task, callback) ->
-    if task.nextTask?
-        findTask task.nextTask, true, (nextTask) =>
-            nextTask.previousTask = task.id
-            saveTask nextTask, callback
-    else
-        callback()
-
-
 before 'load task', ->
     Task.find params.id, (err, task) =>
         if err
@@ -90,11 +35,13 @@ before 'load task', ->
 
 # Controllers
 
+# Return all tasks
 action 'all', ->
     Task.all {}, returnTasks
 
+# Return all task 
 action 'todo', ->
-    Task.todo (err, tasks) ->
+    Task.allTodo (err, tasks) ->
         if err
             console.log err
             send error: "Retrieve tasks failed.", 500
@@ -106,7 +53,10 @@ action 'todo', ->
 action 'archives', ->
     Task.archives returnTasks
 
-
+# Creates a new task.
+# It its state is todo, it is added as first task.
+# It its state is todo with a specified previous task, it is inserted
+# inside todo linked list after specified previous task.
 action 'create', ->
     newTask = new Task body
     
@@ -115,15 +65,25 @@ action 'create', ->
             console.log err
             send error: "Creating task failed.", 500
         else
-            send task, 201
+            send task, 201Task.setPreviousLink = (task, callback) ->
+    if task.previousTask?
+        Task.find task.previousTask, (err, previousTask) ->
+            return callback err if err
+            return callback null if task?
 
-    
+            previousTask.nextTask = task.id
+            previousTask.save (err) ->
+                return callback(err, null) if err
+                callback null, task
+    else
+        callback null
+
+
+
 # * Update task attributes
 # * perform completionDate modification depending on whether is finished or not.
 # * update linked list depending on previous and next task values
 action 'update', ->
-
-    # TODO when task go to undone
 
     # set completion date
     if body.done? and body.done
@@ -132,83 +92,30 @@ action 'update', ->
         body.completionDate = null
 
     # Save task function
-    updateTaskAttributes = =>
-        @task.updateAttributes body, (err) =>
-            if err
-                console.log err
-                send error: 'Task cannot be updated', 500
-            else
-                send success: 'Task updated'
-
-    # Remove old previous link and set new previous link
-    updatePreviousLink = (tmpTask, callback) =>
-        if body.previousTask !=  undefined \
-           and tmpTask.previousTask != body.previousTask
-            removePreviousLink tmpTask, (task) =>
-                tmpTask.previousTask = body.previousTask
-                setPreviousLink tmpTask, (task) =>
-                    callback()
+    answer = (err) ->
+        if err
+            console.log err
+            send error: 'Task cannot be updated', 500
         else
-            callback()
-
-    # Remove old next link and set new next link
-    updateNextLink = (tmpTask, callback) =>
-        if body.nextTask != undefined \
-           and tmpTask.nextTask != body.nextTask
-            removeNextLink tmpTask, (task) =>
-                tmpTask.nextTask = body.nextTask
-                setNextLink tmpTask, (task) =>
-                    callback()
-        else
-            callback()
+            send success: 'Task updated'
 
     # Task move from todo to done
     if body.done? and body.done and @task.done != body.done
-        removePreviousLink @task, =>
-            removeNextLink @task, =>
-                body.previousTask = null
-                body.nextTask = null
-                updateTaskAttributes()
+        Task.done @task, body, answer
 
     # Task move from done to todo
     else if body.done? and not body.done and @task.done != body.done
-        if body.previousTask != undefined or body.nextTask != undefined
-            tmpTask = new Task
-                previousTask: @task.previousTask
-                nextTask: @task.nextTask
-                id: @task.id
-            updatePreviousLink tmpTask, =>
-                tmpTask = new Task
-                    previousTask: @task.previousTask
-                    nextTask: @task.nextTask
-                    id: @task.id
-                updateNextLink tmpTask, =>
-                    updateTaskAttributes()
-
-        else
-            Task.setFirstTask @task, (err) =>
-                if err
-                    send error: 'Cannot modify task', 500
-                else
-                    body.nextTask = @task.nextTask
-                    updateTaskAttributes()
+        Task.todo @task, body, answer
 
     # When link changes previous and next task are updated.
-    else if body.previousTask != undefined or body.nextTask != undefined
-        tmpTask = new Task
-            previousTask: @task.previousTask
-            nextTask: @task.nextTask
-            id: @task.id
-        updatePreviousLink tmpTask, =>
-            tmpTask = new Task
-                previousTask: @task.previousTask
-                nextTask: @task.nextTask
-                id: @task.id
-            updateNextLink tmpTask, =>
-                updateTaskAttributes()
-    else
-        updateTaskAttributes()
+    else if body.previousTask != undefined \
+            and body.previousTask != @task.previousTask
+        Task.move @task, body, answer
 
+    else
+        @task.updateAttributes body, answer
+
+# Destroy given task and remove it from todo linked list.
 action 'destroy', ->
     
     Task.remove @task, (err) ->
@@ -218,7 +125,7 @@ action 'destroy', ->
         else
             send success: 'Task succesfuly deleted'
 
-
+# Returns a given task
 action 'show', ->
     returnTasks null, [@task]
 

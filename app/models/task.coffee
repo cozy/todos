@@ -81,6 +81,7 @@ Task.setPreviousLink = (task, callback) ->
     else
         callback null
 
+# Change previous task ID of next task with current task ID.
 Task.setNextLink = (task, callback) ->
     if task.nextTask?
         Task.find task.nextTask, (err, nextTask) ->
@@ -94,12 +95,14 @@ Task.setNextLink = (task, callback) ->
     else
         callback null
 
+# Change both previous and next links
 Task.updateLinks = (task, callback) ->
     Task.setPreviousLink task, (err) ->
 
         return callback err if err
         Task.setNextLink task, callback
 
+# Insert task after task given via previousTask field.
 Task.insertTask = (task, callback) ->
     Task.find task.previousTask, (err, previousTask) ->
         return callback err if err
@@ -123,6 +126,7 @@ Task.insertTask = (task, callback) ->
                         return callback err if err
                         callback null
             
+# Create a new task and add it to the todo task list if its state is not done.
 Task.createNew = (task, callback) ->
     task.nextTask = null
     Task.create task, (err, task) ->
@@ -134,8 +138,6 @@ Task.createNew = (task, callback) ->
         else
             Task.insertTask task, (err) ->
                 callback err, task
-
-
 
 # Change next task ID of previous task with next task ID of current task.
 Task.removePreviousLink = (task, callback) ->
@@ -159,6 +161,7 @@ Task.removeNextLink = (task, callback) ->
     else
         callback null
 
+# Remove all links set on given task.
 Task.removeLinks = (task, callback) ->
     Task.removePreviousLink task, (err) ->
         return callback err if err
@@ -172,7 +175,7 @@ Task.remove = (task, callback) ->
 
             task.destroy callback
 
-
+# When task is done, it is removed from todo linked list.
 Task.done = (task, attributes, callback) ->
     Task.removePreviousLink task, (err) ->
         return callback err if err
@@ -186,6 +189,8 @@ Task.done = (task, attributes, callback) ->
             task.updateAttributes attributes, callback
 
 
+# When task go back to todo, it is added as first task to the todo list.
+# If task previous task is specified, it is inserted after this task. 
 Task.todo = (task, attributes, callback) ->
     if attributes.previousTask?
         Task.insertTask task, (err) ->
@@ -203,6 +208,8 @@ Task.todo = (task, attributes, callback) ->
             attributes.nextTask = task.nextTask
             task.updateAttributes attributes, callback
 
+# Moving a task is doing in two steps: remove links, then insert it inside
+# todo linked list.
 Task.move = (task, attributes, callback) ->
     Task.removeLinks task, (err) ->
         return callback err if err

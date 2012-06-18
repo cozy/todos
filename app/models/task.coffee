@@ -23,7 +23,9 @@ Task.destroySome = (condition, callback) ->
 Task.destroyAll = (callback) ->
     Task.destroySome {}, callback
 
-
+Task.archives = (callback) ->
+    Task.all {"where": { "done": true }, "sort": {"completionDate"} }, callback
+    
 # Returns all tasks of which state is todo. Order them following the link
 # list.
 Task.todo = (callback) ->
@@ -132,4 +134,37 @@ Task.createNew = (task, callback) ->
         else
             Task.insertTask task, (err) ->
                 callback err, task
+
+
+
+# Change next task ID of previous task with next task ID of current task.
+Task.removePreviousLink = (task, callback) ->
+    if task.previousTask? and not task.done
+        Task.find task.previousTask, (err, previousTask) =>
+            return callback err if err
+
+            previousTask.nextTask = task.nextTask
+            previousTask.save callback
+    else
+        callback null
+
+# Change previous task ID of next task with previous task ID of current task.
+Task.removeNextLink = (task, callback) ->
+    if task.nextTask? and not task.done
+        Task.find task.nextTask, (err, nextTask) =>
+            return callback err if err
+
+            nextTask.previousTask = task.previousTask
+            nextTask.save callback
+    else
+        callback null
+
+# Remove task from DB and clean links if task were inside todo list.
+Task.remove = (task, callback) ->
+    Task.removePreviousLink task, (err) ->
+        return callback err if err
+
+        Task.removeNextLink task, (err) ->
+            return callback err if err
+            task.destroy callback
 

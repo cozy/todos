@@ -104,8 +104,7 @@ action 'todo', ->
             send number: tasks.length, rows: tasks
 
 action 'archives', ->
-    Task.all {"where": { "done": true }, "sort": {"completionDate"} }, \
-             returnTasks
+    Task.archives returnTasks
 
 
 action 'create', ->
@@ -212,18 +211,12 @@ action 'update', ->
 
 action 'destroy', ->
     
-    destroyTask = (task, callback) ->
-        task.destroy (err) ->
-            if err
-                console.log err
-                send error: 'Cannot destroy task', 500
-            else
-                callback(task)
-
-    destroyTask @task, (task) ->
-        removePreviousLink task, ->
-            removeNextLink task, ->
-                send success: 'Task succesfuly deleted'
+    Task.remove @task, (err) ->
+        if err
+            console.log err
+            send error: 'Cannot destroy task', 500
+        else
+            send success: 'Task succesfuly deleted'
 
 
 action 'show', ->

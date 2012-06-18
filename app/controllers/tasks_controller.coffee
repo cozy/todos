@@ -65,19 +65,7 @@ action 'create', ->
             console.log err
             send error: "Creating task failed.", 500
         else
-            send task, 201Task.setPreviousLink = (task, callback) ->
-    if task.previousTask?
-        Task.find task.previousTask, (err, previousTask) ->
-            return callback err if err
-            return callback null if task?
-
-            previousTask.nextTask = task.id
-            previousTask.save (err) ->
-                return callback(err, null) if err
-                callback null, task
-    else
-        callback null
-
+            send task, 201
 
 
 # * Update task attributes

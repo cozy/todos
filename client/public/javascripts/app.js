@@ -862,11 +862,11 @@ buf.push(attrs({ 'contenteditable':("true"), "class": ('description') }));
 buf.push('>' + escape((interp = model.description) == null ? '' : interp) + ' </span><div');
 buf.push(attrs({ "class": ('task-buttons') }));
 buf.push('><button');
-buf.push(attrs({ "class": ('up-task-button') }));
+buf.push(attrs({ "class": ('up-task-button') + ' ' + ('btn') }));
 buf.push('>up</button><button');
-buf.push(attrs({ "class": ('down-task-button') }));
+buf.push(attrs({ "class": ('down-task-button') + ' ' + ('btn') }));
 buf.push('>down</button><button');
-buf.push(attrs({ "class": ('del-task-button') }));
+buf.push(attrs({ "class": ('del-task-button') + ' ' + ('btn') }));
 buf.push('>X</button></div>');
 }
 return buf.join("");

@@ -41,7 +41,17 @@ class exports.TaskLine extends Backbone.View
     # Listen for description modification
     setListeners: ->
         @.$("span.description").keypress (event) ->
-            return event.which != 13
+            keyCode = event.which | event.keyCode
+            keyCode != 13 and keyCode != 38 and keyCode != 40
+
+        @.$("span.description").keyup (event) =>
+            keyCode = event.which | event.keyCode
+            if event.ctrlKey
+                @onCtrlUpKeyup() if event.which is 38
+                @onCtrlDownKeyup() if event.which is 40
+            else
+                @onUpKeyup() if event.which is 38
+                @onDownKeyup() if event.which is 40
 
         @.$("span.description").live 'blur keyup paste', (event) ->
             el = $(@)
@@ -78,15 +88,18 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        if @model.collection.up @model
+        if not @model.done and @model.collection.up @model
+            $("##{@model.id} span.description").focus()
+
             @model.save
                 success: ->
                 error: ->
                     alert "An error occured, modifications were not saved."
 
+
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        if @model.collection.down @model
+        if not @model.done and @model.collection.down @model
             @model.save
                 success: ->
                 error: ->
@@ -105,11 +118,27 @@ class exports.TaskLine extends Backbone.View
                 error: ->
                     alert "An error occured, modifications were not saved."
 
-        if keyCode == 13
-            event.preventDefault()
-        else if not @saving
+        if not @saving
             @saving = true
             setTimeout saveDescription, 2000
+
+    # Change focus to next task.
+    onUpKeyup: ->
+        @list.moveUpFocus @
+
+    # Change focus to previous task.
+    onDownKeyup: ->
+        @list.moveDownFocus @
+
+    # Move line on line above.
+    onCtrlUpKeyup: ->
+        @onUpButtonClicked()
+        $("##{@model.id} span.description").focus()
+
+    # Move line on line below.
+    onCtrlDownKeyup: ->
+        @onDownButtonClicked()
+        @.$("span.description").focus()
 
     ###
     # Functions

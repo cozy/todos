@@ -2,6 +2,13 @@
 {Task} = require "../models/task"
 {TaskList} = require "./tasks_view"
 
+$.fn.selectAll = ->
+    range = rangy.createRange()
+    range.selectNodeContents(@[0].childNodes[0])
+    sel = rangy.getSelection()
+    sel.setSingleRange(range)
+
+
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
     id: 'home-view'
@@ -54,10 +61,13 @@ class exports.HomeView extends Backbone.View
             success: (data) =>
                 data.url = "tasks/#{data.id}/"
                 @tasks.add data
-                $("#{data.id} span.description").contents().focus()
+                $(".task:first .description").focus()
+                $(".task:first .description").selectAll()
+
+
                 if not @isEditMode
                     @.$(".task-buttons").hide()
-                else 
+                else
                     @.$(".task-buttons").show()
 
             error: ->

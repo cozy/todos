@@ -28,3 +28,10 @@ class exports.TaskList extends Backbone.View
     moveToTaskList: (task) ->
         @mainView.moveToTaskList task
 
+    # Set focus on previous task.
+    moveUpFocus: (taskLine) ->
+        $("##{taskLine.model.id}").prev().find(".description").focus()
+
+    # Set focus on next task.
+    moveDownFocus: (taskLine) ->
+        $("##{taskLine.model.id}").next().find(".description").focus()

@@ -434,6 +434,14 @@
 
   TaskList = require("./tasks_view").TaskList;
 
+  $.fn.selectAll = function() {
+    var range, sel;
+    range = rangy.createRange();
+    range.selectNodeContents(this[0].childNodes[0]);
+    sel = rangy.getSelection();
+    return sel.setSingleRange(range);
+  };
+
   exports.HomeView = (function(_super) {
 
     __extends(HomeView, _super);
@@ -487,7 +495,8 @@
         success: function(data) {
           data.url = "tasks/" + data.id + "/";
           _this.tasks.add(data);
-          $("" + data.id + " span.description").contents().focus();
+          $(".task:first .description").focus();
+          $(".task:first .description").selectAll();
           if (!_this.isEditMode) {
             return _this.$(".task-buttons").hide();
           } else {
@@ -586,8 +595,22 @@
     };
 
     TaskLine.prototype.setListeners = function() {
+      var _this = this;
       this.$("span.description").keypress(function(event) {
-        return event.which !== 13;
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        return keyCode !== 13 && keyCode !== 38 && keyCode !== 40;
+      });
+      this.$("span.description").keyup(function(event) {
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        if (event.ctrlKey) {
+          if (event.which === 38) _this.onCtrlUpKeyup();
+          if (event.which === 40) return _this.onCtrlDownKeyup();
+        } else {
+          if (event.which === 38) _this.onUpKeyup();
+          if (event.which === 40) return _this.onDownKeyup();
+        }
       });
       this.$("span.description").live('blur keyup paste', function(event) {
         var el;
@@ -634,7 +657,8 @@
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
-      if (this.model.collection.up(this.model)) {
+      if (!this.model.done && this.model.collection.up(this.model)) {
+        $("#" + this.model.id + " span.description").focus();
         return this.model.save({
           success: function() {},
           error: function() {
@@ -645,7 +669,7 @@
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      if (this.model.collection.down(this.model)) {
+      if (!this.model.done && this.model.collection.down(this.model)) {
         return this.model.save({
           success: function() {},
           error: function() {
@@ -670,12 +694,28 @@
           }
         });
       };
-      if (keyCode === 13) {
-        return event.preventDefault();
-      } else if (!this.saving) {
+      if (!this.saving) {
         this.saving = true;
         return setTimeout(saveDescription, 2000);
       }
+    };
+
+    TaskLine.prototype.onUpKeyup = function() {
+      return this.list.moveUpFocus(this);
+    };
+
+    TaskLine.prototype.onDownKeyup = function() {
+      return this.list.moveDownFocus(this);
+    };
+
+    TaskLine.prototype.onCtrlUpKeyup = function() {
+      this.onUpButtonClicked();
+      return $("#" + this.model.id + " span.description").focus();
+    };
+
+    TaskLine.prototype.onCtrlDownKeyup = function() {
+      this.onDownButtonClicked();
+      return this.$("span.description").focus();
     };
 
     /*
@@ -761,6 +801,14 @@
 
     TaskList.prototype.moveToTaskList = function(task) {
       return this.mainView.moveToTaskList(task);
+    };
+
+    TaskList.prototype.moveUpFocus = function(taskLine) {
+      return $("#" + taskLine.model.id).prev().find(".description").focus();
+    };
+
+    TaskList.prototype.moveDownFocus = function(taskLine) {
+      return $("#" + taskLine.model.id).next().find(".description").focus();
     };
 
     return TaskList;

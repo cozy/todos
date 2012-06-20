@@ -28,6 +28,9 @@ class exports.HomeView extends Backbone.View
         @tasks = @taskList.tasks
         @archiveTasks = @archiveList.tasks
 
+        @newButton = @.$("#new-task-button")
+        @newButton.hide()
+
         @loadData()
         this
 
@@ -52,6 +55,11 @@ class exports.HomeView extends Backbone.View
                 data.url = "tasks/#{data.id}/"
                 @tasks.add data
                 $("#{data.id} span.description").contents().focus()
+                if not @isEditMode
+                    @.$(".task-buttons").hide()
+                else 
+                    @.$(".task-buttons").show()
+
             error: ->
                 alert "An error occured while saving data"
  
@@ -60,9 +68,11 @@ class exports.HomeView extends Backbone.View
     onEditClicked: (event) ->
         if not @isEditMode
             @.$(".task-buttons").show()
+            @newButton.show()
             @isEditMode = true
         else
             @.$(".task-buttons").hide()
+            @newButton.hide()
             @isEditMode = false
 
     ###

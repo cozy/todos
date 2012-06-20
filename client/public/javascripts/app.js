@@ -460,6 +460,8 @@
       this.archiveList = new TaskList(this, this.$("#archive-list"));
       this.tasks = this.taskList.tasks;
       this.archiveTasks = this.archiveList.tasks;
+      this.newButton = this.$("#new-task-button");
+      this.newButton.hide();
       this.loadData();
       return this;
     };
@@ -485,7 +487,12 @@
         success: function(data) {
           data.url = "tasks/" + data.id + "/";
           _this.tasks.add(data);
-          return $("" + data.id + " span.description").contents().focus();
+          $("" + data.id + " span.description").contents().focus();
+          if (!_this.isEditMode) {
+            return _this.$(".task-buttons").hide();
+          } else {
+            return _this.$(".task-buttons").show();
+          }
         },
         error: function() {
           return alert("An error occured while saving data");
@@ -496,9 +503,11 @@
     HomeView.prototype.onEditClicked = function(event) {
       if (!this.isEditMode) {
         this.$(".task-buttons").show();
+        this.newButton.show();
         return this.isEditMode = true;
       } else {
         this.$(".task-buttons").hide();
+        this.newButton.hide();
         return this.isEditMode = false;
       }
     };

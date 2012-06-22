@@ -129,6 +129,19 @@
       return this.view.addTaskLineAsFirstRow(task);
     };
 
+    TaskCollection.prototype.insertTask = function(previousTask, task) {
+      var index;
+      index = this.toArray().indexOf(previousTask);
+      task.nextTask = previousTask.nextTask;
+      task.previousTask = previousTask.id;
+      previousTask.nextTask = task.id;
+      this.add(task, {
+        at: index,
+        silent: true
+      });
+      return this.view.insertTask(previousTask.view, task);
+    };
+
     TaskCollection.prototype.getPreviousTask = function(task) {
       return this.get(task.previousTask);
     };
@@ -210,6 +223,25 @@
       });
       task.view.down(oldNextTask.id);
       return true;
+    };
+
+    TaskCollection.prototype.removeTask = function(task, callbacks) {
+      var nextTask, previousTask;
+      previousTask = this.getPreviousTask(task);
+      nextTask = this.getNextTask(task);
+      if (nextTask != null) {
+        nextTask.previousTask = (previousTask != null ? previousTask.id : void 0) | null;
+      }
+      if (previousTask != null) {
+        previousTask.nextTask = (nextTask != null ? nextTask.id : void 0) | null;
+      }
+      return task.destroy({
+        success: function() {
+          task.view.remove();
+          return callbacks.success();
+        },
+        error: callbacks.error
+      });
     };
 
     return TaskCollection;
@@ -475,7 +507,11 @@
     };
 
     HomeView.prototype.loadData = function() {
-      this.tasks.fetch();
+      this.tasks.fetch({
+        success: function() {
+          return $(".task:first .description").focus();
+        }
+      });
       this.archiveTasks.url = "tasks/archives/";
       return this.archiveTasks.fetch();
     };
@@ -540,12 +576,14 @@
 (this.require.define({
   "views/task_view": function(exports, require, module) {
     (function() {
-  var template,
+  var Task, template,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   template = require('./templates/task');
+
+  Task = require('../models/task').Task;
 
   exports.TaskLine = (function(_super) {
 
@@ -591,6 +629,7 @@
       if (this.model.done) this.done();
       this.setListeners();
       this.$(".task-buttons").hide();
+      this.$("span.description").data('before', this.$("span.description").html());
       return this.el;
     };
 
@@ -609,15 +648,18 @@
           if (event.which === 40) return _this.onCtrlDownKeyup();
         } else {
           if (event.which === 38) _this.onUpKeyup();
-          if (event.which === 40) return _this.onDownKeyup();
+          if (event.which === 40) _this.onDownKeyup();
+          if (event.which === 13) _this.onEnterKeyup();
+          if (event.which === 8) return _this.onBackspaceKeyup();
         }
       });
-      this.$("span.description").live('blur keyup paste', function(event) {
+      this.$("span.description").live('blur paste', function(event) {
         var el;
         el = $(this);
+        console.log(el.data('before'));
         if (el.data('before') !== el.html()) {
           el.data('before', el.html());
-          el.trigger('change', event.which);
+          el.trigger('change', event.which | event.keyCode);
         }
         return el;
       });
@@ -645,15 +687,7 @@
     };
 
     TaskLine.prototype.onDelButtonClicked = function(event) {
-      var _this = this;
-      return this.model.destroy({
-        success: function() {
-          return _this.remove();
-        },
-        error: function() {
-          return alert("An error occured, deletion was not saved.");
-        }
-      });
+      return this.delTask();
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
@@ -718,6 +752,21 @@
       return this.$("span.description").focus();
     };
 
+    TaskLine.prototype.onEnterKeyup = function() {
+      return this.model.collection.insertTask(this.model, new Task({
+        description: "new task"
+      }));
+    };
+
+    TaskLine.prototype.onBackspaceKeyup = function() {
+      var description;
+      description = this.$("span.description").html();
+      if (description.length === 0 || description === " ") {
+        this.list.moveUpFocus(this);
+        return this.delTask();
+      }
+    };
+
     /*
         # Functions
     */
@@ -747,6 +796,19 @@
     TaskLine.prototype.remove = function() {
       this.unbind();
       return $(this.el).remove();
+    };
+
+    TaskLine.prototype.focusDescription = function() {
+      return this.$("span.description").focus();
+    };
+
+    TaskLine.prototype.delTask = function() {
+      return this.model.collection.removeTask(this.model, {
+        success: function() {},
+        error: function() {
+          return alert("An error occured, deletion was not saved.");
+        }
+      });
     };
 
     return TaskLine;
@@ -809,6 +871,16 @@
 
     TaskList.prototype.moveDownFocus = function(taskLine) {
       return $("#" + taskLine.model.id).next().find(".description").focus();
+    };
+
+    TaskList.prototype.insertTask = function(previousTask, model) {
+      var taskLine, taskLineEl;
+      taskLine = new TaskLine(model);
+      taskLine.list = this;
+      console.log($(previousTask.el));
+      taskLineEl = $(taskLine.render());
+      taskLineEl.insertAfter($(previousTask.el));
+      return taskLine.focusDescription();
     };
 
     return TaskList;

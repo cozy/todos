@@ -35,3 +35,13 @@ class exports.TaskList extends Backbone.View
     # Set focus on next task.
     moveDownFocus: (taskLine) ->
         $("##{taskLine.model.id}").next().find(".description").focus()
+
+    insertTask: (previousTask, model) ->
+        taskLine = new TaskLine(model)
+        taskLine.list = @
+        console.log $(previousTask.el)
+        taskLineEl = $(taskLine.render())
+        taskLineEl.insertAfter($(previousTask.el))
+        taskLine.focusDescription()
+
+    

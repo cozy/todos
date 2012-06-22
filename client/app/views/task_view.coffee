@@ -1,4 +1,5 @@
 template = require('./templates/task')
+{Task} = require('../models/task')
 
 # Row displaying task status and description
 class exports.TaskLine extends Backbone.View
@@ -35,6 +36,7 @@ class exports.TaskLine extends Backbone.View
 
         # TODO check if edit mode is on before hiding
         @.$(".task-buttons").hide()
+        @.$("span.description").data 'before', @.$("span.description").html()
 
         @el
 
@@ -52,13 +54,16 @@ class exports.TaskLine extends Backbone.View
             else
                 @onUpKeyup() if event.which is 38
                 @onDownKeyup() if event.which is 40
+                @onEnterKeyup() if event.which is 13
+                @onBackspaceKeyup() if event.which is 8
 
-        @.$("span.description").live 'blur keyup paste', (event) ->
+        @.$("span.description").live 'blur paste', (event) ->
             el = $(@)
 
-            if el.data('before') isnt el.html()
+            console.log el.data('before')
+            if el.data('before') != el.html()
                 el.data 'before', el.html()
-                el.trigger('change', event.which)
+                el.trigger('change', event.which | event.keyCode)
             return el
         @.$("span.description").bind "change", @onDescriptionChanged
 
@@ -80,11 +85,7 @@ class exports.TaskLine extends Backbone.View
     # from DOM.
     # TODO: display indicator to say that it is saving.
     onDelButtonClicked: (event) =>
-        @model.destroy
-            success: =>
-                @remove()
-            error: ->
-                alert "An error occured, deletion was not saved."
+        @delTask()
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
@@ -95,7 +96,6 @@ class exports.TaskLine extends Backbone.View
                 success: ->
                 error: ->
                     alert "An error occured, modifications were not saved."
-
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
@@ -109,7 +109,7 @@ class exports.TaskLine extends Backbone.View
     # to avoid making too much requests.
     # TODO : force saving when window is closed.
     onDescriptionChanged: (event, keyCode) =>
-
+        
         saveDescription = =>
             @saving = false
             @model.description = @.$("span.description").html()
@@ -140,6 +140,16 @@ class exports.TaskLine extends Backbone.View
         @onDownButtonClicked()
         @.$("span.description").focus()
 
+    onEnterKeyup: ->
+        @model.collection.insertTask @.model, new Task(description: "new task")
+
+    onBackspaceKeyup: ->
+        description = @.$("span.description").html()
+        if description.length == 0 or description is " "
+            @list.moveUpFocus @
+            @delTask()
+
+            
     ###
     # Functions
     ###
@@ -170,4 +180,13 @@ class exports.TaskLine extends Backbone.View
     remove: ->
         @unbind()
         $(@el).remove()
+
+    focusDescription: ->
+        @.$("span.description").focus()
+
+    delTask: ->
+        @model.collection.removeTask @model,
+            success: ->
+            error: ->
+                alert "An error occured, deletion was not saved."
 

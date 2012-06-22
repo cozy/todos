@@ -44,7 +44,9 @@ class exports.HomeView extends Backbone.View
     # Grab data for archive and task list and display them through
     # model-view binding.
     loadData: ->
-        @tasks.fetch()
+        @tasks.fetch
+            success: ->
+                $(".task:first .description").focus()
         @archiveTasks.url = "tasks/archives/"
         @archiveTasks.fetch()
         

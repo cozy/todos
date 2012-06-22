@@ -73,3 +73,28 @@ describe "Edit task with keyboard", ->
                 @browser.html(".task:nth-child(3) .description").should.equal \
                      "My third task "
 
+        describe "Enter", ->
+
+            it "When I focus second task description", ->
+                @browser.evaluate('$(".task:nth-child(2) span.description").focus()')
+
+            it "And I type on enter key", ->
+                @browser.keyup ".task:nth-child(2) span.description", 13
+
+            it "Then I got a new task below second task", ->
+                @browser.length(".task").should.equal 5
+                @browser.html(".task:nth-child(3) span.description").should
+                    .equal "new task "
+
+        describe "Backspace", ->
+
+            it "When I focus second task description", ->
+                @browser.evaluate('$(".task:nth-child(2) span.description").focus()')
+
+            it "And I clear it and type on backspace key", ->
+                @browser.html ".task:nth-child(2) span.description", ""
+                @browser.keyup ".task:nth-child(2) span.description", 8
+
+            it "Then task is removed", ->
+                @browser.length(".task").should.equal 4
+

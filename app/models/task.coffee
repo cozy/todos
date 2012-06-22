@@ -114,18 +114,22 @@ Task.insertTask = (task, callback) ->
         previousTask.save (err) ->
             return callback err if err
 
-            Task.find nextTaskId, (err, nextTask) ->
-                return callback err if err
-                return callback null if not nextTask?
-
-                nextTask.previousTask = task.id
-                nextTask.save (err) ->
+            if nextTaskId?
+                Task.find nextTaskId, (err, nextTask) ->
                     return callback err if err
-                    task.nextTask = nextTaskId
-                    task.save (err) ->
+                    return callback null if not nextTask?
+
+                    nextTask.previousTask = task.id
+                    nextTask.save (err) ->
                         return callback err if err
-                        callback null
-            
+                        task.nextTask = nextTaskId
+                        task.save (err) ->
+                            return callback err if err
+                            callback null
+            else
+                task.nextTask = null
+                callback null
+                
 # Create a new task and add it to the todo task list if its state is not done.
 Task.createNew = (task, callback) ->
     task.nextTask = null
@@ -171,9 +175,9 @@ Task.removeLinks = (task, callback) ->
 # Remove task from DB and clean links if tasks were inside todo list.
 Task.remove = (task, callback) ->
     Task.removeLinks task, (err) ->
-            return callback err if err
+        return callback err if err
 
-            task.destroy callback
+        task.destroy callback
 
 # When task is done, it is removed from todo linked list.
 Task.done = (task, attributes, callback) ->
@@ -193,10 +197,11 @@ Task.done = (task, attributes, callback) ->
 # If task previous task is specified, it is inserted after this task. 
 Task.todo = (task, attributes, callback) ->
     if attributes.previousTask?
+        task.previousTask = attributes.previousTask
         Task.insertTask task, (err) ->
-            attributes.nextTask = task.nextTask
             return callback err if err
-            
+
+            attributes.nextTask = task.nextTask
             attributes.previousTask = task.previousTask
             task.updateAttributes attributes, callback
 
@@ -215,6 +220,7 @@ Task.move = (task, attributes, callback) ->
         return callback err if err
 
         if attributes.previousTask?
+            task.previousTask = attributes.previousTask
             Task.insertTask task, (err) ->
                 return callback err if err
 

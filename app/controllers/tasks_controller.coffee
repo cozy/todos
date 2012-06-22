@@ -98,6 +98,7 @@ action 'update', ->
     # When link changes previous and next task are updated.
     else if body.previousTask != undefined \
             and body.previousTask != @task.previousTask
+        console.log "********* mmove"
         Task.move @task, body, answer
 
     else

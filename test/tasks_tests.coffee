@@ -228,4 +228,34 @@ describe "/tasks", ->
             @body.rows[2].previousTask.should.equal @id2
             should.not.exist @body.rows[2].nextTask
 
+    describe "PUT /tasks/:id/ From done to todo",   ->
+        it "When I set first task to done", (done) ->
+            client.put "tasks/#{@id2}/", done: true, (error, response, body) =>
+                @response = response
+                @body = body
+                done()
 
+        it "And I set first task to todo", (done) ->
+            client.put "tasks/#{@id2}/", { done: false, previousTask: @id }, \
+                    (error, response, body) =>
+                @response = response
+                @body = body
+                done()
+
+        it "And I send a request to retrieve todo tasks", (done) ->
+            client.get "tasks/", (error, response, body) =>
+                @response = response
+                @body = JSON.parse body
+                done()
+
+        it "Then my task is still at same position", ->
+            testLength @body, 3
+            @body.rows[0].description.should.equal "my first task"
+            should.not.exist @body.rows[0].previousTask
+            @body.rows[0].nextTask.should.equal @id2
+            @body.rows[1].description.should.equal "my second task"
+            @body.rows[1].previousTask.should.equal @id
+            @body.rows[1].nextTask.should.equal @id3
+            @body.rows[2].description.should.equal "my third task"
+            @body.rows[2].previousTask.should.equal @id2
+            should.not.exist @body.rows[2].nextTask

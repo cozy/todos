@@ -1,13 +1,7 @@
 {TaskCollection} = require "../collections/tasks"
 {Task} = require "../models/task"
 {TaskList} = require "./tasks_view"
-
-$.fn.selectAll = ->
-    range = rangy.createRange()
-    range.selectNodeContents(@[0].childNodes[0])
-    sel = rangy.getSelection()
-    sel.setSingleRange(range)
-
+helpers = require "../helpers"
 
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
@@ -64,8 +58,7 @@ class exports.HomeView extends Backbone.View
                 data.url = "tasks/#{data.id}/"
                 @tasks.add data
                 $(".task:first .description").focus()
-                $(".task:first .description").selectAll()
-
+                helpers.selectAll($(".task:first .description"))
 
                 if not @isEditMode
                     @.$(".task-buttons").hide()

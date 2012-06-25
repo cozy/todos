@@ -129,17 +129,25 @@
       return this.view.addTaskLineAsFirstRow(task);
     };
 
-    TaskCollection.prototype.insertTask = function(previousTask, task) {
-      var index;
+    TaskCollection.prototype.insertTask = function(previousTask, task, callbacks) {
+      var index,
+        _this = this;
       index = this.toArray().indexOf(previousTask);
-      task.nextTask = previousTask.nextTask;
-      task.previousTask = previousTask.id;
-      previousTask.nextTask = task.id;
-      this.add(task, {
-        at: index,
-        silent: true
+      task.set("nextTask", previousTask.nextTask);
+      task.set("previousTask", previousTask.id);
+      return task.save(task.attributes, {
+        success: function() {
+          previousTask.nextTask = task.id;
+          task.url = "tasks/" + task.id + "/";
+          _this.add(task, {
+            at: index,
+            silent: true
+          });
+          _this.view.insertTask(previousTask.view, task);
+          return callbacks.success();
+        },
+        error: callbacks.error
       });
-      return this.view.insertTask(previousTask.view, task);
     };
 
     TaskCollection.prototype.getPreviousTask = function(task) {
@@ -230,10 +238,10 @@
       previousTask = this.getPreviousTask(task);
       nextTask = this.getNextTask(task);
       if (nextTask != null) {
-        nextTask.previousTask = (previousTask != null ? previousTask.id : void 0) | null;
+        nextTask.set("previousTask", (previousTask != null ? previousTask.id : void 0) | null);
       }
       if (previousTask != null) {
-        previousTask.nextTask = (nextTask != null ? nextTask.id : void 0) | null;
+        previousTask.set("nextTask", (nextTask != null ? nextTask.id : void 0) | null);
       }
       return task.destroy({
         success: function() {
@@ -273,6 +281,14 @@
     return BrunchApplication;
 
   })();
+
+  exports.selectAll = function(node) {
+    var range, sel;
+    range = rangy.createRange();
+    range.selectNodeContents(node[0].childNodes[0]);
+    sel = rangy.getSelection();
+    return sel.setSingleRange(range);
+  };
 
 }).call(this);
 
@@ -456,7 +472,7 @@
 (this.require.define({
   "views/home_view": function(exports, require, module) {
     (function() {
-  var Task, TaskCollection, TaskList,
+  var Task, TaskCollection, TaskList, helpers,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
@@ -466,13 +482,7 @@
 
   TaskList = require("./tasks_view").TaskList;
 
-  $.fn.selectAll = function() {
-    var range, sel;
-    range = rangy.createRange();
-    range.selectNodeContents(this[0].childNodes[0]);
-    sel = rangy.getSelection();
-    return sel.setSingleRange(range);
-  };
+  helpers = require("../helpers");
 
   exports.HomeView = (function(_super) {
 
@@ -532,7 +542,7 @@
           data.url = "tasks/" + data.id + "/";
           _this.tasks.add(data);
           $(".task:first .description").focus();
-          $(".task:first .description").selectAll();
+          helpers.selectAll($(".task:first .description"));
           if (!_this.isEditMode) {
             return _this.$(".task-buttons").hide();
           } else {
@@ -597,8 +607,7 @@
       "click .todo-button": "onTodoButtonClicked",
       "click .del-task-button": "onDelButtonClicked",
       "click .up-task-button": "onUpButtonClicked",
-      "click .down-task-button": "onDownButtonClicked",
-      "keyup span": "onDescriptionChanged"
+      "click .down-task-button": "onDownButtonClicked"
     };
 
     /* 
@@ -656,7 +665,6 @@
       this.$("span.description").live('blur paste', function(event) {
         var el;
         el = $(this);
-        console.log(el.data('before'));
         if (el.data('before') !== el.html()) {
           el.data('before', el.html());
           el.trigger('change', event.which | event.keyCode);
@@ -714,20 +722,18 @@
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
-      var saveDescription,
-        _this = this;
-      saveDescription = function() {
-        _this.saving = false;
-        _this.model.description = _this.$("span.description").html();
-        return _this.model.save({
-          description: _this.model.description
+      if (!(keyCode === 8 && this.$("span.description").html().length === 0)) {
+        this.saving = false;
+        this.model.description = this.$("span.description").html();
+        this.model.save({
+          description: this.model.description
         }, {
           success: function() {},
           error: function() {
             return alert("An error occured, modifications were not saved.");
           }
         });
-      };
+      }
       if (!this.saving) {
         this.saving = true;
         return setTimeout(saveDescription, 2000);

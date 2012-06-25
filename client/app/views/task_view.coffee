@@ -11,7 +11,6 @@ class exports.TaskLine extends Backbone.View
         "click .del-task-button": "onDelButtonClicked"
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
-        "keyup span": "onDescriptionChanged"
 
     ### 
     # Initializers 
@@ -60,7 +59,6 @@ class exports.TaskLine extends Backbone.View
         @.$("span.description").live 'blur paste', (event) ->
             el = $(@)
 
-            console.log el.data('before')
             if el.data('before') != el.html()
                 el.data 'before', el.html()
                 el.trigger('change', event.which | event.keyCode)
@@ -110,7 +108,7 @@ class exports.TaskLine extends Backbone.View
     # TODO : force saving when window is closed.
     onDescriptionChanged: (event, keyCode) =>
         
-        saveDescription = =>
+        unless keyCode == 8 and @.$("span.description").html().length == 0
             @saving = false
             @model.description = @.$("span.description").html()
             @model.save { description: @model.description },

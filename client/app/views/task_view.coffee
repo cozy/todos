@@ -1,5 +1,6 @@
-template = require('./templates/task')
-{Task} = require('../models/task')
+template = require "./templates/task"
+{Task} = require "../models/task"
+helpers = require "../helpers"
 
 # Row displaying task status and description
 class exports.TaskLine extends Backbone.View
@@ -33,19 +34,21 @@ class exports.TaskLine extends Backbone.View
 
         @setListeners()
 
+        @descriptionField = @.$("span.description")
+
         # TODO check if edit mode is on before hiding
         @.$(".task-buttons").hide()
-        @.$("span.description").data 'before', @.$("span.description").html()
+        @descriptionField.data 'before', @descriptionField.html()
 
         @el
 
     # Listen for description modification
     setListeners: ->
-        @.$("span.description").keypress (event) ->
+        @descriptionField.keypress (event) ->
             keyCode = event.which | event.keyCode
             keyCode != 13 and keyCode != 38 and keyCode != 40
 
-        @.$("span.description").keyup (event) =>
+        @descriptionField.keyup (event) =>
             keyCode = event.which | event.keyCode
             if event.ctrlKey
                 @onCtrlUpKeyup() if event.which is 38
@@ -56,14 +59,14 @@ class exports.TaskLine extends Backbone.View
                 @onEnterKeyup() if event.which is 13
                 @onBackspaceKeyup() if event.which is 8
 
-        @.$("span.description").live 'blur paste', (event) ->
+        @descriptionField.live 'blur paste', (event) ->
             el = $(@)
 
             if el.data('before') != el.html()
                 el.data 'before', el.html()
                 el.trigger('change', event.which | event.keyCode)
             return el
-        @.$("span.description").bind "change", @onDescriptionChanged
+        @descriptionField.bind "change", @onDescriptionChanged
 
     ###
     # Listeners
@@ -88,7 +91,7 @@ class exports.TaskLine extends Backbone.View
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
         if not @model.done and @model.collection.up @model
-            $("##{@model.id} span.description").focus()
+            @focusDescription()
 
             @model.save
                 success: ->
@@ -108,9 +111,9 @@ class exports.TaskLine extends Backbone.View
     # TODO : force saving when window is closed.
     onDescriptionChanged: (event, keyCode) =>
         
-        unless keyCode == 8 and @.$("span.description").html().length == 0
+        unless keyCode == 8 and @descriptionField.html().length == 0
             @saving = false
-            @model.description = @.$("span.description").html()
+            @model.description = @descriptionField.html()
             @model.save { description: @model.description },
                 success: ->
                 error: ->
@@ -131,18 +134,25 @@ class exports.TaskLine extends Backbone.View
     # Move line on line above.
     onCtrlUpKeyup: ->
         @onUpButtonClicked()
-        $("##{@model.id} span.description").focus()
+        @focusDescription()
 
     # Move line on line below.
     onCtrlDownKeyup: ->
         @onDownButtonClicked()
-        @.$("span.description").focus()
+        @focusDescription()
 
+    # When enter key is up a new task is created below current one.
     onEnterKeyup: ->
-        @model.collection.insertTask @.model, new Task(description: "new task")
+        @model.collection.insertTask @.model, \
+             new Task(description: "new task"),
+             success: (task) ->
+                 helpers.selectAll(task.view.descriptionField)
+             error: ->
+                 alert "Saving failed, an error occured."
 
+    # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
-        description = @.$("span.description").html()
+        description = @descriptionField.html()
         if description.length == 0 or description is " "
             @list.moveUpFocus @
             @delTask()
@@ -179,12 +189,13 @@ class exports.TaskLine extends Backbone.View
         @unbind()
         $(@el).remove()
 
+    # Put mouse focus on description field.
     focusDescription: ->
-        @.$("span.description").focus()
+        @descriptionField.focus()
 
+    # Delete task from collection and remove this field from view.
     delTask: ->
         @model.collection.removeTask @model,
             success: ->
             error: ->
                 alert "An error occured, deletion was not saved."
-

@@ -43,8 +43,9 @@ class exports.TaskCollection extends Backbone.Collection
                 task.url = "tasks/#{task.id}/"
                 @add task, { at: index, silent: true }
                 @view.insertTask previousTask.view, task
-                callbacks.success()
-            error: callbacks.error
+                callbacks?.success(task)
+            error: =>
+                callbacks?.error
 
     # Return previous task, if there is no previous task, it returns null.
     getPreviousTask: (task) ->

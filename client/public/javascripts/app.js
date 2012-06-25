@@ -144,9 +144,11 @@
             silent: true
           });
           _this.view.insertTask(previousTask.view, task);
-          return callbacks.success();
+          return callbacks != null ? callbacks.success(task) : void 0;
         },
-        error: callbacks.error
+        error: function() {
+          return callbacks != null ? callbacks.error : void 0;
+        }
       });
     };
 
@@ -586,14 +588,16 @@
 (this.require.define({
   "views/task_view": function(exports, require, module) {
     (function() {
-  var Task, template,
+  var Task, helpers, template,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
-  template = require('./templates/task');
+  template = require("./templates/task");
 
-  Task = require('../models/task').Task;
+  Task = require("../models/task").Task;
+
+  helpers = require("../helpers");
 
   exports.TaskLine = (function(_super) {
 
@@ -637,19 +641,20 @@
       this.el.id = this.model.id;
       if (this.model.done) this.done();
       this.setListeners();
+      this.descriptionField = this.$("span.description");
       this.$(".task-buttons").hide();
-      this.$("span.description").data('before', this.$("span.description").html());
+      this.descriptionField.data('before', this.descriptionField.html());
       return this.el;
     };
 
     TaskLine.prototype.setListeners = function() {
       var _this = this;
-      this.$("span.description").keypress(function(event) {
+      this.descriptionField.keypress(function(event) {
         var keyCode;
         keyCode = event.which | event.keyCode;
         return keyCode !== 13 && keyCode !== 38 && keyCode !== 40;
       });
-      this.$("span.description").keyup(function(event) {
+      this.descriptionField.keyup(function(event) {
         var keyCode;
         keyCode = event.which | event.keyCode;
         if (event.ctrlKey) {
@@ -662,7 +667,7 @@
           if (event.which === 8) return _this.onBackspaceKeyup();
         }
       });
-      this.$("span.description").live('blur paste', function(event) {
+      this.descriptionField.live('blur paste', function(event) {
         var el;
         el = $(this);
         if (el.data('before') !== el.html()) {
@@ -671,7 +676,7 @@
         }
         return el;
       });
-      return this.$("span.description").bind("change", this.onDescriptionChanged);
+      return this.descriptionField.bind("change", this.onDescriptionChanged);
     };
 
     /*
@@ -700,7 +705,7 @@
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
       if (!this.model.done && this.model.collection.up(this.model)) {
-        $("#" + this.model.id + " span.description").focus();
+        this.focusDescription();
         return this.model.save({
           success: function() {},
           error: function() {
@@ -722,9 +727,9 @@
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
-      if (!(keyCode === 8 && this.$("span.description").html().length === 0)) {
+      if (!(keyCode === 8 && this.descriptionField.html().length === 0)) {
         this.saving = false;
-        this.model.description = this.$("span.description").html();
+        this.model.description = this.descriptionField.html();
         this.model.save({
           description: this.model.description
         }, {
@@ -750,23 +755,30 @@
 
     TaskLine.prototype.onCtrlUpKeyup = function() {
       this.onUpButtonClicked();
-      return $("#" + this.model.id + " span.description").focus();
+      return this.focusDescription();
     };
 
     TaskLine.prototype.onCtrlDownKeyup = function() {
       this.onDownButtonClicked();
-      return this.$("span.description").focus();
+      return this.focusDescription();
     };
 
     TaskLine.prototype.onEnterKeyup = function() {
       return this.model.collection.insertTask(this.model, new Task({
         description: "new task"
-      }));
+      }), {
+        success: function(task) {
+          return helpers.selectAll(task.view.descriptionField);
+        },
+        error: function() {
+          return alert("Saving failed, an error occured.");
+        }
+      });
     };
 
     TaskLine.prototype.onBackspaceKeyup = function() {
       var description;
-      description = this.$("span.description").html();
+      description = this.descriptionField.html();
       if (description.length === 0 || description === " ") {
         this.list.moveUpFocus(this);
         return this.delTask();
@@ -805,7 +817,7 @@
     };
 
     TaskLine.prototype.focusDescription = function() {
-      return this.$("span.description").focus();
+      return this.descriptionField.focus();
     };
 
     TaskLine.prototype.delTask = function() {
@@ -886,7 +898,8 @@
       console.log($(previousTask.el));
       taskLineEl = $(taskLine.render());
       taskLineEl.insertAfter($(previousTask.el));
-      return taskLine.focusDescription();
+      taskLine.focusDescription();
+      return taskLine;
     };
 
     return TaskList;

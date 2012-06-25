@@ -32,9 +32,8 @@ class exports.TaskLine extends Backbone.View
         @el.id = @model.id
         @done() if @model.done
 
-        @setListeners()
-
         @descriptionField = @.$("span.description")
+        @setListeners()
 
         # TODO check if edit mode is on before hiding
         @.$(".task-buttons").hide()
@@ -53,6 +52,7 @@ class exports.TaskLine extends Backbone.View
             if event.ctrlKey
                 @onCtrlUpKeyup() if event.which is 38
                 @onCtrlDownKeyup() if event.which is 40
+                @onTodoButtonClicked() if event.which is 32
             else
                 @onUpKeyup() if event.which is 38
                 @onDownKeyup() if event.which is 40

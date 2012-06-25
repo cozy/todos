@@ -98,3 +98,14 @@ describe "Edit task with keyboard", ->
             it "Then task is removed", ->
                 @browser.length(".task").should.equal 4
 
+        describe "ctrl + space", ->
+
+            it "When I edit first task description", ->
+                @browser.evaluate('$(".task:nth-child(1) span.description").focus()')
+
+            it "And I type on up arrow space + ctrl", ->
+                @browser.keyup ".task:nth-child(2) span.description", 32, true
+                
+            it "Then first task state is now done", ->
+                @browser.html(".task:nth-child(2) .btn:first").should.equal \
+                    "done"

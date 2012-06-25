@@ -640,8 +640,8 @@
       }));
       this.el.id = this.model.id;
       if (this.model.done) this.done();
-      this.setListeners();
       this.descriptionField = this.$("span.description");
+      this.setListeners();
       this.$(".task-buttons").hide();
       this.descriptionField.data('before', this.descriptionField.html());
       return this.el;
@@ -659,7 +659,8 @@
         keyCode = event.which | event.keyCode;
         if (event.ctrlKey) {
           if (event.which === 38) _this.onCtrlUpKeyup();
-          if (event.which === 40) return _this.onCtrlDownKeyup();
+          if (event.which === 40) _this.onCtrlDownKeyup();
+          if (event.which === 32) return _this.onTodoButtonClicked();
         } else {
           if (event.which === 38) _this.onUpKeyup();
           if (event.which === 40) _this.onDownKeyup();

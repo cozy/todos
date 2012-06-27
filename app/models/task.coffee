@@ -235,5 +235,3 @@ Task.move = (task, attributes, callback) ->
                 attributes.nextTask = task.nextTask
                 task.updateAttributes attributes, callback
 
-                
-

@@ -138,7 +138,7 @@
       task.collection = this;
       return task.save(task.attributes, {
         success: function() {
-          previousTask.nextTask = task.id;
+          previousTask.set("nextTask", task.id);
           task.url = "tasks/" + task.id + "/";
           _this.add(task, {
             at: index,
@@ -732,7 +732,7 @@
       if (!(keyCode === 8 && this.descriptionField.html().length === 0)) {
         this.saving = false;
         this.model.description = this.descriptionField.html();
-        this.model.save({
+        return this.model.save({
           description: this.model.description
         }, {
           success: function() {},
@@ -740,10 +740,6 @@
             return alert("An error occured, modifications were not saved.");
           }
         });
-      }
-      if (!this.saving) {
-        this.saving = true;
-        return setTimeout(this.saveDescription, 2000);
       }
     };
 

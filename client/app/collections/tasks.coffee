@@ -40,7 +40,7 @@ class exports.TaskCollection extends Backbone.Collection
         task.collection = @
         task.save task.attributes,
             success: =>
-                previousTask.nextTask = task.id
+                previousTask.set("nextTask", task.id)
                 task.url = "tasks/#{task.id}/"
                 @add task, { at: index, silent: true }
                 @view.insertTask previousTask.view, task

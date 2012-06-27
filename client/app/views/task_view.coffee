@@ -119,10 +119,6 @@ class exports.TaskLine extends Backbone.View
                 error: ->
                     alert "An error occured, modifications were not saved."
 
-        if not @saving
-            @saving = true
-            setTimeout @saveDescription, 2000
-
     # Change focus to next task.
     onUpKeyup: ->
         @list.moveUpFocus @
@@ -143,12 +139,14 @@ class exports.TaskLine extends Backbone.View
 
     # When enter key is up a new task is created below current one.
     onEnterKeyup: ->
-        @model.collection.insertTask @.model, \
+        @model.collection.insertTask @model, \
              new Task(description: "new task"),
              success: (task) ->
                  helpers.selectAll(task.view.descriptionField)
              error: ->
                  alert "Saving failed, an error occured."
+
+
 
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->

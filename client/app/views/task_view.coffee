@@ -50,14 +50,14 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.keyup (event) =>
             keyCode = event.which | event.keyCode
             if event.ctrlKey
-                @onCtrlUpKeyup() if event.which is 38
-                @onCtrlDownKeyup() if event.which is 40
-                @onTodoButtonClicked() if event.which is 32
+                @onCtrlUpKeyup() if keyCode is 38
+                @onCtrlDownKeyup() if keyCode is 40
+                @onTodoButtonClicked() if keyCode is 32
             else
-                @onUpKeyup() if event.which is 38
-                @onDownKeyup() if event.which is 40
-                @onEnterKeyup() if event.which is 13
-                @onBackspaceKeyup() if event.which is 8
+                @onUpKeyup() if keyCode is 38
+                @onDownKeyup() if keyCode is 40
+                @onEnterKeyup() if keyCode is 13
+                @onBackspaceKeyup() if keyCode is 8
 
         @descriptionField.live 'blur paste', (event) ->
             el = $(@)
@@ -121,7 +121,7 @@ class exports.TaskLine extends Backbone.View
 
         if not @saving
             @saving = true
-            setTimeout saveDescription, 2000
+            setTimeout @saveDescription, 2000
 
     # Change focus to next task.
     onUpKeyup: ->

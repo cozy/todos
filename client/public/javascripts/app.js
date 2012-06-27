@@ -135,6 +135,7 @@
       index = this.toArray().indexOf(previousTask);
       task.set("nextTask", previousTask.nextTask);
       task.set("previousTask", previousTask.id);
+      task.collection = this;
       return task.save(task.attributes, {
         success: function() {
           previousTask.nextTask = task.id;
@@ -658,14 +659,14 @@
         var keyCode;
         keyCode = event.which | event.keyCode;
         if (event.ctrlKey) {
-          if (event.which === 38) _this.onCtrlUpKeyup();
-          if (event.which === 40) _this.onCtrlDownKeyup();
-          if (event.which === 32) return _this.onTodoButtonClicked();
+          if (keyCode === 38) _this.onCtrlUpKeyup();
+          if (keyCode === 40) _this.onCtrlDownKeyup();
+          if (keyCode === 32) return _this.onTodoButtonClicked();
         } else {
-          if (event.which === 38) _this.onUpKeyup();
-          if (event.which === 40) _this.onDownKeyup();
-          if (event.which === 13) _this.onEnterKeyup();
-          if (event.which === 8) return _this.onBackspaceKeyup();
+          if (keyCode === 38) _this.onUpKeyup();
+          if (keyCode === 40) _this.onDownKeyup();
+          if (keyCode === 13) _this.onEnterKeyup();
+          if (keyCode === 8) return _this.onBackspaceKeyup();
         }
       });
       this.descriptionField.live('blur paste', function(event) {
@@ -742,7 +743,7 @@
       }
       if (!this.saving) {
         this.saving = true;
-        return setTimeout(saveDescription, 2000);
+        return setTimeout(this.saveDescription, 2000);
       }
     };
 

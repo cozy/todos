@@ -67,7 +67,7 @@ describe "Edit task with keyboard", ->
             it "And I type on up arrow key + ctrl", ->
                 @browser.keyup ".task:nth-child(2) span.description", 40, true
                 
-            it "Then I second task becomes third task", ->
+            it "Then second task becomes third task", ->
                 @browser.html(".task:nth-child(2) .description").should.equal \
                      "My first task "
                 @browser.html(".task:nth-child(3) .description").should.equal \
@@ -78,8 +78,9 @@ describe "Edit task with keyboard", ->
             it "When I focus second task description", ->
                 @browser.evaluate('$(".task:nth-child(2) span.description").focus()')
 
-            it "And I type on enter key", ->
-                @browser.keyup ".task:nth-child(2) span.description", 13
+            it "And I type on enter key", (done) ->
+                @browser.keyup ".task:nth-child(2) span.description", 13, null
+                helpers.waits done, 500
 
             it "Then I got a new task below second task", ->
                 @browser.length(".task").should.equal 5
@@ -91,9 +92,10 @@ describe "Edit task with keyboard", ->
             it "When I focus second task description", ->
                 @browser.evaluate('$(".task:nth-child(2) span.description").focus()')
 
-            it "And I clear it and type on backspace key", ->
+            it "And I clear it and type on backspace key", (done) ->
                 @browser.html ".task:nth-child(2) span.description", ""
                 @browser.keyup ".task:nth-child(2) span.description", 8
+                helpers.waits done, 500
 
             it "Then task is removed", ->
                 @browser.length(".task").should.equal 4

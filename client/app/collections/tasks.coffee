@@ -37,6 +37,7 @@ class exports.TaskCollection extends Backbone.Collection
         index = @toArray().indexOf previousTask
         task.set("nextTask", previousTask.nextTask)
         task.set("previousTask", previousTask.id)
+        task.collection = @
         task.save task.attributes,
             success: =>
                 previousTask.nextTask = task.id

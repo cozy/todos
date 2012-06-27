@@ -760,7 +760,7 @@
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
-      if (!(keyCode === 8 && this.descriptionField.html().length === 0)) {
+      if (!(keyCode === 8 || this.descriptionField.html().length === 0)) {
         this.saving = false;
         this.model.description = this.descriptionField.html();
         return this.model.save({
@@ -808,13 +808,19 @@
     TaskLine.prototype.onBackspaceKeyup = function() {
       var description;
       description = this.descriptionField.html();
-      if (description.length === 0 || description === " ") {
+      if ((description.length === 0 || description === " ") && $(".task:not(.done)").length > 0) {
         if (this.model.previousTask != null) {
-          this.list.moveUpFocus(this);
+          this.list.moveUpFocus(this, {
+            maxPosition: true
+          });
         } else if (this.model.nextTask != null) {
-          this.list.moveDownFocus(this);
+          this.list.moveDownFocus(this, {
+            maxPosition: true
+          });
         }
         return this.delTask();
+      } else if ((description.length === 0 || description === " ") && $(".task:not(.done)").length === 1) {
+        return description.html(" ");
       }
     };
 
@@ -918,22 +924,29 @@
       return this.mainView.moveToTaskList(task);
     };
 
-    TaskList.prototype.moveUpFocus = function(taskLine) {
-      var cursorPosition, previousDescription, selector;
-      cursorPosition = helpers.getCursorPosition(taskLine.descriptionField);
+    TaskList.prototype.moveUpFocus = function(taskLine, options) {
+      var nextDescription, selector;
       selector = "#" + taskLine.model.id;
-      previousDescription = $(selector).prev().find(".description");
-      previousDescription.focus();
-      return helpers.setCursorPosition(previousDescription, cursorPosition);
+      nextDescription = $(selector).prev().find(".description");
+      return this.moveFocus(taskLine.descriptionField, nextDescription, options);
     };
 
-    TaskList.prototype.moveDownFocus = function(taskLine) {
-      var cursorPosition, nextDescription, selector;
-      cursorPosition = helpers.getCursorPosition(taskLine.descriptionField);
+    TaskList.prototype.moveDownFocus = function(taskLine, options) {
+      var nextDescription, selector;
       selector = "#" + taskLine.model.id;
       nextDescription = $(selector).next().find(".description");
-      nextDescription.focus();
-      return helpers.setCursorPosition(nextDescription, cursorPosition);
+      return this.moveFocus(taskLine.descriptionField, nextDescription, options);
+    };
+
+    TaskList.prototype.moveFocus = function(previousNode, nextNode, options) {
+      var cursorPosition;
+      cursorPosition = helpers.getCursorPosition(previousNode);
+      nextNode.focus();
+      if (((options != null ? options.maxPosition : void 0) != null) && options.maxPosition) {
+        return helpers.setCursorPosition(nextNode, nextNode.text().length);
+      } else {
+        return helpers.setCursorPosition(nextNode, cursorPosition);
+      }
     };
 
     TaskList.prototype.insertTask = function(previousTaskLine, task) {

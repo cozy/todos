@@ -111,7 +111,7 @@ class exports.TaskLine extends Backbone.View
     # TODO : force saving when window is closed.
     onDescriptionChanged: (event, keyCode) =>
         
-        unless keyCode == 8 and @descriptionField.html().length == 0
+        unless keyCode == 8 or @descriptionField.html().length == 0
             @saving = false
             @model.description = @descriptionField.html()
             @model.save { description: @model.description },
@@ -151,13 +151,17 @@ class exports.TaskLine extends Backbone.View
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
         description = @descriptionField.html()
-        if description.length == 0 or description is " "
+        if (description.length == 0 or description is " ") \
+           and $(".task:not(.done)").length > 0
             if @model.previousTask?
-                @list.moveUpFocus @
+                @list.moveUpFocus @, maxPosition: true
             else if @model.nextTask?
-                @list.moveDownFocus @
+                @list.moveDownFocus @, maxPosition: true
 
             @delTask()
+        else if (description.length == 0 or description is " ") \
+                and $(".task:not(.done)").length == 1
+            description.html(" ")
 
             
     ###

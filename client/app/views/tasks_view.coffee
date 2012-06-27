@@ -31,20 +31,26 @@ class exports.TaskList extends Backbone.View
         @mainView.moveToTaskList task
 
     # Set focus on previous task.
-    moveUpFocus: (taskLine) ->
-        cursorPosition = helpers.getCursorPosition taskLine.descriptionField
+    moveUpFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
-        previousDescription = $(selector).prev().find(".description")
-        previousDescription.focus()
-        helpers.setCursorPosition previousDescription, cursorPosition
+        nextDescription = $(selector).prev().find(".description")
+        @moveFocus taskLine.descriptionField, nextDescription, options
 
     # Set focus on next task.
-    moveDownFocus: (taskLine) ->
-        cursorPosition = helpers.getCursorPosition taskLine.descriptionField
+    moveDownFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
         nextDescription = $(selector).next().find(".description")
-        nextDescription.focus()
-        helpers.setCursorPosition nextDescription, cursorPosition
+        @moveFocus taskLine.descriptionField, nextDescription, options
+ 
+    moveFocus: (previousNode, nextNode, options) ->
+        cursorPosition = helpers.getCursorPosition previousNode
+        nextNode.focus()
+        if options?.maxPosition? and options.maxPosition
+            helpers.setCursorPosition nextNode, \
+                                      nextNode.text().length
+        else
+            helpers.setCursorPosition nextNode, cursorPosition
+
 
     # Insert a task represented by task after previousTaskLine
     insertTask: (previousTaskLine, task) ->
@@ -54,5 +60,4 @@ class exports.TaskList extends Backbone.View
         taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
         taskLine
-
     

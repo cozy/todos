@@ -781,7 +781,11 @@
       var description;
       description = this.descriptionField.html();
       if (description.length === 0 || description === " ") {
-        this.list.moveUpFocus(this);
+        if (this.model.previousTask != null) {
+          this.list.moveUpFocus(this);
+        } else if (this.model.nextTask != null) {
+          this.list.moveDownFocus(this);
+        }
         return this.delTask();
       }
     };

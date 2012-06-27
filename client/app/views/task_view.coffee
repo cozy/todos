@@ -154,7 +154,11 @@ class exports.TaskLine extends Backbone.View
     onBackspaceKeyup: ->
         description = @descriptionField.html()
         if description.length == 0 or description is " "
-            @list.moveUpFocus @
+            if @model.previousTask?
+                @list.moveUpFocus @
+            else if @model.nextTask?
+                @list.moveDownFocus @
+
             @delTask()
 
             

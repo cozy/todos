@@ -1,5 +1,6 @@
 {TaskCollection} = require "../collections/tasks"
 {TaskLine} = require "../views/task_view"
+helpers = require "../helpers"
 
 # Small widget used to handle interactions inside list.
 class exports.TaskList extends Backbone.View
@@ -25,23 +26,32 @@ class exports.TaskList extends Backbone.View
     isArchive: ->
         $(@el).attr("id") == "archive-list"
 
+    # Remove a task from its current position then add it to todo task list.
     moveToTaskList: (task) ->
         @mainView.moveToTaskList task
 
     # Set focus on previous task.
     moveUpFocus: (taskLine) ->
-        $("##{taskLine.model.id}").prev().find(".description").focus()
+        cursorPosition = helpers.getCursorPosition taskLine.descriptionField
+        selector = "##{taskLine.model.id}"
+        previousDescription = $(selector).prev().find(".description")
+        previousDescription.focus()
+        helpers.setCursorPosition previousDescription, cursorPosition
 
     # Set focus on next task.
     moveDownFocus: (taskLine) ->
-        $("##{taskLine.model.id}").next().find(".description").focus()
+        cursorPosition = helpers.getCursorPosition taskLine.descriptionField
+        selector = "##{taskLine.model.id}"
+        nextDescription = $(selector).next().find(".description")
+        nextDescription.focus()
+        helpers.setCursorPosition nextDescription, cursorPosition
 
-    insertTask: (previousTask, model) ->
-        taskLine = new TaskLine(model)
+    # Insert a task represented by task after previousTaskLine
+    insertTask: (previousTaskLine, task) ->
+        taskLine = new TaskLine(task)
         taskLine.list = @
-        console.log $(previousTask.el)
         taskLineEl = $(taskLine.render())
-        taskLineEl.insertAfter($(previousTask.el))
+        taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
         taskLine
 

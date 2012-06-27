@@ -287,10 +287,41 @@
 
   exports.selectAll = function(node) {
     var range, sel;
-    range = rangy.createRange();
-    range.selectNodeContents(node[0].childNodes[0]);
-    sel = rangy.getSelection();
-    return sel.setSingleRange(range);
+    if (node.length > 0) {
+      range = rangy.createRange();
+      range.selectNodeContents(node[0].childNodes[0]);
+      sel = rangy.getSelection();
+      sel.setSingleRange(range);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  exports.getCursorPosition = function(node) {
+    var range, sel;
+    if (node.length > 0) {
+      range = rangy.createRange();
+      range.selectNodeContents(node[0].childNodes[0]);
+      sel = rangy.getSelection();
+      range = sel.getRangeAt(0);
+      return range.endOffset;
+    } else {
+      return 0;
+    }
+  };
+
+  exports.setCursorPosition = function(node, cursorPosition) {
+    var range, sel;
+    if (node.length > 0) {
+      range = rangy.createRange();
+      range.collapseToPoint(node[0].childNodes[0], cursorPosition);
+      sel = rangy.getSelection();
+      sel.setSingleRange(range);
+      return true;
+    } else {
+      return false;
+    }
   };
 
 }).call(this);
@@ -842,13 +873,15 @@
 (this.require.define({
   "views/tasks_view": function(exports, require, module) {
     (function() {
-  var TaskCollection, TaskLine,
+  var TaskCollection, TaskLine, helpers,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   TaskCollection = require("../collections/tasks").TaskCollection;
 
   TaskLine = require("../views/task_view").TaskLine;
+
+  helpers = require("../helpers");
 
   exports.TaskList = (function(_super) {
 
@@ -886,20 +919,29 @@
     };
 
     TaskList.prototype.moveUpFocus = function(taskLine) {
-      return $("#" + taskLine.model.id).prev().find(".description").focus();
+      var cursorPosition, previousDescription, selector;
+      cursorPosition = helpers.getCursorPosition(taskLine.descriptionField);
+      selector = "#" + taskLine.model.id;
+      previousDescription = $(selector).prev().find(".description");
+      previousDescription.focus();
+      return helpers.setCursorPosition(previousDescription, cursorPosition);
     };
 
     TaskList.prototype.moveDownFocus = function(taskLine) {
-      return $("#" + taskLine.model.id).next().find(".description").focus();
+      var cursorPosition, nextDescription, selector;
+      cursorPosition = helpers.getCursorPosition(taskLine.descriptionField);
+      selector = "#" + taskLine.model.id;
+      nextDescription = $(selector).next().find(".description");
+      nextDescription.focus();
+      return helpers.setCursorPosition(nextDescription, cursorPosition);
     };
 
-    TaskList.prototype.insertTask = function(previousTask, model) {
+    TaskList.prototype.insertTask = function(previousTaskLine, task) {
       var taskLine, taskLineEl;
-      taskLine = new TaskLine(model);
+      taskLine = new TaskLine(task);
       taskLine.list = this;
-      console.log($(previousTask.el));
       taskLineEl = $(taskLine.render());
-      taskLineEl.insertAfter($(previousTask.el));
+      taskLineEl.insertAfter($(previousTaskLine.el));
       taskLine.focusDescription();
       return taskLine;
     };

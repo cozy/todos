@@ -30,6 +30,7 @@ class exports.HomeView extends Backbone.View
         @archiveTasks = @archiveList.tasks
 
         @newButton = @.$("#new-task-button")
+        @showButtonsButton = @.$("#edit-button")
         @newButton.hide()
 
         @loadData()
@@ -37,10 +38,14 @@ class exports.HomeView extends Backbone.View
 
     # Grab data for archive and task list and display them through
     # model-view binding.
+    # If there is no task, one is automatically created.
     loadData: ->
         @tasks.fetch
-            success: ->
-                $(".task:first .description").focus()
+            success: =>
+                if $(".task:not(.done)").length > 0
+                    $(".task:first .description").focus()
+                else
+                    @onAddClicked()
         @archiveTasks.url = "tasks/archives/"
         @archiveTasks.fetch()
         
@@ -61,9 +66,9 @@ class exports.HomeView extends Backbone.View
                 helpers.selectAll($(".task:first .description"))
 
                 if not @isEditMode
-                    @.$(".task-buttons").hide()
+                    $(".task:first .task-buttons").hide()
                 else
-                    @.$(".task-buttons").show()
+                    $(".task:first .task-buttons").show()
 
             error: ->
                 alert "An error occured while saving data"
@@ -72,13 +77,15 @@ class exports.HomeView extends Backbone.View
     # better for touch interfaces).
     onEditClicked: (event) ->
         if not @isEditMode
-            @.$(".task-buttons").show()
+            @.$(".task:not(.done) .task-buttons").show()
             @newButton.show()
             @isEditMode = true
+            @showButtonsButton.html "hide buttons"
         else
             @.$(".task-buttons").hide()
             @newButton.hide()
             @isEditMode = false
+            @showButtonsButton.html "show buttons"
 
     ###
     # Functions

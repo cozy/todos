@@ -59,5 +59,6 @@ class exports.TaskList extends Backbone.View
         taskLineEl = $(taskLine.render())
         taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
+        taskLine.showButtons()
         taskLine
     

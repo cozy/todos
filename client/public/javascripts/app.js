@@ -412,6 +412,10 @@
         this[property] = task[property];
       }
       if (this.id) this.url = "tasks/" + this.id + "/";
+      console.log(task.description);
+      if (!(task.description != null) || task.description.length === 0 || task.description === " " || task.description === "   " || task.description === "  ") {
+        this["description"] = "empty task";
+      }
     }
 
     Task.prototype.setDone = function() {
@@ -429,10 +433,13 @@
     };
 
     Task.prototype.setLink = function() {
-      var nextTask, previousTask;
+      var firstTask, nextTask, previousTask;
       if (this.collection.view.isArchive()) {
         this.view.remove();
-        return this.collection.view.moveToTaskList(this);
+        this.collection.view.moveToTaskList(this);
+        firstTask = this.collection.at(0);
+        this.set("nextTask", firstTask.id);
+        return firstTask.set("firstTask", this.id);
       } else {
         previousTask = this.collection.getPreviousTodoTask(this);
         nextTask = this.collection.getNextTodoTask(this);
@@ -545,15 +552,21 @@
       this.tasks = this.taskList.tasks;
       this.archiveTasks = this.archiveList.tasks;
       this.newButton = this.$("#new-task-button");
+      this.showButtonsButton = this.$("#edit-button");
       this.newButton.hide();
       this.loadData();
       return this;
     };
 
     HomeView.prototype.loadData = function() {
+      var _this = this;
       this.tasks.fetch({
         success: function() {
-          return $(".task:first .description").focus();
+          if ($(".task:not(.done)").length > 0) {
+            return $(".task:first .description").focus();
+          } else {
+            return _this.onAddClicked();
+          }
         }
       });
       this.archiveTasks.url = "tasks/archives/";
@@ -578,9 +591,9 @@
           $(".task:first .description").focus();
           helpers.selectAll($(".task:first .description"));
           if (!_this.isEditMode) {
-            return _this.$(".task-buttons").hide();
+            return $(".task:first .task-buttons").hide();
           } else {
-            return _this.$(".task-buttons").show();
+            return $(".task:first .task-buttons").show();
           }
         },
         error: function() {
@@ -591,13 +604,15 @@
 
     HomeView.prototype.onEditClicked = function(event) {
       if (!this.isEditMode) {
-        this.$(".task-buttons").show();
+        this.$(".task:not(.done) .task-buttons").show();
         this.newButton.show();
-        return this.isEditMode = true;
+        this.isEditMode = true;
+        return this.showButtonsButton.html("hide buttons");
       } else {
         this.$(".task-buttons").hide();
         this.newButton.hide();
-        return this.isEditMode = false;
+        this.isEditMode = false;
+        return this.showButtonsButton.html("show buttons");
       }
     };
 
@@ -673,6 +688,7 @@
       this.el.id = this.model.id;
       if (this.model.done) this.done();
       this.descriptionField = this.$("span.description");
+      this.buttons = this.$(".task-buttons");
       this.setListeners();
       this.$(".task-buttons").hide();
       this.descriptionField.data('before', this.descriptionField.html());
@@ -808,7 +824,7 @@
     TaskLine.prototype.onBackspaceKeyup = function() {
       var description;
       description = this.descriptionField.html();
-      if ((description.length === 0 || description === " ") && $(".task:not(.done)").length > 0) {
+      if ((description.length === 0 || description === "") && $(".task:not(.done)").length > 0) {
         if (this.model.previousTask != null) {
           this.list.moveUpFocus(this, {
             maxPosition: true
@@ -843,11 +859,17 @@
     };
 
     TaskLine.prototype.up = function(previousLineId) {
-      return $(this.el).insertBefore($("#" + previousLineId));
+      var cursorPosition;
+      cursorPosition = helpers.getCursorPosition(this.descriptionField);
+      $(this.el).insertBefore($("#" + previousLineId));
+      return helpers.setCursorPosition(this.descriptionField, cursorPosition);
     };
 
     TaskLine.prototype.down = function(nextLineId) {
-      return $(this.el).insertAfter($("#" + nextLineId));
+      var cursorPosition;
+      cursorPosition = helpers.getCursorPosition(this.descriptionField);
+      $(this.el).insertAfter($("#" + nextLineId));
+      return helpers.setCursorPosition(this.descriptionField, cursorPosition);
     };
 
     TaskLine.prototype.remove = function() {
@@ -859,13 +881,21 @@
       return this.descriptionField.focus();
     };
 
-    TaskLine.prototype.delTask = function() {
+    TaskLine.prototype.delTask = function(callback) {
       return this.model.collection.removeTask(this.model, {
-        success: function() {},
+        success: callback,
         error: function() {
           return alert("An error occured, deletion was not saved.");
         }
       });
+    };
+
+    TaskLine.prototype.showButtons = function() {
+      return this.buttons.show();
+    };
+
+    TaskLine.prototype.hideButtons = function() {
+      return this.buttons.hide();
     };
 
     return TaskLine;
@@ -956,6 +986,7 @@
       taskLineEl = $(taskLine.render());
       taskLineEl.insertAfter($(previousTaskLine.el));
       taskLine.focusDescription();
+      taskLine.showButtons();
       return taskLine;
     };
 
@@ -984,7 +1015,7 @@ buf.push('><button');
 buf.push(attrs({ 'id':("new-task-button"), "class": ("btn btn-large btn-success") }));
 buf.push('>new task\n</button><button');
 buf.push(attrs({ 'id':("edit-button"), "class": ("btn btn-large") }));
-buf.push('>edit mode\n</button><span');
+buf.push('>show buttons\n</button><span');
 buf.push(attrs({ "class": ('description') }));
 buf.push('>To-do list</span></header><div');
 buf.push(attrs({ 'id':('task-list') }));

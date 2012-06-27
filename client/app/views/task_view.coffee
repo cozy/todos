@@ -33,6 +33,7 @@ class exports.TaskLine extends Backbone.View
         @done() if @model.done
 
         @descriptionField = @.$("span.description")
+        @buttons = @.$(".task-buttons")
         @setListeners()
 
         # TODO check if edit mode is on before hiding
@@ -146,19 +147,17 @@ class exports.TaskLine extends Backbone.View
              error: ->
                  alert "Saving failed, an error occured."
 
-
-
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
         description = @descriptionField.html()
-        if (description.length == 0 or description is " ") \
+        if (description.length == 0 or description is "") \
            and $(".task:not(.done)").length > 0
             if @model.previousTask?
                 @list.moveUpFocus @, maxPosition: true
             else if @model.nextTask?
                 @list.moveDownFocus @, maxPosition: true
-
             @delTask()
+
         else if (description.length == 0 or description is " ") \
                 and $(".task:not(.done)").length == 1
             description.html(" ")
@@ -184,11 +183,15 @@ class exports.TaskLine extends Backbone.View
 
     # Put line above line correspondig to previousLineId.
     up: (previousLineId) ->
+        cursorPosition = helpers.getCursorPosition @descriptionField
         $(@el).insertBefore($("##{previousLineId}"))
+        helpers.setCursorPosition @descriptionField, cursorPosition
 
     # Put line below line correspondig to nextLineId.
     down: (nextLineId) ->
+        cursorPosition = helpers.getCursorPosition @descriptionField
         $(@el).insertAfter($("##{nextLineId}"))
+        helpers.setCursorPosition @descriptionField, cursorPosition
 
     # Remove object from view and unbind listeners.
     remove: ->
@@ -200,8 +203,16 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.focus()
 
     # Delete task from collection and remove this field from view.
-    delTask: ->
+    delTask: (callback) ->
         @model.collection.removeTask @model,
-            success: ->
+            success: callback
             error: ->
                 alert "An error occured, deletion was not saved."
+
+    # Show buttons linked to task.
+    showButtons: ->
+        @buttons.show()
+
+    # Hide buttons linked to task.
+    hideButtons: ->
+        @buttons.hide()

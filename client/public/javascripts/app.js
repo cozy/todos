@@ -539,9 +539,10 @@
         # Initializers
     */
 
+    HomeView.prototype.isEditMode = false;
+
     function HomeView() {
       HomeView.__super__.constructor.call(this);
-      this.isEditMode = false;
     }
 
     HomeView.prototype.render = function() {
@@ -992,7 +993,7 @@
       taskLineEl = $(taskLine.render());
       taskLineEl.insertAfter($(previousTaskLine.el));
       taskLine.focusDescription();
-      taskLine.showButtons();
+      if (this.mainView.isEditMode) taskLine.showButtons();
       return taskLine;
     };
 

@@ -15,11 +15,11 @@ class exports.HomeView extends Backbone.View
     # Initializers
     ###
 
+    isEditMode: false
+
     constructor: ->
         super()
 
-        @isEditMode = false
-      
     # Build widgets (task lists) then load data.
     render: ->
         $(@el).html require('./templates/home')

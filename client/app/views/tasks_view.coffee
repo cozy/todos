@@ -59,6 +59,7 @@ class exports.TaskList extends Backbone.View
         taskLineEl = $(taskLine.render())
         taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
-        taskLine.showButtons()
+        if @mainView.isEditMode
+            taskLine.showButtons()
         taskLine
     

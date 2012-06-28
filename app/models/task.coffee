@@ -24,7 +24,7 @@ Task.destroyAll = (callback) ->
     Task.destroySome {}, callback
 
 Task.archives = (callback) ->
-    Task.all {"where": { "done": true }, "sort": {"completionDate"} }, callback
+    Task.all {"where": { "done": true }, "order": "completionDate DESC" }, callback
     
 # Returns all tasks of which state is todo. Order them following the link
 # list.

@@ -33,6 +33,21 @@ class exports.TaskCollection extends Backbone.Collection
             task.set("nextTask", nextTask.id)
         @view.addTaskLineAsFirstRow task
 
+    insertTask: (previousTask, task, callbacks) ->
+        index = @toArray().indexOf previousTask
+        task.set("nextTask", previousTask.nextTask)
+        task.set("previousTask", previousTask.id)
+        task.collection = @
+        task.save task.attributes,
+            success: =>
+                previousTask.set("nextTask", task.id)
+                task.url = "tasks/#{task.id}/"
+                @add task, { at: index, silent: true }
+                @view.insertTask previousTask.view, task
+                callbacks?.success(task)
+            error: =>
+                callbacks?.error
+
     # Return previous task, if there is no previous task, it returns null.
     getPreviousTask: (task) ->
         @get(task.previousTask)
@@ -125,4 +140,19 @@ class exports.TaskCollection extends Backbone.Collection
         task.view.down(oldNextTask.id)
 
         return true
+
+    # Remove task from collection and delete it from backend.
+    # Update previous and next links.
+    removeTask: (task, callbacks) ->
+        previousTask = @getPreviousTask task
+        nextTask = @getNextTask task
+
+        nextTask?.set("previousTask", previousTask?.id | null)
+        previousTask?.set("nextTask", nextTask?.id | null)
+        
+        task.destroy
+            success: ->
+                task.view.remove()
+                callbacks?.success()
+            error: callbacks.error
 

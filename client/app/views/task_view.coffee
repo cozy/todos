@@ -1,4 +1,6 @@
-template = require('./templates/task')
+template = require "./templates/task"
+{Task} = require "../models/task"
+helpers = require "../helpers"
 
 # Row displaying task status and description
 class exports.TaskLine extends Backbone.View
@@ -10,7 +12,6 @@ class exports.TaskLine extends Backbone.View
         "click .del-task-button": "onDelButtonClicked"
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
-        "keyup span": "onDescriptionChanged"
 
     ### 
     # Initializers 
@@ -22,6 +23,8 @@ class exports.TaskLine extends Backbone.View
         @saving = false
         @id = @model._id
         @model.view = @
+        @firstDel = false
+        @isDeleting = false
         @list
 
     # Render wiew and bind it to model.
@@ -31,26 +34,42 @@ class exports.TaskLine extends Backbone.View
         @el.id = @model.id
         @done() if @model.done
 
+        @descriptionField = @.$("span.description")
+        @buttons = @.$(".task-buttons")
         @setListeners()
 
         # TODO check if edit mode is on before hiding
         @.$(".task-buttons").hide()
+        @descriptionField.data 'before', @descriptionField.html()
 
         @el
 
     # Listen for description modification
     setListeners: ->
-        @.$("span.description").keypress (event) ->
-            return event.which != 13
+        @descriptionField.keypress (event) ->
+            keyCode = event.which | event.keyCode
+            keyCode != 13 and keyCode != 38 and keyCode != 40
 
-        @.$("span.description").live 'blur keyup paste', (event) ->
-            el = $(@)
+        @descriptionField.keyup (event) =>
+            keyCode = event.which | event.keyCode
+            if event.ctrlKey
+                @onCtrlUpKeyup() if keyCode is 38
+                @onCtrlDownKeyup() if keyCode is 40
+                @onTodoButtonClicked() if keyCode is 32
+            else
+                @onUpKeyup() if keyCode is 38
+                @onDownKeyup() if keyCode is 40
+                @onEnterKeyup() if keyCode is 13
+                @onBackspaceKeyup() if keyCode is 8
 
-            if el.data('before') isnt el.html()
+        @descriptionField.live 'blur paste', (event) =>
+            el = $(@descriptionField)
+
+            if el.data('before') != el.html() and not @isDeleting
                 el.data 'before', el.html()
-                el.trigger('change', event.which)
+                el.trigger('change', event.which | event.keyCode)
             return el
-        @.$("span.description").bind "change", @onDescriptionChanged
+        @descriptionField.bind "change", @onDescriptionChanged
 
     ###
     # Listeners
@@ -70,15 +89,13 @@ class exports.TaskLine extends Backbone.View
     # from DOM.
     # TODO: display indicator to say that it is saving.
     onDelButtonClicked: (event) =>
-        @model.destroy
-            success: =>
-                @remove()
-            error: ->
-                alert "An error occured, deletion was not saved."
+        @delTask()
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        if @model.collection.up @model
+        if not @model.done and @model.collection.up @model
+            @focusDescription()
+
             @model.save
                 success: ->
                 error: ->
@@ -86,7 +103,7 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        if @model.collection.down @model
+        if not @model.done and @model.collection.down @model
             @model.save
                 success: ->
                 error: ->
@@ -96,21 +113,59 @@ class exports.TaskLine extends Backbone.View
     # to avoid making too much requests.
     # TODO : force saving when window is closed.
     onDescriptionChanged: (event, keyCode) =>
-
-        saveDescription = =>
+        
+        unless keyCode == 8 or @descriptionField.html().length == 0
             @saving = false
-            @model.description = @.$("span.description").html()
+            @model.description = @descriptionField.html()
             @model.save { description: @model.description },
                 success: ->
                 error: ->
                     alert "An error occured, modifications were not saved."
 
-        if keyCode == 13
-            event.preventDefault()
-        else if not @saving
-            @saving = true
-            setTimeout saveDescription, 2000
+    # Change focus to next task.
+    onUpKeyup: ->
+        @list.moveUpFocus @
 
+    # Change focus to previous task.
+    onDownKeyup: ->
+        @list.moveDownFocus @
+
+    # Move line on line above.
+    onCtrlUpKeyup: ->
+        @onUpButtonClicked()
+        @focusDescription()
+
+    # Move line on line below.
+    onCtrlDownKeyup: ->
+        @onDownButtonClicked()
+        @focusDescription()
+
+    # When enter key is up a new task is created below current one.
+    onEnterKeyup: ->
+        @model.collection.insertTask @model, \
+             new Task(description: "new task"),
+             success: (task) ->
+                 helpers.selectAll(task.view.descriptionField)
+             error: ->
+                 alert "Saving failed, an error occured."
+
+    # When backspace key is up, if field is empty, current task is deleted.
+    onBackspaceKeyup: ->
+        description = @descriptionField.html()
+        if (description.length == 0 or description is " ") and @firstDel
+            @isDeleting = true
+            if @model.previousTask?
+                @list.moveUpFocus @, maxPosition: true
+            else if @model.nextTask?
+                @list.moveDownFocus @, maxPosition: true
+            @delTask()
+
+        else if (description.length == 0 or description is " ") and not @firstDel
+            @firstDel = true
+        else
+            @firstDel = false
+
+            
     ###
     # Functions
     ###
@@ -131,14 +186,37 @@ class exports.TaskLine extends Backbone.View
 
     # Put line above line correspondig to previousLineId.
     up: (previousLineId) ->
+        cursorPosition = helpers.getCursorPosition @descriptionField
         $(@el).insertBefore($("##{previousLineId}"))
+        helpers.setCursorPosition @descriptionField, cursorPosition
 
     # Put line below line correspondig to nextLineId.
     down: (nextLineId) ->
+        cursorPosition = helpers.getCursorPosition @descriptionField
         $(@el).insertAfter($("##{nextLineId}"))
+        helpers.setCursorPosition @descriptionField, cursorPosition
 
     # Remove object from view and unbind listeners.
     remove: ->
         @unbind()
         $(@el).remove()
 
+    # Put mouse focus on description field.
+    focusDescription: ->
+        @descriptionField.focus()
+
+    # Delete task from collection and remove this field from view.
+    delTask: (callback) ->
+        @model.collection.removeTask @model,
+            success: ->
+                callback() if callback
+            error: ->
+                alert "An error occured, deletion was not saved."
+
+    # Show buttons linked to task.
+    showButtons: ->
+        @buttons.show()
+
+    # Hide buttons linked to task.
+    hideButtons: ->
+        @buttons.hide()

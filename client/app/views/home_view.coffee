@@ -1,6 +1,7 @@
 {TaskCollection} = require "../collections/tasks"
 {Task} = require "../models/task"
 {TaskList} = require "./tasks_view"
+helpers = require "../helpers"
 
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
@@ -14,11 +15,11 @@ class exports.HomeView extends Backbone.View
     # Initializers
     ###
 
+    isEditMode: false
+
     constructor: ->
         super()
 
-        @isEditMode = false
-      
     # Build widgets (task lists) then load data.
     render: ->
         $(@el).html require('./templates/home')
@@ -29,6 +30,7 @@ class exports.HomeView extends Backbone.View
         @archiveTasks = @archiveList.tasks
 
         @newButton = @.$("#new-task-button")
+        @showButtonsButton = @.$("#edit-button")
         @newButton.hide()
 
         @loadData()
@@ -36,8 +38,14 @@ class exports.HomeView extends Backbone.View
 
     # Grab data for archive and task list and display them through
     # model-view binding.
+    # If there is no task, one is automatically created.
     loadData: ->
-        @tasks.fetch()
+        @tasks.fetch
+            success: =>
+                if $(".task:not(.done)").length > 0
+                    $(".task:first .description").focus()
+                else
+                    @onAddClicked()
         @archiveTasks.url = "tasks/archives/"
         @archiveTasks.fetch()
         
@@ -54,11 +62,13 @@ class exports.HomeView extends Backbone.View
             success: (data) =>
                 data.url = "tasks/#{data.id}/"
                 @tasks.add data
-                $("#{data.id} span.description").contents().focus()
+                $(".task:first .description").focus()
+                helpers.selectAll($(".task:first .description"))
+
                 if not @isEditMode
-                    @.$(".task-buttons").hide()
-                else 
-                    @.$(".task-buttons").show()
+                    $(".task:first .task-buttons").hide()
+                else
+                    $(".task:first .task-buttons").show()
 
             error: ->
                 alert "An error occured while saving data"
@@ -67,13 +77,15 @@ class exports.HomeView extends Backbone.View
     # better for touch interfaces).
     onEditClicked: (event) ->
         if not @isEditMode
-            @.$(".task-buttons").show()
+            @.$(".task:not(.done) .task-buttons").show()
             @newButton.show()
             @isEditMode = true
+            @showButtonsButton.html "hide buttons"
         else
             @.$(".task-buttons").hide()
             @newButton.hide()
             @isEditMode = false
+            @showButtonsButton.html "show buttons"
 
     ###
     # Functions

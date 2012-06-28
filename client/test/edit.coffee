@@ -32,6 +32,9 @@ describe "Edit task", ->
             @browser.length(".del-task-button:visible").should.equal 4
             @browser.isVisible("#new-task-button").should.be.ok
 
+        it "And button label changes.", ->
+            @browser.html("#edit-button").should.equal "hide buttons"
+
     describe "Up task", ->
         it "When I click on task up button.", ->
             @browser.html(".task:nth-child(1) .description").should.equal \

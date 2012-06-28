@@ -19,7 +19,9 @@ describe "Edit task", ->
 
     after (done) ->
         app.close()
-        helpers.cleandb done
+        done()
+        #helpers.cleandb ->
+        #    done()
 
     describe "Button mode", ->
         it "When I click on button mode", ->
@@ -27,9 +29,8 @@ describe "Edit task", ->
             @browser.isVisible("#new-task-button").should.not.be.ok
             @browser.click "#edit-button"
             
-        it "Then all buttons are displayed", ->
-            @browser.length(".task-buttons:visible").should.equal 4
-            @browser.length(".del-task-button:visible").should.equal 4
+        it "Then all todo task buttons are displayed", ->
+            @browser.length(".task-buttons:visible").should.equal 3
             @browser.isVisible("#new-task-button").should.be.ok
 
         it "And button label changes.", ->

@@ -13,8 +13,6 @@ class exports.Task extends BaseModel
         if @id
             @url = "tasks/#{@id}/"
 
-
-        console.log task.description
         if not task.description? or task.description.length is 0 or task.description is " "  or task.description is "   " or task.description is "  "
             @["description"] = "empty task"
 

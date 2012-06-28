@@ -153,6 +153,6 @@ class exports.TaskCollection extends Backbone.Collection
         task.destroy
             success: ->
                 task.view.remove()
-                callbacks.success()
+                callbacks?.success()
             error: callbacks.error
 

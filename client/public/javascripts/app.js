@@ -249,7 +249,7 @@
       return task.destroy({
         success: function() {
           task.view.remove();
-          return callbacks.success();
+          return callbacks != null ? callbacks.success() : void 0;
         },
         error: callbacks.error
       });
@@ -412,7 +412,6 @@
         this[property] = task[property];
       }
       if (this.id) this.url = "tasks/" + this.id + "/";
-      console.log(task.description);
       if (!(task.description != null) || task.description.length === 0 || task.description === " " || task.description === "   " || task.description === "  ") {
         this["description"] = "empty task";
       }
@@ -677,6 +676,8 @@
       this.saving = false;
       this.id = this.model._id;
       this.model.view = this;
+      this.firstDel = false;
+      this.isDeleting = false;
       this.list;
     }
 
@@ -718,8 +719,8 @@
       });
       this.descriptionField.live('blur paste', function(event) {
         var el;
-        el = $(this);
-        if (el.data('before') !== el.html()) {
+        el = $(_this.descriptionField);
+        if (el.data('before') !== el.html() && !_this.isDeleting) {
           el.data('before', el.html());
           el.trigger('change', event.which | event.keyCode);
         }
@@ -824,7 +825,8 @@
     TaskLine.prototype.onBackspaceKeyup = function() {
       var description;
       description = this.descriptionField.html();
-      if ((description.length === 0 || description === "") && $(".task:not(.done)").length > 0) {
+      if ((description.length === 0 || description === " ") && this.firstDel) {
+        this.isDeleting = true;
         if (this.model.previousTask != null) {
           this.list.moveUpFocus(this, {
             maxPosition: true
@@ -835,8 +837,10 @@
           });
         }
         return this.delTask();
-      } else if ((description.length === 0 || description === " ") && $(".task:not(.done)").length === 1) {
-        return description.html(" ");
+      } else if ((description.length === 0 || description === " ") && !this.firstDel) {
+        return this.firstDel = true;
+      } else {
+        return this.firstDel = false;
       }
     };
 
@@ -883,7 +887,9 @@
 
     TaskLine.prototype.delTask = function(callback) {
       return this.model.collection.removeTask(this.model, {
-        success: callback,
+        success: function() {
+          if (callback) return callback();
+        },
         error: function() {
           return alert("An error occured, deletion was not saved.");
         }

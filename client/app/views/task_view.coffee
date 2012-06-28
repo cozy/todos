@@ -23,6 +23,8 @@ class exports.TaskLine extends Backbone.View
         @saving = false
         @id = @model._id
         @model.view = @
+        @firstDel = false
+        @isDeleting = false
         @list
 
     # Render wiew and bind it to model.
@@ -60,10 +62,10 @@ class exports.TaskLine extends Backbone.View
                 @onEnterKeyup() if keyCode is 13
                 @onBackspaceKeyup() if keyCode is 8
 
-        @descriptionField.live 'blur paste', (event) ->
-            el = $(@)
+        @descriptionField.live 'blur paste', (event) =>
+            el = $(@descriptionField)
 
-            if el.data('before') != el.html()
+            if el.data('before') != el.html() and not @isDeleting
                 el.data 'before', el.html()
                 el.trigger('change', event.which | event.keyCode)
             return el
@@ -150,17 +152,18 @@ class exports.TaskLine extends Backbone.View
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
         description = @descriptionField.html()
-        if (description.length == 0 or description is "") \
-           and $(".task:not(.done)").length > 0
+        if (description.length == 0 or description is " ") and @firstDel
+            @isDeleting = true
             if @model.previousTask?
                 @list.moveUpFocus @, maxPosition: true
             else if @model.nextTask?
                 @list.moveDownFocus @, maxPosition: true
             @delTask()
 
-        else if (description.length == 0 or description is " ") \
-                and $(".task:not(.done)").length == 1
-            description.html(" ")
+        else if (description.length == 0 or description is " ") and not @firstDel
+            @firstDel = true
+        else
+            @firstDel = false
 
             
     ###
@@ -205,7 +208,8 @@ class exports.TaskLine extends Backbone.View
     # Delete task from collection and remove this field from view.
     delTask: (callback) ->
         @model.collection.removeTask @model,
-            success: callback
+            success: ->
+                callback() if callback
             error: ->
                 alert "An error occured, deletion was not saved."
 

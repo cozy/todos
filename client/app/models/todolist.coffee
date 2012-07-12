@@ -46,4 +46,3 @@ class exports.TodoList extends BaseModel
             todolist = new TodoList data
             callback(todolist)
 
-

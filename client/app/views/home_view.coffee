@@ -65,7 +65,7 @@ class exports.HomeView extends Backbone.View
     # Rename currently selected node.
     renameFolder: (path, newName, data) =>
         if newName?
-            TodoList.updateTodolist data.rslt.obj.data("id"),
+            TodoList.updateTodoList data.rslt.obj.data("id"),
                 title: newName
             , () =>
                 data.inst.deselect_all()

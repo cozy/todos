@@ -172,3 +172,4 @@ action 'destroy', ->
             send error: "An error occured while node was deleted", 500
         else
             updateTree()
+

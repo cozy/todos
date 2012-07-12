@@ -52,8 +52,8 @@ TodoList.updatePath = (path, newPath, newName, callback) ->
 
         nodeIndex = path.split("/").length - 2
 
-        for todolist in notes
-            todolist.path = newPath + note.path.substring(path.length)
+        for todolist in todolists
+            todolist.path = newPath + todolist.path.substring(path.length)
             humanNames = todolist.humanPath.split(",")
             humanNames[nodeIndex] = newName
             todolist.humanPath = humanNames
@@ -78,9 +78,9 @@ TodoList.movePath = (path, dest, humanDest, callback) ->
         pathLength = parentPath.join("/").length
         nodeIndex = parentPath.length - 1
 
-        for todolist in notes
+        for todolist in todolists
             # Replace old path by new path
-            todolist.path = dest + note.path.substring(pathLength)
+            todolist.path = dest + todolist.path.substring(pathLength)
             
             # Replace human path by new human path
             humanNames = todolist.humanPath.split(",")
@@ -89,5 +89,4 @@ TodoList.movePath = (path, dest, humanDest, callback) ->
             todolist.humanPath = humanNames
 
             todolist.save done
-
 

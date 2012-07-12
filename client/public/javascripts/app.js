@@ -697,7 +697,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
       HomeView.prototype.renameFolder = function(path, newName, data) {
         var _this = this;
         if (newName != null) {
-          return TodoList.updateTodolist(data.rslt.obj.data("id"), {
+          return TodoList.updateTodoList(data.rslt.obj.data("id"), {
             title: newName
           }, function() {
             data.inst.deselect_all();

@@ -98,6 +98,7 @@ class exports.HomeView extends Backbone.View
         @currentTodolist = todolist
         todolistWidget = new TodoListWidget @currentTodolist
         todolistWidget.render()
+        todolistWidget.loadData()
 
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.

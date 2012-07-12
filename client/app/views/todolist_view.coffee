@@ -6,6 +6,7 @@
 class exports.TodoListWidget extends Backbone.View
     id: "todo-list"
     tagName: "div"
+    el: "#todo-list"
 
     events:
         "click #new-task-button": "onAddClicked"
@@ -26,23 +27,23 @@ class exports.TodoListWidget extends Backbone.View
     ### configuration ###
 
     render: ->
-        @el = $("#todo-list")
         $(@el).html require('./templates/todolist')
-        $(".todo-list-title span.description").html @model.title
+        @.$(".todo-list-title span.description").html @model.title
         path =  @model.humanPath.split(",").join(" / ")
-        $(".todo-list-title span.breadcrump").html path
+        @.$(".todo-list-title span.breadcrump").html path
         
         @taskList = new TaskList @, @.$("#task-list")
         @archiveList = new TaskList @, @.$("#archive-list")
         @tasks = @taskList.tasks
         @archiveTasks = @archiveList.tasks
 
-        @newButton = @.$("#new-task-button")
-        @showButtonsButton = @.$("#edit-button")
+        @newButton = $("#new-task-button")
+        @showButtonsButton = $("#edit-button")
         @newButton.hide()
 
-        breadcrump = @model.humanPath.split(",").join(" / ")
-        $("#todo-list-full-breadcrump").html breadcrump
+        breadcrump = @model.humanPath.split(",")
+        breadcrump.pop()
+        $("#todo-list-full-breadcrump").html breadcrump.join(" / ")
         $("#todo-list-full-title").html @model.title
 
         @el
@@ -50,7 +51,7 @@ class exports.TodoListWidget extends Backbone.View
     # When add is clicked a new task is added to the top of the task list.
     # Adding task is done after task was created on the server.
     onAddClicked: (event) ->
-        task = new Task done: false, description: "new task"
+        task = new Task done: false, description: "new task", list: @model.id
         task.save null,
             success: (data) =>
                 data.url = "tasks/#{data.id}/"
@@ -68,7 +69,7 @@ class exports.TodoListWidget extends Backbone.View
  
     # When edit is clicked, edition widgets are displayed (editions widgets are
     # better for touch interfaces).
-    onEditClicked: (event) ->
+    onEditClicked: (event) =>
         if not @isEditMode
             @.$(".task:not(.done) .task-buttons").show()
             @newButton.show()
@@ -86,7 +87,7 @@ class exports.TodoListWidget extends Backbone.View
     ###
 
     loadData: ->
-        @archiveTasks.url = "tasks/archives/"
+        @archiveTasks.url += "/archives"
         @archiveTasks.fetch()
         @tasks.fetch
             success: =>

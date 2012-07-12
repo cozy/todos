@@ -11,7 +11,9 @@ class exports.Task extends BaseModel
         for property of task
             @[property] = task[property]
         if @id
-            @url = "tasks/#{@id}/"
+            @url = "/todolists/#{task.list}/tasks/#{@id}/"
+        else
+            @url = "/todolists/#{task.list}/tasks/"
 
         if not task.description? or task.description.length is 0 or task.description is " "  or task.description is "   " or task.description is "  "
             @["description"] = "empty task"

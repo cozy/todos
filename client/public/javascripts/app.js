@@ -91,12 +91,15 @@ window.require.define({"collections/tasks": function(exports, require, module) {
 
       TaskCollection.prototype.url = 'tasks/';
 
-      function TaskCollection(view) {
+      function TaskCollection(view, listId) {
+        this.view = view;
+        this.listId = listId;
         this.down = __bind(this.down, this);
         this.up = __bind(this.up, this);
         this.prependTask = __bind(this.prependTask, this);
-        this.addTasks = __bind(this.addTasks, this);      TaskCollection.__super__.constructor.call(this);
-        this.view = view;
+        this.addTasks = __bind(this.addTasks, this);
+        TaskCollection.__super__.constructor.call(this);
+        this.url = "todolists/" + this.listId + "/tasks";
         this.bind("add", this.prependTask);
         this.bind("reset", this.addTasks);
       }
@@ -134,7 +137,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
         return task.save(task.attributes, {
           success: function() {
             previousTask.set("nextTask", task.id);
-            task.url = "tasks/" + task.id + "/";
+            task.url = "" + _this.url + "/" + task.id + "/";
             _this.add(task, {
               at: index,
               silent: true
@@ -417,7 +420,11 @@ window.require.define({"models/task": function(exports, require, module) {
         for (property in task) {
           this[property] = task[property];
         }
-        if (this.id) this.url = "tasks/" + this.id + "/";
+        if (this.id) {
+          this.url = "/todolists/" + task.list + "/tasks/" + this.id + "/";
+        } else {
+          this.url = "/todolists/" + task.list + "/tasks/";
+        }
         if (!(task.description != null) || task.description.length === 0 || task.description === " " || task.description === "   " || task.description === "  ") {
           this["description"] = "empty task";
         }
@@ -736,7 +743,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
         todolist.url = "todolists/" + todolist.id;
         this.currentTodolist = todolist;
         todolistWidget = new TodoListWidget(this.currentTodolist);
-        return todolistWidget.render();
+        todolistWidget.render();
+        return todolistWidget.loadData();
       };
 
       HomeView.prototype.onTreeLoaded = function() {
@@ -1062,11 +1070,11 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
 
       TaskList.prototype.tagName = "div";
 
-      function TaskList(mainView, el) {
-        this.mainView = mainView;
+      function TaskList(todoListView, el) {
+        this.todoListView = todoListView;
         this.el = el;
         TaskList.__super__.constructor.call(this);
-        this.tasks = new TaskCollection(this);
+        this.tasks = new TaskCollection(this, this.todoListView.model.id);
       }
 
       TaskList.prototype.addTaskLine = function(task) {
@@ -1086,7 +1094,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
       };
 
       TaskList.prototype.moveToTaskList = function(task) {
-        return this.mainView.moveToTaskList(task);
+        return this.todoListView.moveToTaskList(task);
       };
 
       TaskList.prototype.moveUpFocus = function(taskLine, options) {
@@ -1121,7 +1129,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
         taskLineEl = $(taskLine.render());
         taskLineEl.insertAfter($(previousTaskLine.el));
         taskLine.focusDescription();
-        if (this.mainView.isEditMode) taskLine.showButtons();
+        if (this.todoListView.isEditMode) taskLine.showButtons();
         return taskLine;
       };
 
@@ -1240,6 +1248,7 @@ window.require.define({"views/templates/tree_buttons": function(exports, require
 window.require.define({"views/todolist_view": function(exports, require, module) {
   (function() {
     var Task, TaskCollection, TaskList,
+      __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
@@ -1257,6 +1266,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       TodoListWidget.prototype.tagName = "div";
 
+      TodoListWidget.prototype.el = "#todo-list";
+
       TodoListWidget.prototype.events = {
         "click #new-task-button": "onAddClicked",
         "click #edit-button": "onEditClicked"
@@ -1267,6 +1278,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       function TodoListWidget(model) {
         this.model = model;
+        this.onEditClicked = __bind(this.onEditClicked, this);
         TodoListWidget.__super__.constructor.call(this);
         this.id = this.model.slug;
         this.model.view = this;
@@ -1281,20 +1293,20 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       TodoListWidget.prototype.render = function() {
         var breadcrump, path;
-        this.el = $("#todo-list");
         $(this.el).html(require('./templates/todolist'));
-        $(".todo-list-title span.description").html(this.model.title);
+        this.$(".todo-list-title span.description").html(this.model.title);
         path = this.model.humanPath.split(",").join(" / ");
-        $(".todo-list-title span.breadcrump").html(path);
+        this.$(".todo-list-title span.breadcrump").html(path);
         this.taskList = new TaskList(this, this.$("#task-list"));
         this.archiveList = new TaskList(this, this.$("#archive-list"));
         this.tasks = this.taskList.tasks;
         this.archiveTasks = this.archiveList.tasks;
-        this.newButton = this.$("#new-task-button");
-        this.showButtonsButton = this.$("#edit-button");
+        this.newButton = $("#new-task-button");
+        this.showButtonsButton = $("#edit-button");
         this.newButton.hide();
-        breadcrump = this.model.humanPath.split(",").join(" / ");
-        $("#todo-list-full-breadcrump").html(breadcrump);
+        breadcrump = this.model.humanPath.split(",");
+        breadcrump.pop();
+        $("#todo-list-full-breadcrump").html(breadcrump.join(" / "));
         $("#todo-list-full-title").html(this.model.title);
         return this.el;
       };
@@ -1304,7 +1316,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           _this = this;
         task = new Task({
           done: false,
-          description: "new task"
+          description: "new task",
+          list: this.model.id
         });
         return task.save(null, {
           success: function(data) {
@@ -1344,7 +1357,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       TodoListWidget.prototype.loadData = function() {
         var _this = this;
-        this.archiveTasks.url = "tasks/archives/";
+        this.archiveTasks.url += "/archives";
         this.archiveTasks.fetch();
         return this.tasks.fetch({
           success: function() {

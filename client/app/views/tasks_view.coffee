@@ -7,10 +7,10 @@ class exports.TaskList extends Backbone.View
     className: "task clearfix"
     tagName: "div"
 
-    constructor: (@mainView, @el) ->
+    constructor: (@todoListView, @el) ->
         super()
 
-        @tasks = new TaskCollection @
+        @tasks = new TaskCollection @, @todoListView.model.id
 
     # Add a line at the bottom of the list.
     addTaskLine: (task) ->
@@ -28,7 +28,7 @@ class exports.TaskList extends Backbone.View
 
     # Remove a task from its current position then add it to todo task list.
     moveToTaskList: (task) ->
-        @mainView.moveToTaskList task
+        @todoListView.moveToTaskList task
 
     # Set focus on previous task.
     moveUpFocus: (taskLine, options) ->
@@ -59,7 +59,7 @@ class exports.TaskList extends Backbone.View
         taskLineEl = $(taskLine.render())
         taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
-        if @mainView.isEditMode
+        if @todoListView.isEditMode
             taskLine.showButtons()
         taskLine
     

@@ -6,9 +6,10 @@ class exports.TaskCollection extends Backbone.Collection
     model: Task
     url: 'tasks/'
 
-    constructor: (view) ->
+    constructor: (@view, @listId) ->
         super()
-        @view = view
+       
+        @url = "todolists/#{@listId}/tasks"
         @bind "add", @prependTask
         @bind "reset", @addTasks
 
@@ -35,13 +36,13 @@ class exports.TaskCollection extends Backbone.Collection
 
     insertTask: (previousTask, task, callbacks) ->
         index = @toArray().indexOf previousTask
-        task.set("nextTask", previousTask.nextTask)
-        task.set("previousTask", previousTask.id)
+        task.set "nextTask", previousTask.nextTask
+        task.set "previousTask", previousTask.id
         task.collection = @
         task.save task.attributes,
             success: =>
-                previousTask.set("nextTask", task.id)
-                task.url = "tasks/#{task.id}/"
+                previousTask.set "nextTask", task.id
+                task.url = "#{@url}/#{task.id}/"
                 @add task, { at: index, silent: true }
                 @view.insertTask previousTask.view, task
                 callbacks?.success(task)

@@ -49,12 +49,12 @@ action 'index', ->
 
 # Return all todolists
 action 'all', ->
-    TodoList.all returnNotes
+    TodoList.all returnTodoLists
 
 # Return todolists corresponding at a given path of the tree.
 action 'allForPath', ->
     if body.path?
-        TodoList.allForPath body.path, returnNotes
+        TodoList.allForPath body.path, returnTodoLists
     else
         returnTodoLists(null, [])
 

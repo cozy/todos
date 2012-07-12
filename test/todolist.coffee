@@ -8,17 +8,6 @@ helpers = require("./helpers")
 client = new Client("http://localhost:8888/")
 
 
-#helpers
-
-createTodoListFunction = (title, path) ->
-    (callback) ->
-        todolist =
-            title: title
-            path: path
-
-        client.post "todolists/", todolist, callback
-
-
 describe "/todolists", ->
 
     before (done) ->
@@ -35,9 +24,9 @@ describe "/todolists", ->
 
         it "When I create several todolists", (done) ->
             async.series [
-                createTodoListFunction "Recipe", "/all/recipe"
-                createTodoListFunction "Dessert", "/all/recipe/dessert"
-                createTodoListFunction "Todo", "/all/todo"
+                helpers.createTodoListFunction "Recipe", "/all/recipe"
+                helpers.createTodoListFunction "Dessert", "/all/recipe/dessert"
+                helpers.createTodoListFunction "Todo", "/all/todo"
             ], ->
                 done()
 
@@ -93,8 +82,9 @@ describe "/todolists", ->
         
         it "When I add two new todolists", (done) ->
             async.series [
-                createTodoListFunction "Travel", "/all/travel", "04"
-                createTodoListFunction "Cambodia", "/all/travel/cambodia", "05"
+                helpers.createTodoListFunction "Travel", "/all/travel", "04"
+                helpers.createTodoListFunction "Cambodia", \
+                                               "/all/travel/cambodia", "05"
             ], ->
                 done()
 

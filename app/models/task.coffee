@@ -23,12 +23,13 @@ Task.destroySome = (condition, callback) ->
 Task.destroyAll = (callback) ->
     Task.destroySome {}, callback
 
-Task.archives = (callback) ->
-    Task.all {"where": { "done": true }, "order": "completionDate DESC" }, callback
+Task.archives = (listId, callback) ->
+    Task.all { where: { done: true, list: listId }, \
+               order: "completionDate DESC" }, callback
     
 # Returns all tasks of which state is todo. Order them following the link
 # list.
-Task.allTodo = (callback) ->
+Task.allTodo = (listId, callback) ->
     orderTasks = (tasks) ->
 
         idList = {}
@@ -43,12 +44,13 @@ Task.allTodo = (callback) ->
             task = idList[task.nextTask]
         result
 
-    Task.all { "where": { "done": false } }, (err, tasks) ->
+    Task.all { where: { done: false, list: listId } }, (err, tasks) ->
         if err then callback err, null else callback null, orderTasks(tasks)
 
 # Set given task as first task of todo task list.
 Task.setFirstTask = (task, callback) ->
-    Task.all {"where": { "done": false, "previousTask": null } }, \
+    Task.all { where: { done: false, list: task.list, \
+                        previousTask: null } }, \
              (err, tasks) ->
         return callback(err, null) if err
 

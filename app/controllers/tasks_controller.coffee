@@ -32,6 +32,10 @@ before 'load task', ->
             next()
 , only: ['update', 'destroy', 'show']
 
+before 'set list id', ->
+    @listId = params.listId
+    next()
+, except: ['index']
 
 # Controllers
 
@@ -41,7 +45,7 @@ action 'all', ->
 
 # Return all task 
 action 'todo', ->
-    Task.allTodo (err, tasks) ->
+    Task.allTodo @listId, (err, tasks) ->
         if err
             console.log err
             send error: "Retrieve tasks failed.", 500
@@ -51,14 +55,15 @@ action 'todo', ->
             send number: tasks.length, rows: tasks
 
 action 'archives', ->
-    Task.archives returnTasks
+    Task.archives @listId, returnTasks
 
 # Creates a new task.
-# It its state is todo, it is added as first task.
-# It its state is todo with a specified previous task, it is inserted
+# If its state is todo, it is added as first task.
+# If its state is todo with a specified previous task, it is inserted
 # inside todo linked list after specified previous task.
 action 'create', ->
     newTask = new Task body
+    newTask.list = @listId
     
     Task.createNew newTask, (err, task) ->
         if err

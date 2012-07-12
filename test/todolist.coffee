@@ -18,6 +18,7 @@ createTodoListFunction = (title, path) ->
 
         client.post "todolists/", todolist, callback
 
+
 describe "/todolists", ->
 
     before (done) ->
@@ -28,6 +29,7 @@ describe "/todolists", ->
         app.close()
         #helpers.cleanDb done
         done()
+
 
     describe "POST /todolists Creates a todolist and update tree.", ->
 

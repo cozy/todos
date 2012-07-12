@@ -26,10 +26,12 @@ class exports.TodoListWidget extends Backbone.View
     ### configuration ###
 
     render: ->
-        console.log @el
-        console.log require('./templates/todolist')
+        @el = $("#todo-list")
         $(@el).html require('./templates/todolist')
-
+        $(".todo-list-title span.description").html @model.title
+        path =  @model.humanPath.split(",").join(" / ")
+        $(".todo-list-title span.breadcrump").html path
+        
         @taskList = new TaskList @, @.$("#task-list")
         @archiveList = new TaskList @, @.$("#archive-list")
         @tasks = @taskList.tasks

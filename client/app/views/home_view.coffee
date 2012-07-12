@@ -73,7 +73,7 @@ class exports.HomeView extends Backbone.View
             
     # Delete currently selected node.
     deleteFolder: (path) =>
-        @todolist.hide()
+        $("#todo-list").html(null)
         @currentTodolist.destroy()
 
     # When a todolist is selected, the todolist widget is displayed and fill 
@@ -86,7 +86,7 @@ class exports.HomeView extends Backbone.View
                 @renderTodolist todolist
                 @todolist.show()
         else
-            @todolist.hide()
+            $("#todo-list").html(null)
 
     # Force selection inside tree of todolist represented by given path.
     selectList: (path) ->

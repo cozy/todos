@@ -707,7 +707,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
       };
 
       HomeView.prototype.deleteFolder = function(path) {
-        this.todolist.hide();
+        $("#todo-list").html(null);
         return this.currentTodolist.destroy();
       };
 
@@ -723,7 +723,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
             return _this.todolist.show();
           });
         } else {
-          return this.todolist.hide();
+          return $("#todo-list").html(null);
         }
       };
 
@@ -1189,9 +1189,11 @@ window.require.define({"views/templates/todolist": function(exports, require, mo
   buf.push(attrs({ 'id':("new-task-button"), "class": ("btn btn-large btn-success") }));
   buf.push('>new task\n</button><button');
   buf.push(attrs({ 'id':("edit-button"), "class": ("btn btn-large") }));
-  buf.push('>show buttons\n</button><span');
+  buf.push('>show buttons\n</button><p><span');
+  buf.push(attrs({ "class": ('breadcrump') }));
+  buf.push('></span></p><p><span');
   buf.push(attrs({ "class": ('description') }));
-  buf.push('>To-do list</span></header><div');
+  buf.push('></span></p></header><div');
   buf.push(attrs({ 'id':('task-list') }));
   buf.push('></div><h2>archives</h2><div');
   buf.push(attrs({ 'id':('archive-list') }));
@@ -1278,10 +1280,12 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       */
 
       TodoListWidget.prototype.render = function() {
-        var breadcrump;
-        console.log(this.el);
-        console.log(require('./templates/todolist'));
+        var breadcrump, path;
+        this.el = $("#todo-list");
         $(this.el).html(require('./templates/todolist'));
+        $(".todo-list-title span.description").html(this.model.title);
+        path = this.model.humanPath.split(",").join(" / ");
+        $(".todo-list-title span.breadcrump").html(path);
         this.taskList = new TaskList(this, this.$("#task-list"));
         this.archiveList = new TaskList(this, this.$("#archive-list"));
         this.tasks = this.taskList.tasks;

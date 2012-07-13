@@ -3766,12 +3766,14 @@ ul,ol{margin:0 1.5em 1.5em 0;list-style-type:none}
 #tree-search-field{margin-left:8px;width:320px;-moz-box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,1px 1px 1px rgba(0,0,0,0.35);-webkit-box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,1px 1px 1px rgba(0,0,0,0.35);-webkit-box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,1px 1px 1px rgba(0,0,0,0.35);-moz-box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,1px 1px 1px rgba(0,0,0,0.35);box-shadow:0 1px 0 rgba(255,255,255,0.12) inset,1px 1px 1px rgba(0,0,0,0.35);border:1px solid #3d2100;-webkit-border-radius:2px 2px 2px 2px;-moz-border-radius:2px 2px 2px 2px;border-radius:2px 2px 2px 2px;display:none}
 #tree-buttons div.button-active{-moz-box-shadow:0 0 0 0;-webkit-box-shadow:0 0 0 0;-webkit-box-shadow:0 0 0 0;-moz-box-shadow:0 0 0 0;box-shadow:0 0 0 0}
 #tree a.jstree-search{color:#20ad20}
-#todo-list h2{padding:10px}
-.task{padding:10px}
+#todo-list{min-width:460px}
+#todo-list h2{padding:1%}
+.task{padding:1%}
 .task:hover{background-color:#efe}
 .task button{float:left}
-.task input{width:50px;height:50px;border:2px solid #000}
-.task .description{margin-left:10px;font-size:20px;line-height:26px}
+.task input{border:0}
+.task .description{margin-left:1%;font-size:20px;line-height:20px;width:90%;padding:6px;background-color:#fcfcfc;-moz-box-shadow:0;-webkit-box-shadow:0;-webkit-box-shadow:0;-moz-box-shadow:0;box-shadow:0}
+.todo-button{width:6%}
 .task-buttons{float:right}
 .todo-list-title{border-bottom:1px solid #ccc;padding:10px}
 .todo-list-title .description{font-weight:bold;font-size:30px;font-variant:small-caps;line-height:40px;margin-left:0}

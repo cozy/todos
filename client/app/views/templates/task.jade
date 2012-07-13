@@ -1,5 +1,6 @@
 button.btn.btn-info.todo-button todo
-span.description(contenteditable="true") #{model.description} 
+input.description(type="text",contenteditable="true",
+                  value="#{model.description}" )
 .task-buttons
     button.up-task-button.btn up
     button.down-task-button.btn down

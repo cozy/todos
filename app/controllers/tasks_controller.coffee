@@ -110,7 +110,6 @@ action 'update', ->
 
 # Destroy given task and remove it from todo linked list.
 action 'destroy', ->
-    
     Task.remove @task, (err) ->
         if err
             console.log err

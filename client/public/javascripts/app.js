@@ -134,6 +134,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
         task.set("nextTask", previousTask.nextTask);
         task.set("previousTask", previousTask.id);
         task.collection = this;
+        task.url = "" + this.url + "/";
         return task.save(task.attributes, {
           success: function() {
             previousTask.set("nextTask", task.id);
@@ -283,42 +284,7 @@ window.require.define({"helpers": function(exports, require, module) {
     })();
 
     exports.selectAll = function(node) {
-      var range, sel;
-      if (node.length > 0) {
-        range = rangy.createRange();
-        range.selectNodeContents(node[0].childNodes[0]);
-        sel = rangy.getSelection();
-        sel.setSingleRange(range);
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    exports.getCursorPosition = function(node) {
-      var range, sel;
-      if (node.length > 0) {
-        range = rangy.createRange();
-        range.selectNodeContents(node[0].childNodes[0]);
-        sel = rangy.getSelection();
-        range = sel.getRangeAt(0);
-        return range.endOffset;
-      } else {
-        return 0;
-      }
-    };
-
-    exports.setCursorPosition = function(node, cursorPosition) {
-      var range, sel;
-      if (node.length > 0) {
-        range = rangy.createRange();
-        range.collapseToPoint(node[0].childNodes[0], cursorPosition);
-        sel = rangy.getSelection();
-        sel.setSingleRange(range);
-        return true;
-      } else {
-        return false;
-      }
+      return node.setSelection(0, node.val().length);
     };
 
     exports.slugify = function(string) {
@@ -826,11 +792,11 @@ window.require.define({"views/task_view": function(exports, require, module) {
         }));
         this.el.id = this.model.id;
         if (this.model.done) this.done();
-        this.descriptionField = this.$("span.description");
+        this.descriptionField = this.$(".description");
         this.buttons = this.$(".task-buttons");
         this.setListeners();
         this.$(".task-buttons").hide();
-        this.descriptionField.data('before', this.descriptionField.html());
+        this.descriptionField.data('before', this.descriptionField.val());
         return this.el;
       };
 
@@ -855,16 +821,15 @@ window.require.define({"views/task_view": function(exports, require, module) {
             if (keyCode === 8) return _this.onBackspaceKeyup();
           }
         });
-        this.descriptionField.live('blur paste', function(event) {
+        return this.descriptionField.bind('blur paste beforeunload', function(event) {
           var el;
-          el = $(_this.descriptionField);
-          if (el.data('before') !== el.html() && !_this.isDeleting) {
-            el.data('before', el.html());
-            el.trigger('change', event.which | event.keyCode);
+          el = _this.descriptionField;
+          if (el.data('before') !== el.val() && !_this.isDeleting) {
+            el.data('before', el.val());
+            _this.onDescriptionChanged(event, event.which | event.keyCode);
           }
           return el;
         });
-        return this.descriptionField.bind("change", this.onDescriptionChanged);
       };
 
       /*
@@ -915,9 +880,9 @@ window.require.define({"views/task_view": function(exports, require, module) {
       };
 
       TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
-        if (!(keyCode === 8 || this.descriptionField.html().length === 0)) {
+        if (!(keyCode === 8 || this.descriptionField.val().length === 0)) {
           this.saving = false;
-          this.model.description = this.descriptionField.html();
+          this.model.description = this.descriptionField.val();
           return this.model.save({
             description: this.model.description
           }, {
@@ -938,13 +903,11 @@ window.require.define({"views/task_view": function(exports, require, module) {
       };
 
       TaskLine.prototype.onCtrlUpKeyup = function() {
-        this.onUpButtonClicked();
-        return this.focusDescription();
+        return this.onUpButtonClicked();
       };
 
       TaskLine.prototype.onCtrlDownKeyup = function() {
-        this.onDownButtonClicked();
-        return this.focusDescription();
+        return this.onDownButtonClicked();
       };
 
       TaskLine.prototype.onEnterKeyup = function() {
@@ -962,7 +925,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
       TaskLine.prototype.onBackspaceKeyup = function() {
         var description;
-        description = this.descriptionField.html();
+        description = this.descriptionField.val();
         if ((description.length === 0 || description === " ") && this.firstDel) {
           this.isDeleting = true;
           if (this.model.previousTask != null) {
@@ -1002,16 +965,17 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
       TaskLine.prototype.up = function(previousLineId) {
         var cursorPosition;
-        cursorPosition = helpers.getCursorPosition(this.descriptionField);
+        cursorPosition = this.descriptionField.getCursorPosition();
         $(this.el).insertBefore($("#" + previousLineId));
-        return helpers.setCursorPosition(this.descriptionField, cursorPosition);
+        return this.descriptionField.setCursorPosition(cursorPosition);
       };
 
       TaskLine.prototype.down = function(nextLineId) {
         var cursorPosition;
         cursorPosition = helpers.getCursorPosition(this.descriptionField);
         $(this.el).insertAfter($("#" + nextLineId));
-        return helpers.setCursorPosition(this.descriptionField, cursorPosition);
+        helpers.setCursorPosition(this.descriptionField, cursorPosition);
+        return this.descriptionField.setCursorPosition(cursorPosition);
       };
 
       TaskLine.prototype.remove = function() {
@@ -1020,7 +984,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
       };
 
       TaskLine.prototype.focusDescription = function() {
-        return this.descriptionField.focus();
+        this.descriptionField.focus();
+        return helpers.selectAll(this.descriptionField);
       };
 
       TaskLine.prototype.delTask = function(callback) {
@@ -1101,24 +1066,28 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
         var nextDescription, selector;
         selector = "#" + taskLine.model.id;
         nextDescription = $(selector).prev().find(".description");
-        return this.moveFocus(taskLine.descriptionField, nextDescription, options);
+        if (nextDescription != null) {
+          return this.moveFocus(taskLine.descriptionField, nextDescription, options);
+        }
       };
 
       TaskList.prototype.moveDownFocus = function(taskLine, options) {
         var nextDescription, selector;
         selector = "#" + taskLine.model.id;
         nextDescription = $(selector).next().find(".description");
-        return this.moveFocus(taskLine.descriptionField, nextDescription, options);
+        if (nextDescription != null) {
+          return this.moveFocus(taskLine.descriptionField, nextDescription, options);
+        }
       };
 
       TaskList.prototype.moveFocus = function(previousNode, nextNode, options) {
         var cursorPosition;
-        cursorPosition = helpers.getCursorPosition(previousNode);
+        cursorPosition = previousNode.getCursorPosition();
         nextNode.focus();
         if (((options != null ? options.maxPosition : void 0) != null) && options.maxPosition) {
-          return helpers.setCursorPosition(nextNode, nextNode.text().length);
+          return nextNode.setCursorPosition(nextNode.text().length);
         } else {
-          return helpers.setCursorPosition(nextNode, cursorPosition);
+          return nextNode.setCursorPosition(cursorPosition);
         }
       };
 
@@ -1169,9 +1138,9 @@ window.require.define({"views/templates/task": function(exports, require, module
   var interp;
   buf.push('<button');
   buf.push(attrs({ "class": ('btn') + ' ' + ('btn-info') + ' ' + ('todo-button') }));
-  buf.push('>todo</button><span');
-  buf.push(attrs({ 'contenteditable':("true"), "class": ('description') }));
-  buf.push('>' + escape((interp = model.description) == null ? '' : interp) + ' </span><div');
+  buf.push('>todo</button><input');
+  buf.push(attrs({ 'type':("text"), 'contenteditable':("true"), 'value':("" + (model.description) + ""), "class": ('description') }));
+  buf.push('/><div');
   buf.push(attrs({ "class": ('task-buttons') }));
   buf.push('><button');
   buf.push(attrs({ "class": ('up-task-button') + ' ' + ('btn') }));
@@ -1414,6 +1383,14 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
               move_node: false,
               start_drag: false
             }
+          },
+          hotkeys: {
+            space: false,
+            up: false,
+            down: false,
+            left: false,
+            right: false,
+            del: false
           },
           ui: {
             select_limit: 1,

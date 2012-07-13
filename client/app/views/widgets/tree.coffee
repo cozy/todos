@@ -25,6 +25,13 @@ class exports.Tree
                     rename_node: false
                     move_node: false
                     start_drag: false
+            hotkeys:
+                space: false
+                up: false
+                down: false
+                left: false
+                right: false
+                del: false
             ui:
                 select_limit: 1
                 initially_select: [ "tree-node-all" ]

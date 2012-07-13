@@ -39,6 +39,7 @@ class exports.TaskCollection extends Backbone.Collection
         task.set "nextTask", previousTask.nextTask
         task.set "previousTask", previousTask.id
         task.collection = @
+        task.url = "#{@url}/"
         task.save task.attributes,
             success: =>
                 previousTask.set "nextTask", task.id
@@ -85,19 +86,19 @@ class exports.TaskCollection extends Backbone.Collection
         nextTask = @at(index + 1)
 
         if nextTask?
-            nextTask.set("previousTask", oldPreviousTask.id)
-            oldPreviousTask.set("nextTask", nextTask.id)
+            nextTask.set "previousTask", oldPreviousTask.id
+            oldPreviousTask.set "nextTask", nextTask.id
         else
-            oldPreviousTask.set("nextTask", null)
+            oldPreviousTask.set "nextTask", null
 
         if previousTask?
-            previousTask.set("nextTask", task.id)
-            task.set("previousTask", previousTask.id)
+            previousTask.set "nextTask", task.id
+            task.set "previousTask", previousTask.id
         else
-            task.set("previousTask", null)
-        task.set("nextTask", oldPreviousTask.id)
+            task.set "previousTask", null
+        task.set "nextTask", oldPreviousTask.id
 
-        @remove(task)
+        @remove task
         @add task,
             at: index - 1
             silent: true

@@ -36,7 +36,6 @@ class exports.HomeView extends Backbone.View
     # model-view binding.
     # If there is no task, one is automatically created.
     loadData: ->
-
         $.get "tree/", (data) =>
            @tree = new Tree @.$("#nav"), $("#tree"), data,
                 onCreate: @createFolder

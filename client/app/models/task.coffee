@@ -1,11 +1,9 @@
 BaseModel = require("./models").BaseModel
 
-
+# Define a task inside a todo list.
 class exports.Task extends BaseModel
 
-    url: 'tasks/'
-
-    # Copy note properties to current model.
+    # Copy task properties to current model.
     constructor: (task) ->
         super(task)
         for property of task
@@ -15,8 +13,6 @@ class exports.Task extends BaseModel
         else
             @url = "/todolists/#{task.list}/tasks/"
 
-        if not task.description? or task.description.length is 0 or task.description is " "  or task.description is "   " or task.description is "  "
-            @["description"] = "empty task"
 
     # View binding: when task state is set to done, update view.
     setDone: ->
@@ -34,6 +30,12 @@ class exports.Task extends BaseModel
         @view.undone()
 
     # Set links with other task when task state becomes todo again.
+    # If task is in archive section, it is put as first task of current
+    # todo list.
+    # If task is still in current todo list, its link are built again. It
+    # looks for the first previous task of which state is todo and link it
+    # to current task. Then it does the same with first next task of which
+    # state is todo.
     setLink: ->
         if @collection.view.isArchive()
             @view.remove()
@@ -69,6 +71,8 @@ class exports.Task extends BaseModel
             previousTask.set "nextTask", null
         else if nextTask?
             nextTask.set "previousTask", null
+        @set "previousTask", null
+        @set "nextTask", null
 
 
 

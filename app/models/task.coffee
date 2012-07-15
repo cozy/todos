@@ -1,3 +1,4 @@
+async = require "async"
 
 # DestroyTask corresponding to given condition
 Task.destroySome = (condition, callback) ->
@@ -31,6 +32,9 @@ Task.archives = (listId, callback) ->
 # list.
 Task.allTodo = (listId, callback) ->
     orderTasks = (tasks) ->
+        console.log tasks.length
+
+        return [] if tasks.length == 0
 
         idList = {}
         for task in tasks
@@ -41,11 +45,37 @@ Task.allTodo = (listId, callback) ->
         result = []
         while task? and result.length <= tasks.length
             result.push(task)
-            task = idList[task.nextTask]
-        result
+            nextTaskId = task.nextTask
+            delete idList[task.id]
+            task = idList[nextTaskId]
+
+        # Rebuild linked list if there are unlinked tasks
+        lastTask = result[result.length - 1]
+        brokenTasks = [lastTask]
+        for taskId of idList
+            task = idList[taskId]
+            task.previousTask = lastTask.id
+            lastTask.nextTask = task.id
+            result.push task
+            lastTask = task
+            brokenTasks.push task
+
+        # Save correction if something wrong happened
+        if brokenTasks.length > 0
+            # make saving with async.
+            for task in brokenTasks
+                attributes =
+                    nextTask: task.nextTask
+                    previousTask: task.previousTask
+                task.updateAttributes attributes, ->
+
+        callback null, result
 
     Task.all { where: { done: false, list: listId } }, (err, tasks) ->
-        if err then callback err, null else callback null, orderTasks(tasks)
+        if err
+            callback err, null
+        else
+            orderTasks tasks, callback
 
 # Set given task as first task of todo task list.
 Task.setFirstTask = (task, callback) ->

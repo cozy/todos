@@ -34,7 +34,9 @@ Task.allTodo = (listId, callback) ->
     orderTasks = (tasks) ->
         console.log tasks.length
 
-        return [] if tasks.length == 0
+        if tasks.length == 0
+            callback null, []
+            return
 
         idList = {}
         for task in tasks

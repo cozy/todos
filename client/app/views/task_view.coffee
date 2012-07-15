@@ -48,7 +48,7 @@ class exports.TaskLine extends Backbone.View
     setListeners: ->
         @descriptionField.keypress (event) ->
             keyCode = event.which | event.keyCode
-            keyCode != 13 and keyCode != 38 and keyCode != 40
+            keyCode != 13
 
         @descriptionField.keyup (event) =>
             keyCode = event.which | event.keyCode
@@ -187,9 +187,8 @@ class exports.TaskLine extends Backbone.View
 
     # Put line below line correspondig to nextLineId.
     down: (nextLineId) ->
-        cursorPosition = helpers.getCursorPosition @descriptionField
+        cursorPosition = @descriptionField.getCursorPosition()
         $(@el).insertAfter($("##{nextLineId}"))
-        helpers.setCursorPosition @descriptionField, cursorPosition
         @descriptionField.setCursorPosition cursorPosition
 
     # Remove object from view and unbind listeners.

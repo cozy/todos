@@ -34,21 +34,21 @@ class exports.TaskList extends Backbone.View
     moveUpFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
         nextDescription = $(selector).prev().find(".description")
-        if nextDescription?
+        if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
 
     # Set focus on next task.
     moveDownFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
         nextDescription = $(selector).next().find(".description")
-        if nextDescription?
+        if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
  
     moveFocus: (previousNode, nextNode, options) ->
         cursorPosition = previousNode.getCursorPosition()
         nextNode.focus()
         if options?.maxPosition? and options.maxPosition
-            nextNode.setCursorPosition nextNode.text().length
+            nextNode.setCursorPosition nextNode.val().length
         else
             nextNode.setCursorPosition cursorPosition
 

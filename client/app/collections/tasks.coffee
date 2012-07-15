@@ -27,6 +27,7 @@ class exports.TaskCollection extends Backbone.Collection
     # Prepend a task to the task list and update previousTask field of 
     # previous first task.
     prependTask: (task) =>
+        task.url = "#{@url}/#{task.id}/"
         task.collection = @
         nextTask = @at(0)
         if nextTask?

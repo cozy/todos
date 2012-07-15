@@ -118,6 +118,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
 
       TaskCollection.prototype.prependTask = function(task) {
         var nextTask;
+        task.url = "" + this.url + "/" + task.id + "/";
         task.collection = this;
         nextTask = this.at(0);
         if (nextTask != null) {
@@ -280,7 +281,7 @@ window.require.define({"helpers": function(exports, require, module) {
     })();
 
     exports.selectAll = function(input) {
-      return node.setSelection(0, input.val().length);
+      return input.setSelection(0, input.val().length);
     };
 
     exports.slugify = function(string) {
@@ -808,7 +809,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
         this.descriptionField.keypress(function(event) {
           var keyCode;
           keyCode = event.which | event.keyCode;
-          return keyCode !== 13 && keyCode !== 38 && keyCode !== 40;
+          return keyCode !== 13;
         });
         this.descriptionField.keyup(function(event) {
           var keyCode;
@@ -975,9 +976,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
       TaskLine.prototype.down = function(nextLineId) {
         var cursorPosition;
-        cursorPosition = helpers.getCursorPosition(this.descriptionField);
+        cursorPosition = this.descriptionField.getCursorPosition();
         $(this.el).insertAfter($("#" + nextLineId));
-        helpers.setCursorPosition(this.descriptionField, cursorPosition);
         return this.descriptionField.setCursorPosition(cursorPosition);
       };
 
@@ -1069,7 +1069,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
         var nextDescription, selector;
         selector = "#" + taskLine.model.id;
         nextDescription = $(selector).prev().find(".description");
-        if (nextDescription != null) {
+        if (nextDescription.length) {
           return this.moveFocus(taskLine.descriptionField, nextDescription, options);
         }
       };
@@ -1078,7 +1078,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
         var nextDescription, selector;
         selector = "#" + taskLine.model.id;
         nextDescription = $(selector).next().find(".description");
-        if (nextDescription != null) {
+        if (nextDescription.length) {
           return this.moveFocus(taskLine.descriptionField, nextDescription, options);
         }
       };
@@ -1088,7 +1088,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
         cursorPosition = previousNode.getCursorPosition();
         nextNode.focus();
         if (((options != null ? options.maxPosition : void 0) != null) && options.maxPosition) {
-          return nextNode.setCursorPosition(nextNode.text().length);
+          return nextNode.setCursorPosition(nextNode.val().length);
         } else {
           return nextNode.setCursorPosition(cursorPosition);
         }
@@ -1219,7 +1219,7 @@ window.require.define({"views/templates/tree_buttons": function(exports, require
 
 window.require.define({"views/todolist_view": function(exports, require, module) {
   (function() {
-    var Task, TaskCollection, TaskList,
+    var Task, TaskCollection, TaskList, helpers,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -1229,6 +1229,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     Task = require("../models/task").Task;
 
     TaskList = require("./tasks_view").TaskList;
+
+    helpers = require("../helpers");
 
     exports.TodoListWidget = (function(_super) {
 
@@ -1240,17 +1242,13 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       TodoListWidget.prototype.el = "#todo-list";
 
-      TodoListWidget.prototype.events = {
-        "click #new-task-button": "onAddClicked",
-        "click #edit-button": "onEditClicked"
-      };
-
       /* Constructor
       */
 
       function TodoListWidget(model) {
         this.model = model;
         this.onEditClicked = __bind(this.onEditClicked, this);
+        this.onAddClicked = __bind(this.onAddClicked, this);
         TodoListWidget.__super__.constructor.call(this);
         this.id = this.model.slug;
         this.model.view = this;
@@ -1276,6 +1274,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
         this.newButton = $("#new-task-button");
         this.showButtonsButton = $("#edit-button");
         this.newButton.hide();
+        this.newButton.unbind("click");
+        this.newButton.click(this.onAddClicked);
+        this.showButtonsButton.unbind("click");
+        this.showButtonsButton.click(this.onEditClicked);
         breadcrump = this.model.humanPath.split(",");
         breadcrump.pop();
         $("#todo-list-full-breadcrump").html(breadcrump.join(" / "));
@@ -1296,7 +1298,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
             data.url = "tasks/" + data.id + "/";
             _this.tasks.add(data);
             $(".task:first .description").focus();
-            helpers.selectAll($(".task:first .description"));
+            helpers.selectAll($(".task:first input.description"));
             if (!_this.isEditMode) {
               return $(".task:first .task-buttons").hide();
             } else {

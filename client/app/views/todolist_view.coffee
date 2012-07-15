@@ -1,17 +1,13 @@
 {TaskCollection} = require "../collections/tasks"
 {Task} = require "../models/task"
 {TaskList} = require "./tasks_view"
+helpers = require "../helpers"
 
 # Row displaying application name and attributes
 class exports.TodoListWidget extends Backbone.View
     id: "todo-list"
     tagName: "div"
     el: "#todo-list"
-
-    events:
-        "click #new-task-button": "onAddClicked"
-        "click #edit-button": "onEditClicked"
-
 
     ### Constructor ####
 
@@ -41,6 +37,11 @@ class exports.TodoListWidget extends Backbone.View
         @showButtonsButton = $("#edit-button")
         @newButton.hide()
 
+        @newButton.unbind "click"
+        @newButton.click @onAddClicked
+        @showButtonsButton.unbind "click"
+        @showButtonsButton.click @onEditClicked
+
         breadcrump = @model.humanPath.split(",")
         breadcrump.pop()
         $("#todo-list-full-breadcrump").html breadcrump.join(" / ")
@@ -50,14 +51,14 @@ class exports.TodoListWidget extends Backbone.View
 
     # When add is clicked a new task is added to the top of the task list.
     # Adding task is done after task was created on the server.
-    onAddClicked: (event) ->
+    onAddClicked: (event) =>
         task = new Task done: false, description: "new task", list: @model.id
         task.save null,
             success: (data) =>
                 data.url = "tasks/#{data.id}/"
                 @tasks.add data
                 $(".task:first .description").focus()
-                helpers.selectAll($(".task:first .description"))
+                helpers.selectAll($(".task:first input.description"))
 
                 if not @isEditMode
                     $(".task:first .task-buttons").hide()

@@ -38,9 +38,6 @@ class exports.TodoList extends BaseModel
     @updateTodoList = (id, data, callback) ->
         request "PUT", "todolists/#{id}", data, callback
 
-    @moveTodoList = (data, callback) ->
-        request "POST", "tree/path/move", data, callback
-
     @getTodoList = (id, callback) ->
         $.get "todolists/#{id}", (data) =>
             todolist = new TodoList data

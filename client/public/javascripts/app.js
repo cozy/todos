@@ -121,8 +121,8 @@ window.require.define({"collections/tasks": function(exports, require, module) {
         task.collection = this;
         nextTask = this.at(0);
         if (nextTask != null) {
-          nextTask.set("previousTask", task.id);
-          task.set("nextTask", nextTask.id);
+          nextTask.setPreviousTask(task);
+          task.setNextTask(nextTask);
         }
         return this.view.addTaskLineAsFirstRow(task);
       };
@@ -132,12 +132,12 @@ window.require.define({"collections/tasks": function(exports, require, module) {
           _this = this;
         index = this.toArray().indexOf(previousTask);
         task.set("nextTask", previousTask.nextTask);
-        task.set("previousTask", previousTask.id);
+        task.setPreviousTask(previousTask);
         task.collection = this;
         task.url = "" + this.url + "/";
         return task.save(task.attributes, {
           success: function() {
-            previousTask.set("nextTask", task.id);
+            previousTask.setNextTask(task);
             task.url = "" + _this.url + "/" + task.id + "/";
             _this.add(task, {
               at: index,
@@ -153,11 +153,11 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       };
 
       TaskCollection.prototype.getPreviousTask = function(task) {
-        return this.get(task.previousTask);
+        return this.get(task.get("previousTask"));
       };
 
       TaskCollection.prototype.getNextTask = function(task) {
-        return this.get(task.nextTask);
+        return this.get(task.get("nextTask"));
       };
 
       TaskCollection.prototype.getPreviousTodoTask = function(task) {
@@ -177,25 +177,25 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       };
 
       TaskCollection.prototype.up = function(task) {
-        var index, nextTask, oldPreviousTask, previousTask;
+        var index, newPreviousTask, oldNextTask, oldPreviousTask;
         index = this.toArray().indexOf(task);
         if (index === 0) return false;
         if (index > 0) oldPreviousTask = this.at(index - 1);
-        if (index > 1) previousTask = this.at(index - 2);
-        nextTask = this.at(index + 1);
-        if (nextTask != null) {
-          nextTask.set("previousTask", oldPreviousTask.id);
-          oldPreviousTask.set("nextTask", nextTask.id);
+        oldNextTask = this.at(index + 1);
+        if (index > 1) newPreviousTask = this.at(index - 2);
+        if (oldNextTask != null) {
+          oldNextTask.setPreviousTask(oldPreviousTask);
+          oldPreviousTask.setNextTask(oldNextTask);
         } else {
-          oldPreviousTask.set("nextTask", null);
+          oldPreviousTask.setNextTask(null);
         }
-        if (previousTask != null) {
-          previousTask.set("nextTask", task.id);
-          task.set("previousTask", previousTask.id);
+        if (newPreviousTask != null) {
+          newPreviousTask.setNextTask(task);
+          task.setPreviousTask(newPreviousTask);
         } else {
-          task.set("previousTask", null);
+          task.setPreviousTask(null);
         }
-        task.set("nextTask", oldPreviousTask.id);
+        task.setNextTask(oldPreviousTask);
         this.remove(task);
         this.add(task, {
           at: index - 1,
@@ -206,26 +206,26 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       };
 
       TaskCollection.prototype.down = function(task) {
-        var index, nextTask, oldNextTask, previousTask, tasksLength;
+        var index, newNextTask, oldNextTask, oldPreviousTask, tasksLength;
         index = this.toArray().indexOf(task);
         tasksLength = this.size();
         if (index === tasksLength - 1) return false;
         if (index < tasksLength - 1) oldNextTask = this.at(index + 1);
-        if (index < tasksLength - 1) nextTask = this.at(index + 2);
-        previousTask = this.at(index - 1);
-        if (previousTask != null) {
-          previousTask.set("nextTask", oldNextTask.id);
-          oldNextTask.set("previousTask", previousTask.id);
+        if (index < tasksLength - 2) newNextTask = this.at(index + 2);
+        if (index > 0) oldPreviousTask = this.at(index - 1);
+        if (oldPreviousTask != null) {
+          oldPreviousTask.setNextTask(oldNextTask);
+          if (oldNextTask != null) oldNextTask.setPreviousTask(oldPreviousTask);
         } else {
-          oldNextTask.set("previousTask", null);
+          if (oldNextTask != null) oldNextTask.setPreviousTask(null);
         }
-        if (nextTask != null) {
-          nextTask.set("previousTask", task.id);
-          task.set("nextTask", nextTask.id);
+        if (newNextTask != null) {
+          newNextTask.setPreviousTask(task);
+          task.setNextTask(newNextTask);
         } else {
-          task.set("nextTask", null);
+          task.setNextTask(null);
         }
-        task.set("previousTask", oldNextTask.id);
+        task.setPreviousTask(oldNextTask);
         this.remove(task);
         this.add(task, {
           at: index + 1,
@@ -239,18 +239,14 @@ window.require.define({"collections/tasks": function(exports, require, module) {
         var nextTask, previousTask;
         previousTask = this.getPreviousTask(task);
         nextTask = this.getNextTask(task);
-        if (nextTask != null) {
-          nextTask.set("previousTask", (previousTask != null ? previousTask.id : void 0) | null);
-        }
-        if (previousTask != null) {
-          previousTask.set("nextTask", (nextTask != null ? nextTask.id : void 0) | null);
-        }
+        if (nextTask != null) nextTask.setPreviousTask(previousTask | null);
+        if (previousTask != null) previousTask.setNextTask(nextTask | null);
         return task.destroy({
           success: function() {
             task.view.remove();
             return callbacks != null ? callbacks.success() : void 0;
           },
-          error: callbacks.error
+          error: callbacks != null ? callbacks.error : void 0
         });
       };
 
@@ -283,8 +279,8 @@ window.require.define({"helpers": function(exports, require, module) {
 
     })();
 
-    exports.selectAll = function(node) {
-      return node.setSelection(0, node.val().length);
+    exports.selectAll = function(input) {
+      return node.setSelection(0, input.val().length);
     };
 
     exports.slugify = function(string) {
@@ -378,8 +374,6 @@ window.require.define({"models/task": function(exports, require, module) {
 
       __extends(Task, _super);
 
-      Task.prototype.url = 'tasks/';
-
       function Task(task) {
         var property;
         Task.__super__.constructor.call(this, task);
@@ -391,15 +385,26 @@ window.require.define({"models/task": function(exports, require, module) {
         } else {
           this.url = "/todolists/" + task.list + "/tasks/";
         }
-        if (!(task.description != null) || task.description.length === 0 || task.description === " " || task.description === "   " || task.description === "  ") {
-          this["description"] = "empty task";
-        }
       }
+
+      Task.prototype.setNextTask = function(task) {
+        if (task != null) {
+          return this.set("nextTask", task.id);
+        } else {
+          return this.set("nextTask", null);
+        }
+      };
+
+      Task.prototype.setPreviousTask = function(task) {
+        if (task != null) {
+          return this.set("previousTask", task.id);
+        } else {
+          return this.set("previousTask", null);
+        }
+      };
 
       Task.prototype.setDone = function() {
         this.done = true;
-        this.set("previousTask", null);
-        this.set("nextTask", null);
         this.cleanLinks();
         return this.view.done();
       };
@@ -416,22 +421,22 @@ window.require.define({"models/task": function(exports, require, module) {
           this.view.remove();
           this.collection.view.moveToTaskList(this);
           firstTask = this.collection.at(0);
-          this.set("nextTask", firstTask.id);
-          return firstTask.set("firstTask", this.id);
+          this.setNextTask(firstTask);
+          return firstTask.setPreviousTask(this);
         } else {
           previousTask = this.collection.getPreviousTodoTask(this);
           nextTask = this.collection.getNextTodoTask(this);
           if (previousTask != null) {
-            this.set("previousTask", previousTask.id);
-            previousTask.set("nextTask", this.id);
+            this.setPreviousTask(previousTask);
+            previousTask.setNextTask(this);
           } else {
-            this.set("previousTask", null);
+            this.setPreviousTask(null);
           }
           if (nextTask != null) {
-            this.set("nextTask", nextTask.id);
-            return nextTask.set("previousTask", this.id);
+            this.setNextTask(nextTask);
+            return nextTask.setPreviousTask(this);
           } else {
-            return this.set("nextTask", null);
+            return this.setNextTask(null);
           }
         }
       };
@@ -441,13 +446,15 @@ window.require.define({"models/task": function(exports, require, module) {
         previousTask = this.collection.getPreviousTask(this);
         nextTask = this.collection.getNextTask(this);
         if ((nextTask != null) && (previousTask != null)) {
-          previousTask.set("nextTask", nextTask.id);
-          return nextTask.set("previousTask", previousTask.id);
+          previousTask.setNextTask(nextTask);
+          nextTask.setPreviousTask(previousTask);
         } else if (previousTask != null) {
-          return previousTask.set("nextTask", null);
+          previousTask.setNextTask(null);
         } else if (nextTask != null) {
-          return nextTask.set("previousTask", null);
+          nextTask.setPreviousTask(null);
         }
+        this.setPreviousTask(null);
+        return this.setNextTask(null);
       };
 
       return Task;
@@ -510,10 +517,6 @@ window.require.define({"models/todolist": function(exports, require, module) {
 
       TodoList.updateTodoList = function(id, data, callback) {
         return request("PUT", "todolists/" + id, data, callback);
-      };
-
-      TodoList.moveTodoList = function(data, callback) {
-        return request("POST", "tree/path/move", data, callback);
       };
 
       TodoList.getTodoList = function(id, callback) {

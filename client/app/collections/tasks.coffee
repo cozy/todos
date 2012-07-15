@@ -30,19 +30,20 @@ class exports.TaskCollection extends Backbone.Collection
         task.collection = @
         nextTask = @at(0)
         if nextTask?
-            nextTask.set("previousTask", task.id)
-            task.set("nextTask", nextTask.id)
+            nextTask.setPreviousTask task
+            task.setNextTask nextTask
         @view.addTaskLineAsFirstRow task
 
+    # Insert task at a given position, update links then save task to backend.
     insertTask: (previousTask, task, callbacks) ->
         index = @toArray().indexOf previousTask
         task.set "nextTask", previousTask.nextTask
-        task.set "previousTask", previousTask.id
+        task.setPreviousTask previousTask
         task.collection = @
         task.url = "#{@url}/"
         task.save task.attributes,
             success: =>
-                previousTask.set "nextTask", task.id
+                previousTask.setNextTask task
                 task.url = "#{@url}/#{task.id}/"
                 @add task, { at: index, silent: true }
                 @view.insertTask previousTask.view, task
@@ -52,11 +53,11 @@ class exports.TaskCollection extends Backbone.Collection
 
     # Return previous task, if there is no previous task, it returns null.
     getPreviousTask: (task) ->
-        @get(task.previousTask)
+        @get(task.get "previousTask")
 
     # Return next task, if there is no next task, it returns null.
     getNextTask: (task) ->
-        @get(task.nextTask)
+        @get(task.get "nextTask")
 
     # Return first previous task which state is todo
     getPreviousTodoTask: (task) ->
@@ -77,33 +78,31 @@ class exports.TaskCollection extends Backbone.Collection
     # View is changed too.
     up: (task) =>
         index = @toArray().indexOf task
-    
-        if index == 0
-            return false
+        return false if index == 0
 
         oldPreviousTask = @at(index - 1) if index > 0
-        previousTask = @at(index - 2) if index > 1
-        nextTask = @at(index + 1)
+        oldNextTask = @at(index + 1)
+        newPreviousTask = @at(index - 2) if index > 1
 
-        if nextTask?
-            nextTask.set "previousTask", oldPreviousTask.id
-            oldPreviousTask.set "nextTask", nextTask.id
+        if oldNextTask?
+            oldNextTask.setPreviousTask oldPreviousTask
+            oldPreviousTask.setNextTask oldNextTask
         else
-            oldPreviousTask.set "nextTask", null
+            oldPreviousTask.setNextTask null
 
-        if previousTask?
-            previousTask.set "nextTask", task.id
-            task.set "previousTask", previousTask.id
+        if newPreviousTask?
+            newPreviousTask.setNextTask task
+            task.setPreviousTask newPreviousTask
         else
-            task.set "previousTask", null
-        task.set "nextTask", oldPreviousTask.id
+            task.setPreviousTask null
+        task.setNextTask oldPreviousTask
 
         @remove task
         @add task,
             at: index - 1
             silent: true
 
-        task.view.up(oldPreviousTask.id)
+        task.view.up oldPreviousTask.id
 
         return true
 
@@ -114,32 +113,31 @@ class exports.TaskCollection extends Backbone.Collection
         index = @toArray().indexOf task
         tasksLength = @size()
     
-        if index == tasksLength - 1
-            return false
+        return false if index == tasksLength - 1
 
         oldNextTask = @at(index + 1) if index < tasksLength - 1
-        nextTask = @at(index + 2) if index < tasksLength - 1
-        previousTask = @at(index - 1)
+        newNextTask = @at(index + 2) if index < tasksLength - 2
+        oldPreviousTask = @at(index - 1) if index > 0
 
-        if previousTask?
-            previousTask.set("nextTask", oldNextTask.id)
-            oldNextTask.set("previousTask", previousTask.id)
+        if oldPreviousTask?
+            oldPreviousTask.setNextTask oldNextTask
+            oldNextTask?.setPreviousTask oldPreviousTask
         else
-            oldNextTask.set("previousTask", null)
+            oldNextTask?.setPreviousTask null
 
-        if nextTask?
-            nextTask.set("previousTask", task.id)
-            task.set("nextTask", nextTask.id)
+        if newNextTask?
+            newNextTask.setPreviousTask task
+            task.setNextTask newNextTask
         else
-            task.set("nextTask", null)
-        task.set("previousTask", oldNextTask.id)
+            task.setNextTask null
+        task.setPreviousTask oldNextTask
 
-        @remove(task)
+        @remove task
         @add task,
             at: index + 1
             silent: true
 
-        task.view.down(oldNextTask.id)
+        task.view.down oldNextTask.id
 
         return true
 
@@ -149,12 +147,12 @@ class exports.TaskCollection extends Backbone.Collection
         previousTask = @getPreviousTask task
         nextTask = @getNextTask task
 
-        nextTask?.set("previousTask", previousTask?.id | null)
-        previousTask?.set("nextTask", nextTask?.id | null)
+        nextTask?.setPreviousTask previousTask | null
+        previousTask?.setNextTask nextTask | null
         
         task.destroy
             success: ->
                 task.view.remove()
                 callbacks?.success()
-            error: callbacks.error
+            error: callbacks?.error
 

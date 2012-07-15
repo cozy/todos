@@ -809,7 +809,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
         this.descriptionField.keypress(function(event) {
           var keyCode;
           keyCode = event.which | event.keyCode;
-          return keyCode !== 13;
+          return keyCode !== 13 && keyCode !== 9;
         });
         this.descriptionField.keyup(function(event) {
           var keyCode;
@@ -822,7 +822,9 @@ window.require.define({"views/task_view": function(exports, require, module) {
             if (keyCode === 38) _this.onUpKeyup();
             if (keyCode === 40) _this.onDownKeyup();
             if (keyCode === 13) _this.onEnterKeyup();
-            if (keyCode === 8) return _this.onBackspaceKeyup();
+            if (keyCode === 8) _this.onBackspaceKeyup();
+            if (keyCode === 9 && !event.shiftKey) _this.onDownKeyup();
+            if (keyCode === 9 && event.shiftKey) return _this.onUpKeyup();
           }
         });
         return this.descriptionField.bind('blur paste beforeunload', function(event) {

@@ -48,7 +48,7 @@ class exports.TaskLine extends Backbone.View
     setListeners: ->
         @descriptionField.keypress (event) ->
             keyCode = event.which | event.keyCode
-            keyCode != 13
+            keyCode != 13 and keyCode != 9
 
         @descriptionField.keyup (event) =>
             keyCode = event.which | event.keyCode
@@ -61,6 +61,8 @@ class exports.TaskLine extends Backbone.View
                 @onDownKeyup() if keyCode is 40
                 @onEnterKeyup() if keyCode is 13
                 @onBackspaceKeyup() if keyCode is 8
+                @onDownKeyup() if keyCode is 9 and not event.shiftKey
+                @onUpKeyup() if keyCode is 9 and event.shiftKey
 
         @descriptionField.bind 'blur paste beforeunload', (event) =>
             el = @descriptionField

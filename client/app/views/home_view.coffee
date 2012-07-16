@@ -94,7 +94,8 @@ class exports.HomeView extends Backbone.View
     # for persistence.
     onTodoListDropped: (newPath, oldPath, todolistTitle, data) =>
         newPath = newPath + "/" + helpers.slugify(todolistTitle)
-        Todolist.updateTodolist data.rslt.o.data("id"),
+        alert newPath
+        TodoList.updateTodoList data.rslt.o.data("id"),
             path: newPath
             , () =>
                 data.inst.deselect_all()

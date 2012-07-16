@@ -709,7 +709,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
       HomeView.prototype.onTodoListDropped = function(newPath, oldPath, todolistTitle, data) {
         var _this = this;
         newPath = newPath + "/" + helpers.slugify(todolistTitle);
-        return Todolist.updateTodolist(data.rslt.o.data("id"), {
+        alert(newPath);
+        return TodoList.updateTodoList(data.rslt.o.data("id"), {
           path: newPath
         }, function() {
           data.inst.deselect_all();

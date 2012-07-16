@@ -11,8 +11,6 @@ class exports.HomeView extends Backbone.View
     # Initializers
     ###
 
-    isEditMode: false
-
     initialize: ->
 
     constructor: ->
@@ -32,37 +30,36 @@ class exports.HomeView extends Backbone.View
             minSize: "350"
             resizable: true
 
-    # Grab data for archive and task list and display them through
-    # model-view binding.
-    # If there is no task, one is automatically created.
+    # Grab tree data, then build and display it. 
+    # Links callback to tree events (creation, renaming...)
     loadData: ->
         $.get "tree/", (data) =>
-           @tree = new Tree @.$("#nav"), $("#tree"), data,
-                onCreate: @createFolder
-                onRename: @renameFolder
-                onRemove: @deleteFolder
-                onSelect: @selectFolder
+           @tree = new Tree @.$("#nav"), @.$("#tree"), data,
+                onCreate: @onTodoListCreated
+                onRename: @onTodoListRenamed
+                onRemove: @onTodoListRemoved
+                onSelect: @onTodoListSelected
                 onLoaded: @onTreeLoaded
-                onDrop: @onTodolistDropped
+                onDrop: @onTodoListDropped
 
 
     ###
     # Listeners
     ###
 
-    # Create a new folder inside currently selected node.
-    createFolder: (path, newName, data) =>
+    # Save todolist creation to backend. Update corresponding node metadata.
+    onTodoListCreated: (path, newName, data) =>
         path = path + "/" + helpers.slugify(newName)
         TodoList.createTodoList
             path: path
             title: newName
             , (todolist) =>
-                data.rslt.obj.data("id", todolist.id)
+                data.rslt.obj.data "id", todolist.id
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.obj
 
-    # Rename currently selected node.
-    renameFolder: (path, newName, data) =>
+    # Persist todolist renaming and update view rendering.
+    onTodoListRenamed: (path, newName, data) =>
         if newName?
             TodoList.updateTodoList data.rslt.obj.data("id"),
                 title: newName
@@ -70,14 +67,15 @@ class exports.HomeView extends Backbone.View
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.obj
             
-    # Delete currently selected node.
-    deleteFolder: (path) =>
+    # Persist todo list deletion and remove todo list details from view.
+    onTodoListRemoved: (path) =>
         $("#todo-list").html(null)
         @currentTodolist.destroy()
 
     # When a todolist is selected, the todolist widget is displayed and fill 
     # with todolist data.
-    selectFolder: (path, id) =>
+    # Route is updated with selected todo list path.
+    onTodoListSelected: (path, id) =>
         path = "/#{path}" if path.indexOf("/")
         app.router.navigate "todolist#{path}", trigger: false
         if id?
@@ -87,18 +85,6 @@ class exports.HomeView extends Backbone.View
         else
             $("#todo-list").html(null)
 
-    # Force selection inside tree of todolist represented by given path.
-    selectList: (path) ->
-        @tree.selectNode path
-
-    # Fill todolist widget with todolist data.
-    renderTodolist: (todolist) ->
-        todolist.url = "todolists/#{todolist.id}"
-        @currentTodolist = todolist
-        todolistWidget = new TodoListWidget @currentTodolist
-        todolistWidget.render()
-        todolistWidget.loadData()
-
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
     onTreeLoaded: =>
@@ -106,11 +92,28 @@ class exports.HomeView extends Backbone.View
 
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.
-    onTodolistDropped: (newPath, oldPath, todolistTitle, data) =>
+    onTodoListDropped: (newPath, oldPath, todolistTitle, data) =>
         newPath = newPath + "/" + helpers.slugify(todolistTitle)
         Todolist.updateTodolist data.rslt.o.data("id"),
             path: newPath
             , () =>
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.o
+
+    ###
+    # Functions
+    ###
+
+    # Force selection inside tree of todolist represented by given path.
+    selectList: (path) ->
+        @tree.selectNode path
+
+    # Fill todolist widget with todolist data. Then load todo task list 
+    # and archives for this todolist.
+    renderTodolist: (todolist) ->
+        todolist.url = "todolists/#{todolist.id}"
+        @currentTodolist = todolist
+        todolistWidget = new TodoListWidget @currentTodolist
+        todolistWidget.render()
+        todolistWidget.loadData()
 

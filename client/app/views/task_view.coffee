@@ -38,7 +38,6 @@ class exports.TaskLine extends Backbone.View
         @buttons = @.$(".task-buttons")
         @setListeners()
 
-        # TODO check if edit mode is on before hiding
         @.$(".task-buttons").hide()
         @descriptionField.data 'before', @descriptionField.val()
 
@@ -46,6 +45,7 @@ class exports.TaskLine extends Backbone.View
 
     # Listen for description modification
     setListeners: ->
+        # Do nothing when tab or enter is pressed.
         @descriptionField.keypress (event) ->
             keyCode = event.which | event.keyCode
             keyCode != 13 and keyCode != 9
@@ -110,8 +110,7 @@ class exports.TaskLine extends Backbone.View
                 error: ->
                     alert "An error occured, modifications were not saved."
 
-    # When description is changed, model is saved to backend after 2 seconds
-    # to avoid making too much requests.
+    # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>
         unless keyCode == 8 or @descriptionField.val().length == 0
             @saving = false
@@ -142,14 +141,14 @@ class exports.TaskLine extends Backbone.View
         @model.collection.insertTask @model, \
              new Task(description: "new task"),
              success: (task) ->
-                 helpers.selectAll(task.view.descriptionField)
+                 helpers.selectAll task.view.descriptionField
              error: ->
                  alert "Saving failed, an error occured."
 
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
         description = @descriptionField.val()
-        if (description.length == 0 or description is " ") and @firstDel
+        if description.length == 0 and @firstDel
             @isDeleting = true
             if @model.previousTask?
                 @list.moveUpFocus @, maxPosition: true
@@ -157,7 +156,7 @@ class exports.TaskLine extends Backbone.View
                 @list.moveDownFocus @, maxPosition: true
             @delTask()
 
-        else if (description.length == 0 or description is " ") and not @firstDel
+        else if description.length == 0 and not @firstDel
             @firstDel = true
         else
             @firstDel = false

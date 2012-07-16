@@ -613,17 +613,15 @@ window.require.define({"views/home_view": function(exports, require, module) {
           # Initializers
       */
 
-      HomeView.prototype.isEditMode = false;
-
       HomeView.prototype.initialize = function() {};
 
       function HomeView() {
-        this.onTodolistDropped = __bind(this.onTodolistDropped, this);
+        this.onTodoListDropped = __bind(this.onTodoListDropped, this);
         this.onTreeLoaded = __bind(this.onTreeLoaded, this);
-        this.selectFolder = __bind(this.selectFolder, this);
-        this.deleteFolder = __bind(this.deleteFolder, this);
-        this.renameFolder = __bind(this.renameFolder, this);
-        this.createFolder = __bind(this.createFolder, this);      HomeView.__super__.constructor.call(this);
+        this.onTodoListSelected = __bind(this.onTodoListSelected, this);
+        this.onTodoListRemoved = __bind(this.onTodoListRemoved, this);
+        this.onTodoListRenamed = __bind(this.onTodoListRenamed, this);
+        this.onTodoListCreated = __bind(this.onTodoListCreated, this);      HomeView.__super__.constructor.call(this);
       }
 
       HomeView.prototype.render = function() {
@@ -643,13 +641,13 @@ window.require.define({"views/home_view": function(exports, require, module) {
       HomeView.prototype.loadData = function() {
         var _this = this;
         return $.get("tree/", function(data) {
-          return _this.tree = new Tree(_this.$("#nav"), $("#tree"), data, {
-            onCreate: _this.createFolder,
-            onRename: _this.renameFolder,
-            onRemove: _this.deleteFolder,
-            onSelect: _this.selectFolder,
+          return _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
+            onCreate: _this.onTodoListCreated,
+            onRename: _this.onTodoListRenamed,
+            onRemove: _this.onTodoListRemoved,
+            onSelect: _this.onTodoListSelected,
             onLoaded: _this.onTreeLoaded,
-            onDrop: _this.onTodolistDropped
+            onDrop: _this.onTodoListDropped
           });
         });
       };
@@ -658,7 +656,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
           # Listeners
       */
 
-      HomeView.prototype.createFolder = function(path, newName, data) {
+      HomeView.prototype.onTodoListCreated = function(path, newName, data) {
         var _this = this;
         path = path + "/" + helpers.slugify(newName);
         return TodoList.createTodoList({
@@ -671,7 +669,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
         });
       };
 
-      HomeView.prototype.renameFolder = function(path, newName, data) {
+      HomeView.prototype.onTodoListRenamed = function(path, newName, data) {
         var _this = this;
         if (newName != null) {
           return TodoList.updateTodoList(data.rslt.obj.data("id"), {
@@ -683,12 +681,12 @@ window.require.define({"views/home_view": function(exports, require, module) {
         }
       };
 
-      HomeView.prototype.deleteFolder = function(path) {
+      HomeView.prototype.onTodoListRemoved = function(path) {
         $("#todo-list").html(null);
         return this.currentTodolist.destroy();
       };
 
-      HomeView.prototype.selectFolder = function(path, id) {
+      HomeView.prototype.onTodoListSelected = function(path, id) {
         var _this = this;
         if (path.indexOf("/")) path = "/" + path;
         app.router.navigate("todolist" + path, {
@@ -704,6 +702,25 @@ window.require.define({"views/home_view": function(exports, require, module) {
         }
       };
 
+      HomeView.prototype.onTreeLoaded = function() {
+        if (this.treeCreationCallback != null) return this.treeCreationCallback();
+      };
+
+      HomeView.prototype.onTodoListDropped = function(newPath, oldPath, todolistTitle, data) {
+        var _this = this;
+        newPath = newPath + "/" + helpers.slugify(todolistTitle);
+        return Todolist.updateTodolist(data.rslt.o.data("id"), {
+          path: newPath
+        }, function() {
+          data.inst.deselect_all();
+          return data.inst.select_node(data.rslt.o);
+        });
+      };
+
+      /*
+          # Functions
+      */
+
       HomeView.prototype.selectList = function(path) {
         return this.tree.selectNode(path);
       };
@@ -715,21 +732,6 @@ window.require.define({"views/home_view": function(exports, require, module) {
         todolistWidget = new TodoListWidget(this.currentTodolist);
         todolistWidget.render();
         return todolistWidget.loadData();
-      };
-
-      HomeView.prototype.onTreeLoaded = function() {
-        if (this.treeCreationCallback != null) return this.treeCreationCallback();
-      };
-
-      HomeView.prototype.onTodolistDropped = function(newPath, oldPath, todolistTitle, data) {
-        var _this = this;
-        newPath = newPath + "/" + helpers.slugify(todolistTitle);
-        return Todolist.updateTodolist(data.rslt.o.data("id"), {
-          path: newPath
-        }, function() {
-          data.inst.deselect_all();
-          return data.inst.select_node(data.rslt.o);
-        });
       };
 
       return HomeView;
@@ -932,7 +934,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
       TaskLine.prototype.onBackspaceKeyup = function() {
         var description;
         description = this.descriptionField.val();
-        if ((description.length === 0 || description === " ") && this.firstDel) {
+        if (description.length === 0 && this.firstDel) {
           this.isDeleting = true;
           if (this.model.previousTask != null) {
             this.list.moveUpFocus(this, {
@@ -944,7 +946,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
             });
           }
           return this.delTask();
-        } else if ((description.length === 0 || description === " ") && !this.firstDel) {
+        } else if (description.length === 0 && !this.firstDel) {
           return this.firstDel = true;
         } else {
           return this.firstDel = false;
@@ -1085,14 +1087,14 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
         }
       };
 
-      TaskList.prototype.moveFocus = function(previousNode, nextNode, options) {
+      TaskList.prototype.moveFocus = function(previousField, nextField, options) {
         var cursorPosition;
-        cursorPosition = previousNode.getCursorPosition();
-        nextNode.focus();
+        cursorPosition = previousField.getCursorPosition();
+        nextField.focus();
         if (((options != null ? options.maxPosition : void 0) != null) && options.maxPosition) {
-          return nextNode.setCursorPosition(nextNode.val().length);
+          return nextField.setCursorPosition(nextField.val().length);
         } else {
-          return nextNode.setCursorPosition(cursorPosition);
+          return nextField.setCursorPosition(cursorPosition);
         }
       };
 
@@ -1172,7 +1174,7 @@ window.require.define({"views/templates/todolist": function(exports, require, mo
   buf.push('>new task\n</button><button');
   buf.push(attrs({ 'id':("edit-button"), "class": ("btn btn-large") }));
   buf.push('>show buttons\n</button><p><span');
-  buf.push(attrs({ "class": ('breadcrump') }));
+  buf.push(attrs({ "class": ('breadcrumb') }));
   buf.push('></span></p><p><span');
   buf.push(attrs({ "class": ('description') }));
   buf.push('></span></p></header><div');
@@ -1244,6 +1246,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       TodoListWidget.prototype.el = "#todo-list";
 
+      TodoListWidget.prototype.isEditMode = false;
+
       /* Constructor
       */
 
@@ -1264,11 +1268,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       */
 
       TodoListWidget.prototype.render = function() {
-        var breadcrump, path;
+        var breadcrumb;
         $(this.el).html(require('./templates/todolist'));
-        this.$(".todo-list-title span.description").html(this.model.title);
-        path = this.model.humanPath.split(",").join(" / ");
-        this.$(".todo-list-title span.breadcrump").html(path);
+        this.title = this.$(".todo-list-title span.description");
+        this.breadcrumb = this.$(".todo-list-title span.breadcrumb");
         this.taskList = new TaskList(this, this.$("#task-list"));
         this.archiveList = new TaskList(this, this.$("#archive-list"));
         this.tasks = this.taskList.tasks;
@@ -1280,12 +1283,16 @@ window.require.define({"views/todolist_view": function(exports, require, module)
         this.newButton.click(this.onAddClicked);
         this.showButtonsButton.unbind("click");
         this.showButtonsButton.click(this.onEditClicked);
-        breadcrump = this.model.humanPath.split(",");
-        breadcrump.pop();
-        $("#todo-list-full-breadcrump").html(breadcrump.join(" / "));
-        $("#todo-list-full-title").html(this.model.title);
+        breadcrumb = this.model.humanPath.split(",");
+        breadcrumb.pop();
+        this.breadcrumb.html(breadcrumb.join(" / "));
+        this.title.html(this.model.title);
         return this.el;
       };
+
+      /*
+          # Listeners
+      */
 
       TodoListWidget.prototype.onAddClicked = function(event) {
         var task,
@@ -1300,7 +1307,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
             data.url = "tasks/" + data.id + "/";
             _this.tasks.add(data);
             $(".task:first .description").focus();
-            helpers.selectAll($(".task:first input.description"));
+            helpers.selectAll($(".task:first .description"));
             if (!_this.isEditMode) {
               return $(".task:first .task-buttons").hide();
             } else {

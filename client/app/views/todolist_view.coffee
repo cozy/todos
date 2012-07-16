@@ -3,11 +3,12 @@
 {TaskList} = require "./tasks_view"
 helpers = require "../helpers"
 
-# Row displaying application name and attributes
+# Display todo list wrapper that contains todo task list and archive task list.
 class exports.TodoListWidget extends Backbone.View
     id: "todo-list"
     tagName: "div"
     el: "#todo-list"
+    isEditMode: false
 
     ### Constructor ####
 
@@ -22,11 +23,13 @@ class exports.TodoListWidget extends Backbone.View
 
     ### configuration ###
 
+
+    # Render template then build all widgets and bind them to their listeners.
     render: ->
         $(@el).html require('./templates/todolist')
-        @.$(".todo-list-title span.description").html @model.title
-        path =  @model.humanPath.split(",").join(" / ")
-        @.$(".todo-list-title span.breadcrump").html path
+
+        @title = @.$(".todo-list-title span.description")
+        @breadcrumb = @.$(".todo-list-title span.breadcrumb")
         
         @taskList = new TaskList @, @.$("#task-list")
         @archiveList = new TaskList @, @.$("#archive-list")
@@ -42,12 +45,16 @@ class exports.TodoListWidget extends Backbone.View
         @showButtonsButton.unbind "click"
         @showButtonsButton.click @onEditClicked
 
-        breadcrump = @model.humanPath.split(",")
-        breadcrump.pop()
-        $("#todo-list-full-breadcrump").html breadcrump.join(" / ")
-        $("#todo-list-full-title").html @model.title
+        breadcrumb = @model.humanPath.split(",")
+        breadcrumb.pop()
+        @breadcrumb.html breadcrumb.join(" / ")
+        @title.html @model.title
 
         @el
+
+    ###
+    # Listeners
+    ###
 
     # When add is clicked a new task is added to the top of the task list.
     # Adding task is done after task was created on the server.
@@ -58,7 +65,7 @@ class exports.TodoListWidget extends Backbone.View
                 data.url = "tasks/#{data.id}/"
                 @tasks.add data
                 $(".task:first .description").focus()
-                helpers.selectAll($(".task:first input.description"))
+                helpers.selectAll($(".task:first .description"))
 
                 if not @isEditMode
                     $(".task:first .task-buttons").hide()
@@ -87,6 +94,8 @@ class exports.TodoListWidget extends Backbone.View
     # Functions
     ###
 
+    # Load data then focus on first task loaded.
+    # If list is empty a new task is automatically created.
     loadData: ->
         @archiveTasks.url += "/archives"
         @archiveTasks.fetch()
@@ -97,6 +106,7 @@ class exports.TodoListWidget extends Backbone.View
                 else
                     @onAddClicked()
 
+    # Add task to todo task list. 
     moveToTaskList: (task) ->
         @tasks.prependTask task
 

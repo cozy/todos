@@ -1,6 +1,6 @@
 # Cozy Todos
 
-Cozy Template is a simple task management application.
+Cozy Todos is a simple task management application.
 
 
 # About Cozy

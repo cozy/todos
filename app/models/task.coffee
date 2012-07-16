@@ -32,8 +32,6 @@ Task.archives = (listId, callback) ->
 # list.
 Task.allTodo = (listId, callback) ->
     orderTasks = (tasks) ->
-        console.log tasks.length
-
         if tasks.length == 0
             callback null, []
             return
@@ -44,12 +42,14 @@ Task.allTodo = (listId, callback) ->
             firstTask = task if not task.previousTask?
 
         task = firstTask
+        task = tasks[0] if not task?
         result = []
         while task? and result.length <= tasks.length
             result.push(task)
             nextTaskId = task.nextTask
             delete idList[task.id]
             task = idList[nextTaskId]
+
 
         # Rebuild linked list if there are unlinked tasks
         lastTask = result[result.length - 1]
@@ -70,6 +70,7 @@ Task.allTodo = (listId, callback) ->
                     nextTask: task.nextTask
                     previousTask: task.previousTask
                 task.updateAttributes attributes, ->
+                    true
 
         callback null, result
 

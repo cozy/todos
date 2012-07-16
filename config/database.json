@@ -1,13 +1,13 @@
 { "development":
   { "driver":   "mongoose"
-  , "url":      "mongodb://127.0.0.1/cozy-home"
+  , "url":      "mongodb://127.0.0.1/cozy-prod"
   }
 , "test":
   { "driver":   "mongoose"
-  , "url":      "mongodb://127.0.0.1/cozy-home"
+  , "url":      "mongodb://127.0.0.1/cozy-prod"
   }
 , "production":
   { "driver":   "mongoose"
-  , "url":      "mongodb://127.0.0.1/cozy-home"
+  , "url":      "mongodb://127.0.0.1/cozy-prod"
   }
 }

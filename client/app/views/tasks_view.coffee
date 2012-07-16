@@ -7,10 +7,10 @@ class exports.TaskList extends Backbone.View
     className: "task clearfix"
     tagName: "div"
 
-    constructor: (@mainView, @el) ->
+    constructor: (@todoListView, @el) ->
         super()
 
-        @tasks = new TaskCollection @
+        @tasks = new TaskCollection @, @todoListView.model.id
 
     # Add a line at the bottom of the list.
     addTaskLine: (task) ->
@@ -28,38 +28,42 @@ class exports.TaskList extends Backbone.View
 
     # Remove a task from its current position then add it to todo task list.
     moveToTaskList: (task) ->
-        @mainView.moveToTaskList task
+        @todoListView.moveToTaskList task
 
-    # Set focus on previous task.
+    # Set focus on previous task. Preserve focus position.
     moveUpFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
         nextDescription = $(selector).prev().find(".description")
-        @moveFocus taskLine.descriptionField, nextDescription, options
+        if nextDescription.length
+            @moveFocus taskLine.descriptionField, nextDescription, options
 
-    # Set focus on next task.
+    # Set focus on next task. Preserve focus position.
     moveDownFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
         nextDescription = $(selector).next().find(".description")
-        @moveFocus taskLine.descriptionField, nextDescription, options
+        if nextDescription.length
+            @moveFocus taskLine.descriptionField, nextDescription, options
  
-    moveFocus: (previousNode, nextNode, options) ->
-        cursorPosition = helpers.getCursorPosition previousNode
-        nextNode.focus()
+    # Move focus from previous field to next field by saving cursor position.
+    # If options contains flag maxPosition, cursor position is set at the end
+    # of the field.
+    moveFocus: (previousField, nextField, options) ->
+        cursorPosition = previousField.getCursorPosition()
+        nextField.focus()
         if options?.maxPosition? and options.maxPosition
-            helpers.setCursorPosition nextNode, \
-                                      nextNode.text().length
+            nextField.setCursorPosition nextField.val().length
         else
-            helpers.setCursorPosition nextNode, cursorPosition
+            nextField.setCursorPosition cursorPosition
 
-
-    # Insert a task represented by task after previousTaskLine
+    # Insert a task line represented by task after previousTaskLine, then put
+    # focus on it.
     insertTask: (previousTaskLine, task) ->
         taskLine = new TaskLine(task)
         taskLine.list = @
         taskLineEl = $(taskLine.render())
         taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
-        if @mainView.isEditMode
+        if @todoListView.isEditMode
             taskLine.showButtons()
         taskLine
     

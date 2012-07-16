@@ -110,3 +110,7 @@ class exports.TodoListWidget extends Backbone.View
     moveToTaskList: (task) ->
         @tasks.prependTask task
 
+
+    # Force task saving if task was modified.
+    blurAllTaskDescriptions: ->
+        @.$(".task .description").trigger("blur")

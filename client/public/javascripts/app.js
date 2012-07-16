@@ -727,8 +727,11 @@ window.require.define({"views/home_view": function(exports, require, module) {
       };
 
       HomeView.prototype.renderTodolist = function(todolist) {
-        var todolistWidget;
+        var todolistWidget, _ref;
         todolist.url = "todolists/" + todolist.id;
+        if ((_ref = this.currentTodolist) != null) {
+          _ref.view.blurAllTaskDescriptions();
+        }
         this.currentTodolist = todolist;
         todolistWidget = new TodoListWidget(this.currentTodolist);
         todolistWidget.render();
@@ -1356,6 +1359,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
       TodoListWidget.prototype.moveToTaskList = function(task) {
         return this.tasks.prependTask(task);
+      };
+
+      TodoListWidget.prototype.blurAllTaskDescriptions = function() {
+        return this.$(".task .description").trigger("blur");
       };
 
       return TodoListWidget;

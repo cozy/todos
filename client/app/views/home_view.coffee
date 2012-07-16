@@ -113,6 +113,7 @@ class exports.HomeView extends Backbone.View
     # and archives for this todolist.
     renderTodolist: (todolist) ->
         todolist.url = "todolists/#{todolist.id}"
+        @currentTodolist?.view.blurAllTaskDescriptions()
         @currentTodolist = todolist
         todolistWidget = new TodoListWidget @currentTodolist
         todolistWidget.render()

@@ -28,8 +28,8 @@ class exports.TodoListWidget extends Backbone.View
     render: ->
         $(@el).html require('./templates/todolist')
 
-        @title = @.$(".todo-list-title span.description")
-        @breadcrumb = @.$(".todo-list-title span.breadcrumb")
+        @title = @.$(".todo-list-title .description")
+        @breadcrumb = @.$(".todo-list-title .breadcrumb")
         
         @taskList = new TaskList @, @.$("#task-list")
         @archiveList = new TaskList @, @.$("#archive-list")

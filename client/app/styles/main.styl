@@ -65,19 +65,15 @@
 #tree-buttons
   border-bottom 1px solid bordercolortoolbar
   background-color bgcolortoolbar
-  margin-top 16px
+  padding 2%
 
 #tree-buttons div
   display inline
-  padding 6px 10px
-  margin-left 8px
   background-repeat no-repeat
   background-position center
   cursor pointer
 
 #tree-buttons i
-  margin-top 3px
-  margin-right 5px
 
 #tree-buttons .spacer
   display block
@@ -119,35 +115,43 @@
   padding 1% 
 
 .task
-  padding 1% 
+  padding   3px 1%
 
 .task:hover
- background-color #EEFFEE
+  background-color #F6F9F0
 
 .task button
   float left
 
 .task input 
   border: 0px
+  shadow none
+
+.task input:focus
+  shadow: 0 1px 1px rgba(255, 255, 255, 0.12) inset, 0px 0px 8px #87B52E
 
 .task .description
   margin-left: 1% 
-  font-size: 20px
-  line-height: 20px
+  font-size: 16px
+  height:22px
   width: 90%
-  padding: 6px
+  padding: 4px
   background-color: #FCFCFC
-  shadow 0
+  margin-bottom 0
 
 .todo-button
   width: 6%
 
 .task-buttons
   float right
+  margin-top: 6px
+  margin-right: 2%
 
 .todo-list-title
-    border-bottom 1px solid #CCC
-    padding 10px
+  border-bottom 1px solid #CCC
+  padding 10px
+  margin-bottom: 3%
+  margin-top: 1%
 
 .todo-list-title .description
   font-weight bold
@@ -163,3 +167,39 @@
   color #AAA
   text-decoration line-through
 
+.archive-title
+  font-size: 16px
+  border-bottom: 1px solid #CCC
+  margin-top: 3%
+  margin-bottom: 2%
+
+.breadcrumb
+  margin-bottom: 2px
+
+.todo-list-title .description
+  margin-bottom: 2px
+
+
+.btn 
+  background-repeat: repeat-x 
+  background-image: linear-gradient(top, #EAEAEA, #AaAaAa)
+  background-color: #AAAAAA !important
+  border-color: #CCC 
+  -webkit-font-smoothing: antialiased 
+  color: #444
+  text-shadow: none
+
+.btn-info
+  background-image: linear-gradient(top, #bdb09d, #927f61)  
+  background-color: #927f61 !important
+  color: #EEE
+  border-color: #927f61 #927f61 hsl(36, 20%, 43%)  
+
+.btn.disabled
+  color: #020
+  text-shadow: none
+  background-color: #A9D74F !important 
+  cursor: pointer
+
+.btn-large
+  text-shadow: none

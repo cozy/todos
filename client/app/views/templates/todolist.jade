@@ -1,12 +1,9 @@
 header.todo-list-title.clearfix
-    button(class="btn btn-large btn-success", id="new-task-button") 
+    button(class="btn btn-info", id="new-task-button") 
         | new task
-    button(class="btn btn-large", id="edit-button") 
-        | show buttons
-    p
-        span.breadcrumb() 
-    p
-        span.description() 
+    button.btn.hidden#edit-button show buttons
+    p.breadcrumb() 
+    p.description() 
 #task-list
-h2 archives
+h2.archive-title archives
 #archive-list

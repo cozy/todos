@@ -43,6 +43,9 @@ before 'set list id', ->
 action 'all', ->
     Task.all {}, returnTasks
 
+action 'all-archives', ->
+    Task.archives null, returnTasks
+
 # Return all task 
 action 'todo', ->
     Task.allTodo @listId, (err, tasks) ->

@@ -12,6 +12,17 @@ class exports.Task extends BaseModel
             @url = "/todolists/#{task.list}/tasks/#{@id}/"
         else
             @url = "/todolists/#{task.list}/tasks/"
+        
+        @setSimpleDate task.completionDate
+
+    # Format completionDate into a simple format. Store in simpleDate field.
+    setSimpleDate: (date) ->
+        if date?
+            dateWrapper = moment new Date(date)
+        else 
+            dateWrapper = moment new Date()
+
+        @simpleDate = dateWrapper.format "DD/MM/YYYY"
 
     setNextTask: (task) ->
         if task?
@@ -28,6 +39,7 @@ class exports.Task extends BaseModel
     # View binding: when task state is set to done, update view.
     setDone: ->
         @done = true
+        @setSimpleDate()
         @cleanLinks()
         @view.done()
 

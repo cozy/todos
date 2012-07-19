@@ -22,11 +22,15 @@ class exports.HomeView extends Backbone.View
         $(@el).html require('./templates/home')
 
         @todolist = $("#todo-list")
+        @setUpHaveDoneList()
+        @
+
+    # Create have done list modal
+    setUpHaveDoneList: ->
         @haveDoneList = new HaveDoneListModal()
         @haveDoneList.render()
+        @haveDoneList.hide()
         $(@el).append(@haveDoneList.el)
-
-        this
 
     # Use jquery layout so set main layout of current window.
     setLayout: ->
@@ -37,6 +41,7 @@ class exports.HomeView extends Backbone.View
 
     # Grab tree data, then build and display it. 
     # Links callback to tree events (creation, renaming...)
+    # Set listeners for other buttons
     loadData: ->
         $.get "tree/", (data) =>
            @tree = new Tree @.$("#nav"), @.$("#tree"), data,
@@ -109,10 +114,13 @@ class exports.HomeView extends Backbone.View
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.o
 
+    # When have done button is clicked, have done list is displayed or hidden
+    # depending of its current state. When have done list is show, its data
+    # are loaded too.
     onHaveDoneButtonClicked: =>
-        console.log @haveDoneList.isVisible()
         if not @haveDoneList.isVisible()
             @haveDoneList.show()
+            @haveDoneList.loadData()
         else
             @haveDoneList.hide()
 

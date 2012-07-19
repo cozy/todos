@@ -24,9 +24,14 @@ Task.destroySome = (condition, callback) ->
 Task.destroyAll = (callback) ->
     Task.destroySome {}, callback
 
+# Get all archived tasks for a given list
 Task.archives = (listId, callback) ->
-    Task.all { where: { done: true, list: listId }, \
-               order: "completionDate DESC" }, callback
+    if listId?
+        Task.all { where: { done: true, list: listId }, \
+                   order: "completionDate DESC" }, callback
+    else
+        Task.all { where: { done: true }, \
+                   order: "completionDate DESC" }, callback
     
 # Returns all tasks of which state is todo. Order them following the link
 # list.

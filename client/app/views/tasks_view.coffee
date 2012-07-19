@@ -7,15 +7,33 @@ class exports.TaskList extends Backbone.View
     className: "task clearfix"
     tagName: "div"
 
-    constructor: (@todoListView, @el) ->
+    constructor: (@todoListView, @el, @options) ->
         super()
 
-        @tasks = new TaskCollection @, @todoListView.model.id
+        if @todoListView?
+            @tasks = new TaskCollection @, @todoListView.model.id
+        else
+            @tasks = new TaskCollection @, null
 
     # Add a line at the bottom of the list.
+    # If grouping option is activated, date is displayed every time it changes
+    # in listing. 
     addTaskLine: (task) ->
+        console.log options?.grouping
+        if @options?.grouping
+            lastTask = @tasks.last()
+            if lastTask?
+                if lastTask.simpleDate != task.simpleDate
+                    @addDateLine task.simpleDate
+            else
+                @addDateLine task.simpleDate
+
         taskLine = new TaskLine task, @
         $(@el).append taskLine.render()
+
+    # Add a date line that just display date of all following tasks
+    addDateLine: (date) ->
+        $(@el).append('<div class=".completion-date">' + date + '</div>')
 
     # Add a line at the top of the list.
     addTaskLineAsFirstRow: (task) ->
@@ -28,7 +46,7 @@ class exports.TaskList extends Backbone.View
 
     # Remove a task from its current position then add it to todo task list.
     moveToTaskList: (task) ->
-        @todoListView.moveToTaskList task
+        @todoListView?.moveToTaskList task
 
     # Set focus on previous task. Preserve focus position.
     moveUpFocus: (taskLine, options) ->
@@ -63,7 +81,7 @@ class exports.TaskList extends Backbone.View
         taskLineEl = $(taskLine.render())
         taskLineEl.insertAfter($(previousTaskLine.el))
         taskLine.focusDescription()
-        if @todoListView.isEditMode
+        if @todoListView?.isEditMode
             taskLine.showButtons()
         taskLine
     

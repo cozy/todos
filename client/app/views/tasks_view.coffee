@@ -24,7 +24,7 @@ class exports.TaskList extends Backbone.View
 
     # Add a date line that just display date of all following tasks
     addDateLine: (date) ->
-        $(@el).append('<div class=".completion-date">' + date + '</div>')
+        $(@el).append('<div class="completion-date">' + date + '</div>')
 
     # Add a line at the top of the list.
     addTaskLineAsFirstRow: (task) ->

@@ -74,6 +74,93 @@
   globals.require.brunch = true;
 })();
 
+window.require.define({"test/browsing": function(exports, require, module) {
+  (function() {
+    var app, phantom, should;
+
+    should = require("should");
+
+    app = require("../../server");
+
+    phantom = require('phantom');
+
+    describe("Browsing", function() {
+      before(function(done) {
+        app.listen(8001);
+        return done();
+      });
+      after(function(done) {
+        app.close();
+        return done();
+      });
+      it("When I open web page", function(done) {
+        var _this = this;
+        return phantom.create(function(ph) {
+          return ph.createPage(function(page) {
+            _this.page = page;
+            return page.open("http://localhost:8001", function(status) {
+              return done();
+            });
+          });
+        });
+      });
+      it("And I click on recipe note", function(done) {
+        return this.page.evaluate(function() {
+          return $("#tree-node-all-artforge").click();
+        }, function(result) {
+          return setTimeout(done, 1000);
+        });
+      });
+      it("Then Recipe note title and path are displayed", function(done) {
+        var _this = this;
+        return this.page.evaluate(function() {
+          return $(".todo-list-title").is(":visible");
+        }, function(result) {
+          result.should.be.ok;
+          return _this.page.evaluate(function() {
+            return $("#.todo-list-title .description").html();
+          }, function(result) {
+            result.should.be.equal("artforge");
+            return done();
+          });
+        });
+      });
+      it("When I create a note", function(done) {
+        return this.page.evaluate(function() {
+          $("#tree-node-all").click();
+          $("#tree-create").click();
+          return $(".jstree-rename-input").blur();
+        }, function(result) {
+          return done();
+        });
+      });
+      it("Then Todo note title and path are displayed", function() {
+        return this.page.evaluate(function() {
+          return $("#tree-node-all-new-node").click();
+        }, function(result) {
+          return setTimeout(done, 1000);
+        });
+      });
+      return it("Then Recipe note title and path are displayed", function(done) {
+        var _this = this;
+        return this.page.evaluate(function() {
+          return $(".todo-list-title").is(":visible");
+        }, function(result) {
+          result.should.be.ok;
+          return _this.page.evaluate(function() {
+            return $("#.todo-list-title .description").html();
+          }, function(result) {
+            result.should.be.equal("New node");
+            return done();
+          });
+        });
+      });
+    });
+
+  }).call(this);
+  
+}});
+
 window.require.define({"test/common/test/client": function(exports, require, module) {
   (function() {
     var request;

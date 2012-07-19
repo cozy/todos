@@ -590,7 +590,7 @@ window.require.define({"routers/main_router": function(exports, require, module)
 
 window.require.define({"views/home_view": function(exports, require, module) {
   (function() {
-    var TodoList, TodoListWidget, Tree, helpers,
+    var HaveDoneListModal, TodoList, TodoListWidget, Tree, helpers,
       __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
       __hasProp = Object.prototype.hasOwnProperty,
       __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -600,6 +600,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
     TodoList = require("../models/todolist").TodoList;
 
     TodoListWidget = require("./todolist_view").TodoListWidget;
+
+    HaveDoneListModal = require("./widgets/have_done_list").HaveDoneListModal;
 
     helpers = require("../helpers");
 
@@ -616,6 +618,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
       HomeView.prototype.initialize = function() {};
 
       function HomeView() {
+        this.onHaveDoneButtonClicked = __bind(this.onHaveDoneButtonClicked, this);
         this.onTodoListDropped = __bind(this.onTodoListDropped, this);
         this.onTreeLoaded = __bind(this.onTreeLoaded, this);
         this.onTodoListSelected = __bind(this.onTodoListSelected, this);
@@ -627,6 +630,9 @@ window.require.define({"views/home_view": function(exports, require, module) {
       HomeView.prototype.render = function() {
         $(this.el).html(require('./templates/home'));
         this.todolist = $("#todo-list");
+        this.haveDoneList = new HaveDoneListModal();
+        this.haveDoneList.render();
+        $(this.el).append(this.haveDoneList.el);
         return this;
       };
 
@@ -641,7 +647,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
       HomeView.prototype.loadData = function() {
         var _this = this;
         return $.get("tree/", function(data) {
-          return _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
+          _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
             onCreate: _this.onTodoListCreated,
             onRename: _this.onTodoListRenamed,
             onRemove: _this.onTodoListRemoved,
@@ -649,6 +655,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
             onLoaded: _this.onTreeLoaded,
             onDrop: _this.onTodoListDropped
           });
+          _this.haveDoneButton = $("#have-done-list-button");
+          return _this.haveDoneButton.click(_this.onHaveDoneButtonClicked);
         });
       };
 
@@ -716,6 +724,15 @@ window.require.define({"views/home_view": function(exports, require, module) {
           data.inst.deselect_all();
           return data.inst.select_node(data.rslt.o);
         });
+      };
+
+      HomeView.prototype.onHaveDoneButtonClicked = function() {
+        console.log(this.haveDoneList.isVisible());
+        if (!this.haveDoneList.isVisible()) {
+          return this.haveDoneList.show();
+        } else {
+          return this.haveDoneList.hide();
+        }
       };
 
       /*
@@ -1121,6 +1138,24 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
   
 }});
 
+window.require.define({"views/templates/have_done_list": function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow) {
+  var attrs = jade.attrs, escape = jade.escape, rethrow = jade.rethrow;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  buf.push('<div');
+  buf.push(attrs({ "class": ('modal-header') }));
+  buf.push('><button');
+  buf.push(attrs({ 'data-dismiss':("modal"), "class": ('close') }));
+  buf.push('>x</button><h3>Have Done List</h3></div><div');
+  buf.push(attrs({ "class": ('modal-body') }));
+  buf.push('>One fine body…\n</div>');
+  }
+  return buf.join("");
+  };
+}});
+
 window.require.define({"views/templates/home": function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow) {
   var attrs = jade.attrs, escape = jade.escape, rethrow = jade.rethrow;
@@ -1218,7 +1253,7 @@ window.require.define({"views/templates/tree_buttons": function(exports, require
   buf.push('><i');
   buf.push(attrs({ "class": ('icon-search') }));
   buf.push('></i></button><button');
-  buf.push(attrs({ 'id':('have-done-list'), "class": ('btn') + ' ' + ('btn-info') }));
+  buf.push(attrs({ 'id':('have-done-list-button'), "class": ('btn') + ' ' + ('btn-info') }));
   buf.push('><i');
   buf.push(attrs({ "class": ('icon-tasks') }));
   buf.push('></i></button><div');
@@ -1372,6 +1407,56 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       };
 
       return TodoListWidget;
+
+    })(Backbone.View);
+
+  }).call(this);
+  
+}});
+
+window.require.define({"views/widgets/have_done_list": function(exports, require, module) {
+  (function() {
+    var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+      __hasProp = Object.prototype.hasOwnProperty,
+      __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+    exports.HaveDoneListModal = (function(_super) {
+
+      __extends(HaveDoneListModal, _super);
+
+      HaveDoneListModal.prototype["class"] = "modal hide";
+
+      HaveDoneListModal.prototype.id = "have-done-list-modal";
+
+      HaveDoneListModal.prototype.initialize = function() {};
+
+      function HaveDoneListModal() {
+        this.hide = __bind(this.hide, this);      HaveDoneListModal.__super__.constructor.call(this);
+      }
+
+      HaveDoneListModal.prototype.render = function() {
+        $(this.el).html(require('../templates/have_done_list'));
+        $(this.el).addClass("modal");
+        return this.$(".close").click(this.hide);
+      };
+
+      HaveDoneListModal.prototype.show = function() {
+        $(this.el).show();
+        this.$(".modal-body").html(null);
+        return this.fetch;
+      };
+
+      HaveDoneListModal.prototype.hide = function() {
+        return $(this.el).hide();
+      };
+
+      HaveDoneListModal.prototype.isVisible = function() {
+        return $(this.el).is(":visible");
+      };
+
+      HaveDoneListModal.prototype.fetch = function() {};
+
+      return HaveDoneListModal;
 
     })(Backbone.View);
 

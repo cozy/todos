@@ -102,6 +102,18 @@ describe "/tasks", ->
         it "Then I got no tasks", ->
             testLength @body, 0
 
+    describe "GET /tasks/archives/", ->
+        it "And I send a request to retrieve done tasks from all lists", \
+                 (done) ->
+            client.get "tasks/archives/", \
+                       (error, response, body) =>
+                @response = response
+                @body = JSON.parse body
+                done()
+
+        it "Then I have one task", ->
+            testLength @body, 3
+
 
     describe "GET /todolists/:listId/tasks/:id/ Show given task", ->
         it "When I send a show request for first task", (done) ->

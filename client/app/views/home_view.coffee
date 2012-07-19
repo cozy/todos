@@ -1,6 +1,7 @@
 {Tree} = require "./widgets/tree"
 {TodoList} = require "../models/todolist"
 {TodoListWidget} = require "./todolist_view"
+{HaveDoneListModal} = require "./widgets/have_done_list"
 helpers = require "../helpers"
 
 # Main view that manages all widgets displayed inside application.
@@ -21,6 +22,10 @@ class exports.HomeView extends Backbone.View
         $(@el).html require('./templates/home')
 
         @todolist = $("#todo-list")
+        @haveDoneList = new HaveDoneListModal()
+        @haveDoneList.render()
+        $(@el).append(@haveDoneList.el)
+
         this
 
     # Use jquery layout so set main layout of current window.
@@ -41,6 +46,9 @@ class exports.HomeView extends Backbone.View
                 onSelect: @onTodoListSelected
                 onLoaded: @onTreeLoaded
                 onDrop: @onTodoListDropped
+
+           @haveDoneButton = $("#have-done-list-button")
+           @haveDoneButton.click @onHaveDoneButtonClicked
 
 
     ###
@@ -100,6 +108,13 @@ class exports.HomeView extends Backbone.View
             , () =>
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.o
+
+    onHaveDoneButtonClicked: =>
+        console.log @haveDoneList.isVisible()
+        if not @haveDoneList.isVisible()
+            @haveDoneList.show()
+        else
+            @haveDoneList.hide()
 
     ###
     # Functions

@@ -6,7 +6,7 @@ class exports.TaskCollection extends Backbone.Collection
     model: Task
     url: 'tasks/'
 
-    constructor: (@view, @listId) ->
+    constructor: (@view, @listId, @options) ->
         super()
        
         @url = "todolists/#{@listId}/tasks"
@@ -22,7 +22,14 @@ class exports.TaskCollection extends Backbone.Collection
     addTasks: (tasks) =>
         tasks.forEach (task) =>
             task.collection = @
+            if @options?.grouping
+                console.log @lastTask?.simpleDate
+                console.log task.simpleDate
+                if @lastTask?.simpleDate != task.simpleDate
+                    @view.addDateLine task.simpleDate
+                @lastTask = task
             @view.addTaskLine task
+        @lastTask = null
 
     # Prepend a task to the task list and update previousTask field of 
     # previous first task.

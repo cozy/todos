@@ -7,27 +7,18 @@ class exports.TaskList extends Backbone.View
     className: "task clearfix"
     tagName: "div"
 
-    constructor: (@todoListView, @el, @options) ->
+    constructor: (@todoListView, @el, options) ->
         super()
 
         if @todoListView?
-            @tasks = new TaskCollection @, @todoListView.model.id
+            @tasks = new TaskCollection @, @todoListView.model.id, options
         else
-            @tasks = new TaskCollection @, null
+            @tasks = new TaskCollection @, null, options
 
     # Add a line at the bottom of the list.
     # If grouping option is activated, date is displayed every time it changes
     # in listing. 
     addTaskLine: (task) ->
-        console.log options?.grouping
-        if @options?.grouping
-            lastTask = @tasks.last()
-            if lastTask?
-                if lastTask.simpleDate != task.simpleDate
-                    @addDateLine task.simpleDate
-            else
-                @addDateLine task.simpleDate
-
         taskLine = new TaskLine task, @
         $(@el).append taskLine.render()
 

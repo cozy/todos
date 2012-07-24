@@ -5325,7 +5325,6 @@ p{margin:0 0 1.5em}
 ul,ol{margin:0 1.5em 1.5em 0;list-style-type:none}
 .spacer{clear:both}
 #home-view{height:100%;margin:0;padding:0}
-#content{height:100%;background-color:#9999ad;margin:0;min-width:300px;height:auto}
 #nav{margin:0;padding:0;background-color:#f1f1ef;-moz-box-shadow:0 0 3px #020;-webkit-box-shadow:0 0 3px #020;-webkit-box-shadow:0 0 3px #020;-moz-box-shadow:0 0 3px #020;box-shadow:0 0 3px #020}
 #todo-list{-moz-box-shadow:2px 2px 5px #668;-webkit-box-shadow:2px 2px 5px #668;-webkit-box-shadow:2px 2px 5px #668;-moz-box-shadow:2px 2px 5px #668;box-shadow:2px 2px 5px #668;border:1px solid #ebe5e2;background-color:#fcfcfc}
 #tree{font-size:12;padding:10px;border-top:1px solid #fff;background-color:#f1f1ef}

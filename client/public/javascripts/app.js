@@ -1208,10 +1208,8 @@ window.require.define({"views/templates/home": function(exports, require, module
   buf.push('><div');
   buf.push(attrs({ 'id':('tree') }));
   buf.push('></div></div><div');
-  buf.push(attrs({ 'id':('content'), "class": ('ui-layout-center') }));
-  buf.push('><div');
-  buf.push(attrs({ 'id':('todo-list') }));
-  buf.push('></div></div>');
+  buf.push(attrs({ 'id':('todo-list'), "class": ('ui-layout-center') }));
+  buf.push('></div>');
   }
   return buf.join("");
   };

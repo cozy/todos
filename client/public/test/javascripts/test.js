@@ -74,181 +74,51 @@
   globals.require.brunch = true;
 })();
 
-window.require.define({"test/browsing": function(exports, require, module) {
-<<<<<<< HEAD
-  (function() {
-    var app, phantom, should;
-
-    should = require("should");
-
-    app = require("../../server");
-
-    phantom = require('phantom');
-
-    describe("Browsing", function() {
-      before(function(done) {
-        app.listen(8001);
-        return done();
-      });
-      after(function(done) {
-        app.close();
-        return done();
-      });
-      it("When I open web page", function(done) {
-        var _this = this;
-        return phantom.create(function(ph) {
-          return ph.createPage(function(page) {
-            _this.page = page;
-            return page.open("http://localhost:8001", function(status) {
-              return done();
-            });
-          });
-        });
-      });
-      it("And I click on recipe note", function(done) {
-        return this.page.evaluate(function() {
-          return $("#tree-node-all-artforge").click();
-        }, function(result) {
-          return setTimeout(done, 1000);
-        });
-      });
-      it("Then Recipe note title and path are displayed", function(done) {
-        var _this = this;
-        return this.page.evaluate(function() {
-          return $(".todo-list-title").is(":visible");
-        }, function(result) {
-          result.should.be.ok;
-          return _this.page.evaluate(function() {
-            return $("#.todo-list-title .description").html();
-          }, function(result) {
-            result.should.be.equal("artforge");
-            return done();
-          });
-        });
-      });
-      it("When I create a note", function(done) {
-        return this.page.evaluate(function() {
-          $("#tree-node-all").click();
-          $("#tree-create").click();
-          return $(".jstree-rename-input").blur();
-        }, function(result) {
-          return done();
-        });
-      });
-      it("Then Todo note title and path are displayed", function() {
-        return this.page.evaluate(function() {
-          return $("#tree-node-all-new-node").click();
-        }, function(result) {
-          return setTimeout(done, 1000);
-        });
-      });
-      return it("Then Recipe note title and path are displayed", function(done) {
-        var _this = this;
-        return this.page.evaluate(function() {
-          return $(".todo-list-title").is(":visible");
-        }, function(result) {
-          result.should.be.ok;
-          return _this.page.evaluate(function() {
-            return $("#.todo-list-title .description").html();
-          }, function(result) {
-            result.should.be.equal("New node");
-            return done();
-          });
-        });
-      });
-    });
-
-  }).call(this);
+window.require.define({"test/test-helpers": function(exports, require, module) {
+  
+  module.exports = {
+    expect: require('chai').expect,
+    should: require('chai').should,
+    sinon: require('sinon')
+  };
   
 }});
 
-window.require.define({"test/common/test/client": function(exports, require, module) {
-=======
->>>>>>> experimentation/phantom-mocha-tests
-  (function() {
-    var app, phantom, should;
+window.require.define({"test/todo_model_test": function(exports, require, module) {
+  var Task, TaskCollection, TaskLine;
 
-    should = require("should");
+  Task = require('models/task').Task;
 
-    app = require("../../server");
+  TaskCollection = require('collections/tasks').TaskCollection;
 
-    phantom = require('phantom');
+  TaskLine = require('views/task_view').TaskLine;
 
-    describe("Browsing", function() {
-      before(function(done) {
-        app.listen(8001);
-        return done();
+  describe('TaskLine', function() {
+    beforeEach(function() {
+      this.model = new Task({
+        list: 123,
+        description: "test"
       });
-      after(function(done) {
-        app.close();
-        return done();
-      });
-      it("When I open web page", function(done) {
-        var _this = this;
-        return phantom.create(function(ph) {
-          return ph.createPage(function(page) {
-            _this.page = page;
-            return page.open("http://localhost:8001", function(status) {
-              return done();
-            });
-          });
-        });
-      });
-      it("And I click on recipe note", function(done) {
-        return this.page.evaluate(function() {
-          return $("#tree-node-all-artforge").click();
-        }, function(result) {
-          return setTimeout(done, 1000);
-        });
-      });
-      it("Then Recipe note title and path are displayed", function(done) {
-        var _this = this;
-        return this.page.evaluate(function() {
-          return $(".todo-list-title").is(":visible");
-        }, function(result) {
-          result.should.be.ok;
-          return _this.page.evaluate(function() {
-            return $("#.todo-list-title .description").html();
-          }, function(result) {
-            result.should.be.equal("artforge");
-            return done();
-          });
-        });
-      });
-      it("When I create a note", function(done) {
-        return this.page.evaluate(function() {
-          $("#tree-node-all").click();
-          $("#tree-create").click();
-          return $(".jstree-rename-input").blur();
-        }, function(result) {
-          return done();
-        });
-      });
-      it("Then Todo note title and path are displayed", function() {
-        return this.page.evaluate(function() {
-          return $("#tree-node-all-new-node").click();
-        }, function(result) {
-          return setTimeout(done, 1000);
-        });
-      });
-      return it("Then Recipe note title and path are displayed", function(done) {
-        var _this = this;
-        return this.page.evaluate(function() {
-          return $(".todo-list-title").is(":visible");
-        }, function(result) {
-          result.should.be.ok;
-          return _this.page.evaluate(function() {
-            return $("#.todo-list-title .description").html();
-          }, function(result) {
-            result.should.be.equal("New node");
-            return done();
-          });
-        });
-      });
+      this.view = new TaskLine(this.model);
+      return this.model.collection = new TaskCollection;
     });
-
-  }).call(this);
+    afterEach(function() {});
+    it("when I create a model", function() {});
+    it("its url is automatically set", function() {
+      return expect(this.model.url).to.equal("/todolists/" + this.model.list + "/tasks/");
+    });
+    it("When task is change its state to done", function() {
+      return this.model.setDone();
+    });
+    it("Then its completion date is converted to an easily displayable date", function() {
+      return expect(this.model.simpleDate).to.equal("DD/MM/YYYY");
+    });
+    return it("And task line has done class", function() {
+      console.log(this.view.el.className);
+      return expect(this.view.el.hasClass("done")).to.be.ok;
+    });
+  });
   
 }});
 
-
+window.require('test/todo_model_test');

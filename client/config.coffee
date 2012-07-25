@@ -31,7 +31,9 @@ exports.config =
 
     stylesheets:
       defaultExtension: 'styl'
-      joinTo: 'stylesheets/app.css'
+      joinTo:
+          'stylesheets/app.css': /^(app|vendor)/
+          'test/stylesheets/test.css': /^test/
       order:
         before: ['vendor/styles/normalize.css']
         after: ['vendor/styles/helpers.css']

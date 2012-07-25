@@ -1,5 +1,6 @@
 exports.routes = (map) ->
-    map.get '/', 'tasks#index'
+    #    map.get '/', 'tasks#index'
+
     map.get '/tasks/', 'tasks#all'
     map.get '/tasks/archives', 'tasks#all-archives'
     map.get '/todolists/:listId/tasks', 'tasks#todo'

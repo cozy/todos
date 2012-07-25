@@ -19,7 +19,7 @@ class exports.Task extends BaseModel
     setSimpleDate: (date) ->
         if date?
             dateWrapper = moment new Date(date)
-        else 
+        else
             dateWrapper = moment new Date()
 
         @simpleDate = dateWrapper.format "DD/MM/YYYY"
@@ -88,8 +88,8 @@ class exports.Task extends BaseModel
             previousTask.setNextTask nextTask
             nextTask.setPreviousTask previousTask
         else if previousTask?
-            previousTask.setNextTask null
         else if nextTask?
+            previousTask.setNextTask null
             nextTask.setPreviousTask null
 
         @setPreviousTask null

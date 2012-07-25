@@ -1,7 +1,7 @@
 {
-  "author": "Your Name",
-  "name": "package-name",
-  "description": "Package description",
+  "author": "Cozy Cloud",
+  "name": "cozy-todos-ui",
+  "description": "Todo list manager",
   "version": "0.0.1",
   "homepage": "",
   "repository": {
@@ -30,8 +30,7 @@
   "devDependencies": {
     "chai": "1.0.4",
     "sinon": "1.3.4",
-    "sinon-chai": "2.1.2",
-    "request": ">= 2.9.0"
+    "sinon-chai": "2.1.2"
   }
 }
 

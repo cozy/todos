@@ -3,4 +3,6 @@ module.exports =
   expect: require('chai').expect
   should: require('chai').should
   sinon: require 'sinon'
+  $: require('jquery')
+  moment: require('moment')
 

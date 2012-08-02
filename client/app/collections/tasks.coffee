@@ -22,24 +22,24 @@ class exports.TaskCollection extends Backbone.Collection
     addTasks: (tasks) =>
         tasks.forEach (task) =>
             task.collection = @
+            task.setNextTask nextTask if nextTask?
+
             if @options?.grouping
-                console.log @lastTask?.simpleDate
-                console.log task.simpleDate
                 if @lastTask?.simpleDate != task.simpleDate
                     @view.addDateLine task.simpleDate
                 @lastTask = task
             @view.addTaskLine task
+
+            nextTask = task
         @lastTask = null
 
     # Prepend a task to the task list and update previousTask field of 
     # previous first task.
     prependTask: (task) =>
-        task.url = "#{@url}/#{task.id}/"
+        task.url = "#{@url}/#{task.id}/" if task.id?
         task.collection = @
-        nextTask = @at(0)
-        if nextTask?
-            nextTask.setPreviousTask task
-            task.setNextTask nextTask
+        task.setNextTask @at(0)
+        
         @view.addTaskLineAsFirstRow task
 
     # Insert task at a given position, update links then save task to backend.

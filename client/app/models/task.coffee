@@ -8,33 +8,24 @@ class exports.Task extends BaseModel
         super(task)
         for property of task
             @[property] = task[property]
-        if @id
-            @url = "/todolists/#{task.list}/tasks/#{@id}/"
-        else
-            @url = "/todolists/#{task.list}/tasks/"
+
+        @url = "/todolists/#{task.list}/tasks/"
+        @url += "#{@id}/" if @id?
         
         @setSimpleDate task.completionDate
 
     # Format completionDate into a simple format. Store in simpleDate field.
     setSimpleDate: (date) ->
-        if date?
-            dateWrapper = moment new Date(date)
-        else
-            dateWrapper = moment new Date()
-
-        @simpleDate = dateWrapper.format "DD/MM/YYYY"
+        date = new Date()if not date?
+        @simpleDate = moment(date).format "DD/MM/YYYY"
 
     setNextTask: (task) ->
-        if task?
-            @set "nextTask", task.id
-        else
-            @set "nextTask", null
+        @set "nextTask", task?.id ? null
+        task?.set "previousTask", @id
 
     setPreviousTask: (task) ->
-        if task?
-            @set "previousTask", task.id
-        else
-            @set "previousTask", null
+        @set "previousTask", task?.id ? null
+        task?.set "nextTask", @id
 
     # View binding: when task state is set to done, update view.
     setDone: ->
@@ -60,37 +51,21 @@ class exports.Task extends BaseModel
         if @collection.view.isArchive()
             @view.remove()
             @collection.view.moveToTaskList @
-            firstTask = @collection.at 0
-            @setNextTask firstTask
-            firstTask.setPreviousTask @
+            @setNextTask @collection.at(0)
         else
             previousTask = @collection.getPreviousTodoTask @
             nextTask = @collection.getNextTodoTask @
 
-            if previousTask?
-                @setPreviousTask previousTask
-                previousTask.setNextTask @
-            else
-                @setPreviousTask null
-
-            if nextTask?
-                @setNextTask nextTask
-                nextTask.setPreviousTask @
-            else
-                @setNextTask null
+            @setPreviousTask previousTask
+            @setNextTask nextTask
 
 
     # Remove link from previous and next task.
     cleanLinks: ->
         previousTask = @collection.getPreviousTask @
         nextTask = @collection.getNextTask @
-        if nextTask? and previousTask?
-            previousTask.setNextTask nextTask
-            nextTask.setPreviousTask previousTask
-        else if previousTask?
-        else if nextTask?
-            previousTask.setNextTask null
-            nextTask.setPreviousTask null
+        previousTask?.setNextTask nextTask
+        nextTask?.setPreviousTask previousTask
 
         @setPreviousTask null
         @setNextTask null

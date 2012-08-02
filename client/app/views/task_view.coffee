@@ -171,6 +171,7 @@ class exports.TaskLine extends Backbone.View
         @.$(".todo-button").html "done"
         @.$(".todo-button").addClass "disabled"
         @.$(".todo-button").removeClass "btn-info"
+        console.log "blah \n"
         $(@el).addClass "done"
 
     # Change styles and text to display todo state.

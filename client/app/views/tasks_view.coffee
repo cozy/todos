@@ -10,10 +10,8 @@ class exports.TaskList extends Backbone.View
     constructor: (@todoListView, @el, options) ->
         super()
 
-        if @todoListView?
-            @tasks = new TaskCollection @, @todoListView.model.id, options
-        else
-            @tasks = new TaskCollection @, null, options
+        id = if @todoListView? then @todoListView.model.id else null
+        @tasks = new TaskCollection @, id, options
 
     # Add a line at the bottom of the list.
     # If grouping option is activated, date is displayed every time it changes

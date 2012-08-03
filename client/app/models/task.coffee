@@ -38,6 +38,8 @@ class exports.Task extends BaseModel
     setUndone: ->
         @done = false
         @setLink()
+        @completionDate = @simpleDate = null
+        @set "completionDate", null
         @view.undone()
 
     # Set links with other task when task state becomes todo again.

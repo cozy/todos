@@ -115,29 +115,30 @@ window.require.define({"collections/tasks": function(exports, require, module) {
     TaskCollection.prototype.addTasks = function(tasks) {
       var _this = this;
       tasks.forEach(function(task) {
-        var _ref, _ref1, _ref2;
+        var nextTask, _ref, _ref1;
         task.collection = _this;
+        if (typeof nextTask !== "undefined" && nextTask !== null) {
+          task.setNextTask(nextTask);
+        }
         if ((_ref = _this.options) != null ? _ref.grouping : void 0) {
-          console.log((_ref1 = _this.lastTask) != null ? _ref1.simpleDate : void 0);
-          console.log(task.simpleDate);
-          if (((_ref2 = _this.lastTask) != null ? _ref2.simpleDate : void 0) !== task.simpleDate) {
+          if (((_ref1 = _this.lastTask) != null ? _ref1.simpleDate : void 0) !== task.simpleDate) {
             _this.view.addDateLine(task.simpleDate);
           }
           _this.lastTask = task;
         }
-        return _this.view.addTaskLine(task);
+        _this.view.addTaskLine(task);
+        return nextTask = task;
       });
       return this.lastTask = null;
     };
 
     TaskCollection.prototype.prependTask = function(task) {
-      var nextTask;
-      task.url = "" + this.url + "/" + task.id + "/";
+      if (task.id != null) {
+        task.url = "" + this.url + "/" + task.id + "/";
+      }
       task.collection = this;
-      nextTask = this.at(0);
-      if (nextTask != null) {
-        nextTask.setPreviousTask(task);
-        task.setNextTask(nextTask);
+      if (this.length > 1) {
+        task.setPreviousTask(this.at(this.length - 2));
       }
       return this.view.addTaskLineAsFirstRow(task);
     };
@@ -176,19 +177,35 @@ window.require.define({"collections/tasks": function(exports, require, module) {
     };
 
     TaskCollection.prototype.getPreviousTodoTask = function(task) {
-      task = this.getPreviousTask(task);
-      while ((task != null) && task.done) {
-        task = this.getPreviousTask(task);
+      var index;
+      index = this.indexOf(task);
+      if (index > 0) {
+        index--;
+        task = this.at(index);
+        while ((task != null ? task.done : void 0) && index > 0) {
+          index--;
+          task = this.at(index);
+        }
+        return task;
+      } else {
+        return null;
       }
-      return task;
     };
 
     TaskCollection.prototype.getNextTodoTask = function(task) {
-      task = this.getNextTask(task);
-      while ((task != null) && task.done) {
-        task = this.getNextTask(task);
+      var index;
+      index = this.indexOf(task);
+      if (index < this.length - 2) {
+        index++;
+        task = this.at(index);
+        while ((task != null ? task.done : void 0) && index < this.length - 2) {
+          index++;
+          task = this.at(index);
+        }
+        return task;
+      } else {
+        return null;
       }
-      return task;
     };
 
     TaskCollection.prototype.up = function(task) {
@@ -405,38 +422,30 @@ window.require.define({"models/task": function(exports, require, module) {
       for (property in task) {
         this[property] = task[property];
       }
-      if (this.id) {
-        this.url = "/todolists/" + task.list + "/tasks/" + this.id + "/";
-      } else {
-        this.url = "/todolists/" + task.list + "/tasks/";
+      this.url = "/todolists/" + task.list + "/tasks/";
+      if (this.id != null) {
+        this.url += "" + this.id + "/";
       }
       this.setSimpleDate(task.completionDate);
     }
 
     Task.prototype.setSimpleDate = function(date) {
-      var dateWrapper;
-      if (date != null) {
-        dateWrapper = moment(new Date(date));
-      } else {
-        dateWrapper = moment(new Date());
+      if (!(date != null)) {
+        date = new Date();
       }
-      return this.simpleDate = dateWrapper.format("DD/MM/YYYY");
+      return this.simpleDate = moment(date).format("DD/MM/YYYY");
     };
 
     Task.prototype.setNextTask = function(task) {
-      if (task != null) {
-        return this.set("nextTask", task.id);
-      } else {
-        return this.set("nextTask", null);
-      }
+      var _ref;
+      this.set("nextTask", (_ref = task != null ? task.id : void 0) != null ? _ref : null);
+      return task != null ? task.set("previousTask", this.id) : void 0;
     };
 
     Task.prototype.setPreviousTask = function(task) {
-      if (task != null) {
-        return this.set("previousTask", task.id);
-      } else {
-        return this.set("previousTask", null);
-      }
+      var _ref;
+      this.set("previousTask", (_ref = task != null ? task.id : void 0) != null ? _ref : null);
+      return task != null ? task.set("nextTask", this.id) : void 0;
     };
 
     Task.prototype.setDone = function() {
@@ -449,32 +458,22 @@ window.require.define({"models/task": function(exports, require, module) {
     Task.prototype.setUndone = function() {
       this.done = false;
       this.setLink();
+      this.completionDate = this.simpleDate = null;
+      this.set("completionDate", null);
       return this.view.undone();
     };
 
     Task.prototype.setLink = function() {
-      var firstTask, nextTask, previousTask;
+      var nextTask, previousTask;
       if (this.collection.view.isArchive()) {
         this.view.remove();
         this.collection.view.moveToTaskList(this);
-        firstTask = this.collection.at(0);
-        this.setNextTask(firstTask);
-        return firstTask.setPreviousTask(this);
+        return this.setNextTask(this.collection.at(0));
       } else {
         previousTask = this.collection.getPreviousTodoTask(this);
         nextTask = this.collection.getNextTodoTask(this);
-        if (previousTask != null) {
-          this.setPreviousTask(previousTask);
-          previousTask.setNextTask(this);
-        } else {
-          this.setPreviousTask(null);
-        }
-        if (nextTask != null) {
-          this.setNextTask(nextTask);
-          return nextTask.setPreviousTask(this);
-        } else {
-          return this.setNextTask(null);
-        }
+        this.setPreviousTask(previousTask);
+        return this.setNextTask(nextTask);
       }
     };
 
@@ -482,14 +481,11 @@ window.require.define({"models/task": function(exports, require, module) {
       var nextTask, previousTask;
       previousTask = this.collection.getPreviousTask(this);
       nextTask = this.collection.getNextTask(this);
-      if ((nextTask != null) && (previousTask != null)) {
+      if (previousTask != null) {
         previousTask.setNextTask(nextTask);
+      }
+      if (nextTask != null) {
         nextTask.setPreviousTask(previousTask);
-      } else if (previousTask != null) {
-
-      } else if (nextTask != null) {
-        previousTask.setNextTask(null);
-        nextTask.setPreviousTask(null);
       }
       this.setPreviousTask(null);
       return this.setNextTask(null);
@@ -1054,8 +1050,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
       this.$(".todo-button").html("done");
       this.$(".todo-button").addClass("disabled");
       this.$(".todo-button").removeClass("btn-info");
-      $(this.el).addClass("done");
-      return console.log("toto");
+      console.log("blah \n");
+      return $(this.el).addClass("done");
     };
 
     TaskLine.prototype.undone = function() {
@@ -1136,14 +1132,12 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
     TaskList.prototype.tagName = "div";
 
     function TaskList(todoListView, el, options) {
+      var id;
       this.todoListView = todoListView;
       this.el = el;
       TaskList.__super__.constructor.call(this);
-      if (this.todoListView != null) {
-        this.tasks = new TaskCollection(this, this.todoListView.model.id, options);
-      } else {
-        this.tasks = new TaskCollection(this, null, options);
-      }
+      id = this.todoListView != null ? this.todoListView.model.id : null;
+      this.tasks = new TaskCollection(this, id, options);
     }
 
     TaskList.prototype.addTaskLine = function(task) {

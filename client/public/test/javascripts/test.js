@@ -74,18 +74,8 @@
   globals.require.brunch = true;
 })();
 
-window.require.define({"test/test-helpers": function(exports, require, module) {
-  
-  module.exports = {
-    expect: require('chai').expect,
-    should: require('chai').should,
-    sinon: require('sinon')
-  };
-  
-}});
-
-window.require.define({"test/todo_model_test": function(exports, require, module) {
-  var Task, TaskCollection, TaskLine;
+window.require.define({"test/task_model_test": function(exports, require, module) {
+  var Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
 
   Task = require('models/task').Task;
 
@@ -93,32 +83,173 @@ window.require.define({"test/todo_model_test": function(exports, require, module
 
   TaskLine = require('views/task_view').TaskLine;
 
-  describe('TaskLine', function() {
-    beforeEach(function() {
+  TaskList = require('views/tasks_view').TaskList;
+
+  TodoListWidget = require('views/todolist_view').TodoListWidget;
+
+  TodoList = require('models/todolist').TodoList;
+
+  TaskCollection.prototype.addNewTask = function(id, list, description) {
+    var task;
+    task = new Task({
+      id: id,
+      list: list,
+      description: description
+    });
+    return this.add(task);
+  };
+
+  describe('Task Model', function() {
+    before(function() {
+      var todoList, todoListView;
+      todoList = new TodoList({
+        id: 123,
+        title: "list 01"
+      });
       this.model = new Task({
         list: 123,
-        description: "test"
+        description: "task 02",
+        id: 2
       });
-      this.view = new TaskLine(this.model);
-      return this.model.collection = new TaskCollection;
+      todoListView = new TodoListWidget(todoList);
+      this.collectionView = new TaskList(todoListView);
+      this.collection = this.collectionView.tasks;
+      this.collection.addNewTask(1, 123, "task 01");
+      this.collection.add(this.model);
+      this.collection.addNewTask(3, 123, "task 03");
+      this.collection.addNewTask(4, 123, "task 04");
+      return this.view = this.model.view;
     });
-    afterEach(function() {});
-    it("when I create a model", function() {});
-    it("its url is automatically set", function() {
-      return expect(this.model.url).to.equal("/todolists/" + this.model.list + "/tasks/");
+    after(function() {});
+    describe("Creation", function() {
+      it("when I create a model", function() {});
+      return it("its url is automatically set", function() {
+        return expect(this.model.url).to.equal("todolists/" + this.model.list + "/tasks/2/");
+      });
     });
-    it("When task is change its state to done", function() {
-      return this.model.setDone();
+    describe("Done", function() {
+      it("When task state is changed to done.", function() {
+        return this.model.setDone();
+      });
+      it("Then task line has done class", function() {
+        expect(this.model.done).to.equal(true);
+        return expect($(this.view.el).hasClass("done")).to.be.ok;
+      });
+      it("And links are cleaned", function() {
+        var nextTask, previousTask;
+        expect(this.model.get("previousTask")).to.equal(null);
+        expect(this.model.get("nextTask")).to.equal(null);
+        previousTask = this.collection.at(0);
+        nextTask = this.collection.at(2);
+        expect(previousTask.get("nextTask")).to.equal(nextTask.id);
+        return expect(nextTask.get("previousTask")).to.equal(previousTask.id);
+      });
+      return it("And its completion date is copied to an easily displayable date", function() {
+        var completionDate;
+        completionDate = moment(this.model.completionDate);
+        return expect(this.model.simpleDate).to.equal(completionDate.format("DD/MM/YYYY"));
+      });
     });
-    it("Then its completion date is converted to an easily displayable date", function() {
-      return expect(this.model.simpleDate).to.equal("DD/MM/YYYY");
+    describe("Undone", function() {
+      it("When task state is changed to undone.", function() {
+        return this.model.setUndone();
+      });
+      it("Then task line has not done class anymore", function() {
+        expect(this.model.done).to.equal(false);
+        return expect($(this.view.el).hasClass("done")).to.be.not.ok;
+      });
+      it("And links are back", function() {
+        var nextTask, previousTask;
+        expect(this.model.get("previousTask")).to.equal(1);
+        expect(this.model.get("nextTask")).to.equal(3);
+        previousTask = this.collection.at(0);
+        nextTask = this.collection.at(2);
+        expect(previousTask.get("nextTask")).to.equal(this.model.id);
+        return expect(nextTask.get("previousTask")).to.equal(this.model.id);
+      });
+      return it("And its completion date is set to null", function() {
+        return expect(this.model.simpleDate).to.equal(null);
+      });
     });
-    return it("And task line has done class", function() {
-      console.log(this.view.el.className);
-      return expect(this.view.el.hasClass("done")).to.be.ok;
+    describe("setSimpleDate", function() {
+      it("When I set simple date", function() {
+        this.date = new Date();
+        return this.model.setSimpleDate(this.date);
+      });
+      return it("Then this date is available in a readable string", function() {
+        expect(this.model.simpleDate).to.equal(moment(this.date).format("DD/MM/YYYY"));
+        return this.model.simpleDate = null;
+      });
+    });
+    describe("setPreviousTask", function() {
+      it("When I set model previous task", function() {
+        this.previousTask = this.collection.at(this.collection.length - 1);
+        return this.model.setPreviousTask(this.previousTask);
+      });
+      return it("Then both task have their fields rightly set", function() {
+        expect(this.model.get("previousTask")).to.equal(4);
+        return expect(this.previousTask.get("nextTask")).to.equal(this.model.id);
+      });
+    });
+    describe("setNextTask", function() {
+      it("When I set model next task", function() {
+        this.nextTask = this.collection.at(this.collection.length - 1);
+        return this.model.setNextTask(this.nextTask);
+      });
+      return it("Then both task have their fields rightly set", function() {
+        expect(this.model.get("nextTask")).to.equal(4);
+        expect(this.nextTask.get("previousTask")).to.equal(this.model.id);
+        this.model.setPreviousTask(this.collection.at(0));
+        this.model.setNextTask(this.collection.at(2));
+        return this.nextTask.setPreviousTask(this.collection.at(2));
+      });
+    });
+    describe("cleanLinks", function() {
+      it("When I clean task links", function() {
+        return this.model.cleanLinks();
+      });
+      it("Then task has no more links", function() {
+        expect(this.model.get("previousTask")).to.equal(null);
+        return expect(this.model.get("nextTask")).to.equal(null);
+      });
+      return it("And previously set links are updated.", function() {
+        var nextTask, previousTask;
+        previousTask = this.collection.at(0);
+        nextTask = this.collection.at(2);
+        expect(previousTask.get("nextTask")).to.equal(nextTask.id);
+        return expect(nextTask.get("previousTask")).to.equal(previousTask.id);
+      });
+    });
+    return describe("setLinks", function() {
+      it("When I set links back", function() {
+        return this.model.setLink();
+      });
+      it("Then task has its links back (depending on position in list)", function() {
+        expect(this.model.get("previousTask")).to.equal(1);
+        return expect(this.model.get("nextTask")).to.equal(3);
+      });
+      return it("And previously set links are back too.", function() {
+        var nextTask, previousTask;
+        previousTask = this.collection.at(0);
+        nextTask = this.collection.at(2);
+        expect(previousTask.get("nextTask")).to.equal(this.model.id);
+        return expect(nextTask.get("previousTask")).to.equal(this.model.id);
+      });
     });
   });
   
 }});
 
-window.require('test/todo_model_test');
+window.require.define({"test/test-helpers": function(exports, require, module) {
+  
+  module.exports = {
+    expect: require('chai').expect,
+    should: require('chai').should,
+    sinon: require('sinon'),
+    $: require('jquery'),
+    moment: require('moment')
+  };
+  
+}});
+
+window.require('test/task_model_test');

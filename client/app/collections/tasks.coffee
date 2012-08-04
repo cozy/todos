@@ -10,8 +10,8 @@ class exports.TaskCollection extends Backbone.Collection
         super()
        
         @url = "todolists/#{@listId}/tasks"
-        @bind "add", @prependTask
-        @bind "reset", @addTasks
+        @bind "add", @onTaskAdded
+        @bind "reset", @onTasksAdded
 
     # Select which field from backend response to use for parsing to populate
     # collection.
@@ -19,10 +19,11 @@ class exports.TaskCollection extends Backbone.Collection
         response.rows
 
     # View binding : for each task added, it appends a task line to task list.
-    addTasks: (tasks) =>
+    onReset: (tasks) =>
+        previousTask = @at @length - 1 if @length > 0
         tasks.forEach (task) =>
             task.collection = @
-            task.setNextTask nextTask if nextTask?
+            task.setPreviousTask previousTask if previousTask?
 
             if @options?.grouping
                 if @lastTask?.simpleDate != task.simpleDate
@@ -30,18 +31,17 @@ class exports.TaskCollection extends Backbone.Collection
                 @lastTask = task
             @view.addTaskLine task
 
-            nextTask = task
+            previousTask = task
         @lastTask = null
 
     # Prepend a task to the task list and update previousTask field of 
     # previous first task.
-    prependTask: (task) =>
+    onTaskAdded: (task) =>
         task.url = "#{@url}/#{task.id}/" if task.id?
         task.collection = @
-        if @length > 1
-            task.setPreviousTask @at(@length - 2)
+        task.setPreviousTask @at(@length - 2) if @length > 1
         
-        @view.addTaskLineAsFirstRow task
+        @view.addTaskLine task
 
     # Insert task at a given position, update links then save task to backend.
     insertTask: (previousTask, task, callbacks) ->
@@ -49,10 +49,10 @@ class exports.TaskCollection extends Backbone.Collection
         task.set "nextTask", previousTask.nextTask
         task.setPreviousTask previousTask
         task.collection = @
+
         task.url = "#{@url}/"
         task.save task.attributes,
             success: =>
-                previousTask.setNextTask task
                 task.url = "#{@url}/#{task.id}/"
                 @add task, { at: index, silent: true }
                 @view.insertTask previousTask.view, task

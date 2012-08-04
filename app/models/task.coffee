@@ -20,7 +20,7 @@ Task.destroySome = (condition, callback) ->
             obj.destroy done
 
 
-# Delete all notes.
+# Delete all tasks.
 Task.destroyAll = (callback) ->
     Task.destroySome {}, callback
 

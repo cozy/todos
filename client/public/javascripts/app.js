@@ -98,27 +98,31 @@ window.require.define({"collections/tasks": function(exports, require, module) {
 
       this.up = __bind(this.up, this);
 
-      this.prependTask = __bind(this.prependTask, this);
+      this.onTaskAdded = __bind(this.onTaskAdded, this);
 
-      this.addTasks = __bind(this.addTasks, this);
+      this.onReset = __bind(this.onReset, this);
 
       TaskCollection.__super__.constructor.call(this);
       this.url = "todolists/" + this.listId + "/tasks";
-      this.bind("add", this.prependTask);
-      this.bind("reset", this.addTasks);
+      this.bind("add", this.onTaskAdded);
+      this.bind("reset", this.onTasksAdded);
     }
 
     TaskCollection.prototype.parse = function(response) {
       return response.rows;
     };
 
-    TaskCollection.prototype.addTasks = function(tasks) {
-      var _this = this;
+    TaskCollection.prototype.onReset = function(tasks) {
+      var previousTask,
+        _this = this;
+      if (this.length > 0) {
+        previousTask = this.at(this.length - 1);
+      }
       tasks.forEach(function(task) {
-        var nextTask, _ref, _ref1;
+        var _ref, _ref1;
         task.collection = _this;
-        if (typeof nextTask !== "undefined" && nextTask !== null) {
-          task.setNextTask(nextTask);
+        if (previousTask != null) {
+          task.setPreviousTask(previousTask);
         }
         if ((_ref = _this.options) != null ? _ref.grouping : void 0) {
           if (((_ref1 = _this.lastTask) != null ? _ref1.simpleDate : void 0) !== task.simpleDate) {
@@ -127,12 +131,12 @@ window.require.define({"collections/tasks": function(exports, require, module) {
           _this.lastTask = task;
         }
         _this.view.addTaskLine(task);
-        return nextTask = task;
+        return previousTask = task;
       });
       return this.lastTask = null;
     };
 
-    TaskCollection.prototype.prependTask = function(task) {
+    TaskCollection.prototype.onTaskAdded = function(task) {
       if (task.id != null) {
         task.url = "" + this.url + "/" + task.id + "/";
       }
@@ -140,7 +144,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       if (this.length > 1) {
         task.setPreviousTask(this.at(this.length - 2));
       }
-      return this.view.addTaskLineAsFirstRow(task);
+      return this.view.addTaskLine(task);
     };
 
     TaskCollection.prototype.insertTask = function(previousTask, task, callbacks) {
@@ -153,7 +157,6 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       task.url = "" + this.url + "/";
       return task.save(task.attributes, {
         success: function() {
-          previousTask.setNextTask(task);
           task.url = "" + _this.url + "/" + task.id + "/";
           _this.add(task, {
             at: index,

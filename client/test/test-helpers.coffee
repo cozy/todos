@@ -5,4 +5,3 @@ module.exports =
   sinon: require 'sinon'
   $: require('jquery')
   moment: require('moment')
-

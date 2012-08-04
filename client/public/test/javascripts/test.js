@@ -74,6 +74,142 @@
   globals.require.brunch = true;
 })();
 
+window.require.define({"test/task_collection_test": function(exports, require, module) {
+  var Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
+
+  Task = require('models/task').Task;
+
+  TaskCollection = require('collections/tasks').TaskCollection;
+
+  TaskLine = require('views/task_view').TaskLine;
+
+  TaskList = require('views/tasks_view').TaskList;
+
+  TodoListWidget = require('views/todolist_view').TodoListWidget;
+
+  TodoList = require('models/todolist').TodoList;
+
+  TaskCollection.prototype.addNewTask = function(id, list, description) {
+    var task;
+    task = new Task({
+      id: id,
+      list: list,
+      description: description
+    });
+    return this.add(task);
+  };
+
+  describe('Task Collection', function() {
+    before(function() {
+      var todoList, todoListView;
+      todoList = new TodoList({
+        id: 123,
+        title: "list 01"
+      });
+      todoListView = new TodoListWidget(todoList);
+      this.view = new TaskList(todoListView);
+      this.view.render();
+      this.collection = this.view.tasks;
+      this.collection.addNewTask(1, 123, "task 01");
+      this.collection.addNewTask(2, 123, "task 02");
+      this.collection.addNewTask(3, 123, "task 03");
+      return this.collection.addNewTask(4, 123, "task 04");
+    });
+    after(function() {});
+    describe("Creation", function() {
+      it("when I create a collection", function() {});
+      return it("Then URL is automatically set", function() {
+        return expect(this.collection.url).to.equal("todolists/" + this.collection.listId + "/tasks");
+      });
+    });
+    describe("onReset", function() {
+      it("when collection is reset with a list of tasks", function() {
+        var task, _i, _len, _ref, _results;
+        this.tasks = [
+          new Task({
+            id: 5,
+            list: 123,
+            description: "task 05"
+          }), new Task({
+            id: 6,
+            list: 123,
+            description: "task 06"
+          }), new Task({
+            id: 7,
+            list: 123,
+            description: "task 07"
+          })
+        ];
+        this.collection.onReset(this.tasks);
+        _ref = this.tasks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          task = _ref[_i];
+          _results.push(this.collection.add(task, {
+            silent: true
+          }));
+        }
+        return _results;
+      });
+      it("then their links are correctly set", function() {
+        expect(this.tasks[0].get("previousTask")).to.equal(4);
+        expect(this.tasks[1].get("previousTask")).to.equal(5);
+        expect(this.tasks[2].get("previousTask")).to.equal(6);
+        expect(this.tasks[1].get("nextTask")).to.equal(7);
+        expect(this.tasks[0].get("nextTask")).to.equal(6);
+        return expect(this.tasks[2].get("nextTask")).to.equal(void 0);
+      });
+      it("and each tasks are linked to the collection", function() {
+        var task, _i, _len, _ref, _results;
+        _ref = this.tasks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          task = _ref[_i];
+          _results.push(expect(task.collection).to.equal(this.collection));
+        }
+        return _results;
+      });
+      return it("and lines are correctly added to the list widget", function() {
+        return expect(this.view.$(".task").length).to.equal(7);
+      });
+    });
+    describe("onTaskAdded", function() {
+      it("when a task is added to the collection", function() {
+        this.task = new Task({
+          id: 8,
+          list: 123,
+          description: "task 08"
+        });
+        return this.collection.add(this.task);
+      });
+      it("Then its url is updated ", function() {
+        return expect(this.task.url).to.equal("todolists/123/tasks/8/");
+      });
+      it("and its links too", function() {
+        expect(this.task.get("previousTask")).to.equal(7);
+        return expect(this.task.get("nextTask")).to.equal(void 0);
+      });
+      return it("and a task line is added as last row", function() {
+        return expect(this.view.$(".task .description:last").val()).to.equal("task 08");
+      });
+    });
+    describe("getPreviousTask", function() {
+      return it("getPreviousTask", function() {
+        this.previousTask = this.collection.getPreviousTask(this.task);
+        return expect(this.previousTask.id).to.equal(7);
+      });
+    });
+    return describe("getNextTask", function() {
+      return it("getNextTask", function() {
+        console.log(this.previousTask.get("nextTask"));
+        this.nextTask = this.collection.getNextTask(this.previousTask);
+        return expect(this.nextTask.id).to.equal(8);
+      });
+    });
+  });
+  
+}});
+
 window.require.define({"test/task_model_test": function(exports, require, module) {
   var Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
 
@@ -252,4 +388,5 @@ window.require.define({"test/test-helpers": function(exports, require, module) {
   
 }});
 
+window.require('test/task_collection_test');
 window.require('test/task_model_test');

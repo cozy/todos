@@ -18,3 +18,12 @@ exports.createTodoListFunction = (title, path) ->
         client.post "todolists/", todolist, callback
 
         
+exports.createTaskFunction = (list, done, description) ->
+    (callback) ->
+        task =
+            list: list
+            done: done
+            descrption: description
+
+        Task.create task, callback
+        

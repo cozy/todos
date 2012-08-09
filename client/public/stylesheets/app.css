@@ -5304,6 +5304,12 @@ p {
 
 
 
+::selection {
+  background: #ffa60b;
+}
+::-moz-selection {
+  background: #ffa60b;
+}
 html,
 body {
   height: 100%;
@@ -5353,6 +5359,12 @@ ol {
 }
 .spacer {
   clear: both;
+}
+::selection {
+  background: #ffa60b;
+}
+::-moz-selection {
+  background: #ffa60b;
 }
 html,
 body {
@@ -5413,10 +5425,6 @@ ol {
   margin: 0;
   padding: 0;
   background-color: #f1f1ef;
-  -moz-box-shadow: 0 0 3px #020;
-  -webkit-box-shadow: 0 0 3px #020;
-  -webkit-box-shadow: 0 0 3px #020;
-  box-shadow: 0 0 3px #020;
 }
 #todo-list {
   -moz-box-shadow: 2px 2px 5px #668;
@@ -5530,7 +5538,7 @@ ol {
   box-shadow: 0 0 0 0;
 }
 #tree a.jstree-search {
-  color: #ffa500;
+  color: #ffa60b;
 }
 #have-done-list-button {
   float: right;

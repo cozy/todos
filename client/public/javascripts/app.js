@@ -1182,7 +1182,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
     TaskList.prototype.moveUpFocus = function(taskLine, options) {
       var nextDescription, selector;
       selector = "#" + taskLine.model.id;
-      nextDescription = $(selector).prev().find(".description");
+      nextDescription = taskLine.list.$(selector).prev().find(".description");
       if (nextDescription.length) {
         return this.moveFocus(taskLine.descriptionField, nextDescription, options);
       }
@@ -1191,7 +1191,7 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
     TaskList.prototype.moveDownFocus = function(taskLine, options) {
       var nextDescription, selector;
       selector = "#" + taskLine.model.id;
-      nextDescription = $(selector).next().find(".description");
+      nextDescription = taskLine.list.$(selector).next().find(".description");
       if (nextDescription.length) {
         return this.moveFocus(taskLine.descriptionField, nextDescription, options);
       }

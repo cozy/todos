@@ -11,7 +11,7 @@ class exports.TaskCollection extends Backbone.Collection
        
         @url = "todolists/#{@listId}/tasks"
         @bind "add", @onTaskAdded
-        @bind "reset", @onTasksAdded
+        @bind "reset", @onReset
 
     # Select which field from backend response to use for parsing to populate
     # collection.
@@ -168,8 +168,14 @@ class exports.TaskCollection extends Backbone.Collection
         previousTask = @getPreviousTask task
         nextTask = @getNextTask task
 
-        nextTask?.setPreviousTask previousTask | null
-        previousTask?.setNextTask nextTask | null
+        if previousTask
+            nextTask?.setPreviousTask previousTask
+        else
+            nextTask?.setPreviousTask null
+        if nextTask
+            previousTask?.setNextTask nextTask
+        else
+            previousTask?.setNextTask null
         
         task.destroy
             success: ->

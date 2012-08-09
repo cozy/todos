@@ -201,7 +201,6 @@ window.require.define({"test/task_collection_test": function(exports, require, m
     });
     return describe("getNextTask", function() {
       return it("getNextTask", function() {
-        console.log(this.previousTask.get("nextTask"));
         this.nextTask = this.collection.getNextTask(this.previousTask);
         return expect(this.nextTask.id).to.equal(8);
       });

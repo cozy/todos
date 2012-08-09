@@ -105,7 +105,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       TaskCollection.__super__.constructor.call(this);
       this.url = "todolists/" + this.listId + "/tasks";
       this.bind("add", this.onTaskAdded);
-      this.bind("reset", this.onTasksAdded);
+      this.bind("reset", this.onReset);
     }
 
     TaskCollection.prototype.parse = function(response) {
@@ -292,11 +292,23 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       var nextTask, previousTask;
       previousTask = this.getPreviousTask(task);
       nextTask = this.getNextTask(task);
-      if (nextTask != null) {
-        nextTask.setPreviousTask(previousTask | null);
+      if (previousTask) {
+        if (nextTask != null) {
+          nextTask.setPreviousTask(previousTask);
+        }
+      } else {
+        if (nextTask != null) {
+          nextTask.setPreviousTask(null);
+        }
       }
-      if (previousTask != null) {
-        previousTask.setNextTask(nextTask | null);
+      if (nextTask) {
+        if (previousTask != null) {
+          previousTask.setNextTask(nextTask);
+        }
+      } else {
+        if (previousTask != null) {
+          previousTask.setNextTask(null);
+        }
       }
       return task.destroy({
         success: function() {
@@ -1027,11 +1039,11 @@ window.require.define({"views/task_view": function(exports, require, module) {
       description = this.descriptionField.val();
       if (description.length === 0 && this.firstDel) {
         this.isDeleting = true;
-        if (this.model.previousTask != null) {
+        if (this.list.$("#" + this.model.id).prev().find(".description").length) {
           this.list.moveUpFocus(this, {
             maxPosition: true
           });
-        } else if (this.model.nextTask != null) {
+        } else {
           this.list.moveDownFocus(this, {
             maxPosition: true
           });
@@ -1053,7 +1065,6 @@ window.require.define({"views/task_view": function(exports, require, module) {
       this.$(".todo-button").html("done");
       this.$(".todo-button").addClass("disabled");
       this.$(".todo-button").removeClass("btn-info");
-      console.log("blah \n");
       return $(this.el).addClass("done");
     };
 

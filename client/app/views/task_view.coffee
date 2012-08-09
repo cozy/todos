@@ -150,10 +150,12 @@ class exports.TaskLine extends Backbone.View
         description = @descriptionField.val()
         if description.length == 0 and @firstDel
             @isDeleting = true
-            if @model.previousTask?
+
+            if @list.$("##{@model.id}").prev().find(".description").length
                 @list.moveUpFocus @, maxPosition: true
-            else if @model.nextTask?
+            else
                 @list.moveDownFocus @, maxPosition: true
+
             @delTask()
 
         else if description.length == 0 and not @firstDel
@@ -171,7 +173,6 @@ class exports.TaskLine extends Backbone.View
         @.$(".todo-button").html "done"
         @.$(".todo-button").addClass "disabled"
         @.$(".todo-button").removeClass "btn-info"
-        console.log "blah \n"
         $(@el).addClass "done"
 
     # Change styles and text to display todo state.

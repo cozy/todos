@@ -1,37 +1,32 @@
-{ "name": "cozy-template"
+{ "name": "cozyhome"
 , "version": "0.0.1"
-, "engines": ["node >= 0.6.0"]
-, "description": "A template project for cozy applications"
-, "repository":
-  {
-    "type": "git"
-  , "url": "https://github.com/mycozycloud/cozy-template.git"
-  }
-, "main": "server.coffee"
+, "engines": ["node >= 0.4.0"]
+, "main": "server.js"
 , "dependencies":
   { "jade":             ">= 0"
-  , "jade-ext":         ">= 0"
   , "express":          ">= 2.5.8"
   , "connect":          ">= 1.8.6"
   , "railway":          ">= 0.2.11"
   , "coffee-script":    ">= 1.1.1"
   , "mime":             ">= 1.2.2"
   , "qs":               ">= 0.1.0"
-  , "mongoose":         ">= 2.5.10"
-  , "jugglingdb":       ">= 0"
+  , "passport":         ">= 0.1.6"
+  , "passport-local":   ">= 0.1.1"
   , "connect-redis":    ">= 0"
-  , "passport":         ">= 0"
+  , "bcrypt":           ">= 0.5.0"
+  , "jugglingdb":       ">= 0"
+  , "mongoose":         ">= 2.5.10" 
+  , "nodemailer":       ">= 0.3.0"
+  , "randomstring":     ">= 1.0.1"
+  , "redis":            ">= 0.7.2"
   , "async":            ">= 0"
-  , "request":          ">= 0"
-  }
-, "devDependencies": 
-  { "should":           ">= 0"
+  , "restler":          ">= 0"
   , "mocha":            ">= 0"
-  , "zombie":           "= 1.3.1"
+  , "request":          ">= 0"
+  , "should":           ">= 0"
+  , "zombie":           ">= 0"
   }
 , "scripts":
   { "test": "cake tests"
-  , "start": "coffee server.coffee"
   }
 }
-

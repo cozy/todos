@@ -6,7 +6,7 @@
   { "driver":   "mongoose"
   , "url":      "mongodb://127.0.0.1/cozy-home"
   }
-, "homeuction":
+, "production":
   { "driver":   "mongoose"
   , "url":      "mongodb://127.0.0.1/cozy-home"
   }

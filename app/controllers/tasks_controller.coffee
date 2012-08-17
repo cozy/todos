@@ -3,12 +3,6 @@ load 'application'
 async = require 'async'
 
 
-# Entry point
-action 'index', ->
-   render
-       title: "Cozy To-do"
-
-
 # Helpers
 
 
@@ -35,9 +29,9 @@ before 'load task', ->
 before 'set list id', ->
     @listId = params.listId
     next()
-, except: ['index']
 
 # Controllers
+
 
 # Return all tasks
 action 'all', ->

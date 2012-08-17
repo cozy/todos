@@ -10,8 +10,8 @@ class exports.TaskCollection extends Backbone.Collection
         super()
        
         @url = "todolists/#{@listId}/tasks"
-        @bind "add", @prependTask
-        @bind "reset", @addTasks
+        @bind "add", @onTaskAdded
+        @bind "reset", @onReset
 
     # Select which field from backend response to use for parsing to populate
     # collection.
@@ -19,28 +19,29 @@ class exports.TaskCollection extends Backbone.Collection
         response.rows
 
     # View binding : for each task added, it appends a task line to task list.
-    addTasks: (tasks) =>
+    onReset: (tasks) =>
+        previousTask = @at @length - 1 if @length > 0
         tasks.forEach (task) =>
             task.collection = @
+            task.setPreviousTask previousTask if previousTask?
+
             if @options?.grouping
-                console.log @lastTask?.simpleDate
-                console.log task.simpleDate
                 if @lastTask?.simpleDate != task.simpleDate
                     @view.addDateLine task.simpleDate
                 @lastTask = task
             @view.addTaskLine task
+
+            previousTask = task
         @lastTask = null
 
     # Prepend a task to the task list and update previousTask field of 
     # previous first task.
-    prependTask: (task) =>
-        task.url = "#{@url}/#{task.id}/"
+    onTaskAdded: (task) =>
+        task.url = "#{@url}/#{task.id}/" if task.id?
         task.collection = @
-        nextTask = @at(0)
-        if nextTask?
-            nextTask.setPreviousTask task
-            task.setNextTask nextTask
-        @view.addTaskLineAsFirstRow task
+        task.setPreviousTask @at(@length - 2) if @length > 1
+        
+        @view.addTaskLine task
 
     # Insert task at a given position, update links then save task to backend.
     insertTask: (previousTask, task, callbacks) ->
@@ -48,10 +49,10 @@ class exports.TaskCollection extends Backbone.Collection
         task.set "nextTask", previousTask.nextTask
         task.setPreviousTask previousTask
         task.collection = @
+
         task.url = "#{@url}/"
         task.save task.attributes,
             success: =>
-                previousTask.setNextTask task
                 task.url = "#{@url}/#{task.id}/"
                 @add task, { at: index, silent: true }
                 @view.insertTask previousTask.view, task
@@ -69,17 +70,29 @@ class exports.TaskCollection extends Backbone.Collection
 
     # Return first previous task which state is todo
     getPreviousTodoTask: (task) ->
-        task = @getPreviousTask task
-        while task? and task.done
-            task = @getPreviousTask task
-        task
+        index = @indexOf task
+        if index > 0
+            index--
+            task = @at index
+            while task?.done and index > 0
+                index--
+                task = @at index
+            task
+        else
+            null
 
     # Return first next task which state is todo
     getNextTodoTask: (task) ->
-        task = @getNextTask task
-        while task? and task.done
-            task = @getNextTask task
-        task
+        index = @indexOf task
+        if index < @length - 2
+            index++
+            task = @at index
+            while task?.done and index < @length - 2
+                index++
+                task = @at index
+            task
+        else
+            null
         
     # Change task position, decrement its index position.
     # Links are updated.
@@ -155,8 +168,14 @@ class exports.TaskCollection extends Backbone.Collection
         previousTask = @getPreviousTask task
         nextTask = @getNextTask task
 
-        nextTask?.setPreviousTask previousTask | null
-        previousTask?.setNextTask nextTask | null
+        if previousTask
+            nextTask?.setPreviousTask previousTask
+        else
+            nextTask?.setPreviousTask null
+        if nextTask
+            previousTask?.setNextTask nextTask
+        else
+            previousTask?.setNextTask null
         
         task.destroy
             success: ->

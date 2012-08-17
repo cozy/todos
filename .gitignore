@@ -1,7 +1,6 @@
 *.swp
 lib-cov
 *.seed
-*.log
 *.csv
 *.dat
 *.out

@@ -10,10 +10,8 @@ class exports.TaskList extends Backbone.View
     constructor: (@todoListView, @el, options) ->
         super()
 
-        if @todoListView?
-            @tasks = new TaskCollection @, @todoListView.model.id, options
-        else
-            @tasks = new TaskCollection @, null, options
+        id = if @todoListView? then @todoListView.model.id else null
+        @tasks = new TaskCollection @, id, options
 
     # Add a line at the bottom of the list.
     # If grouping option is activated, date is displayed every time it changes
@@ -42,14 +40,14 @@ class exports.TaskList extends Backbone.View
     # Set focus on previous task. Preserve focus position.
     moveUpFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
-        nextDescription = $(selector).prev().find(".description")
+        nextDescription = taskLine.list.$(selector).prev().find(".description")
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
 
     # Set focus on next task. Preserve focus position.
     moveDownFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
-        nextDescription = $(selector).next().find(".description")
+        nextDescription = taskLine.list.$(selector).next().find(".description")
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
  

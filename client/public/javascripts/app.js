@@ -437,7 +437,7 @@ window.require.define({"models/task": function(exports, require, module) {
       for (property in task) {
         this[property] = task[property];
       }
-      this.url = "/todolists/" + task.list + "/tasks/";
+      this.url = "todolists/" + task.list + "/tasks/";
       if (this.id != null) {
         this.url += "" + this.id + "/";
       }

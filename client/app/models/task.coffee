@@ -9,7 +9,7 @@ class exports.Task extends BaseModel
         for property of task
             @[property] = task[property]
 
-        @url = "/todolists/#{task.list}/tasks/"
+        @url = "todolists/#{task.list}/tasks/"
         @url += "#{@id}/" if @id?
         
         @setSimpleDate task.completionDate

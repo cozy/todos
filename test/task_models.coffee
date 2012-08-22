@@ -5,14 +5,10 @@ app = require('../server')
 helpers = require("./helpers")
 
 
-
-
 initDb = (callback) ->
     list =
         title: "test todolist"
     TodoList.create list, callback
-
-
 
 describe "Task Model", ->
 

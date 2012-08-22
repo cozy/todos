@@ -112,7 +112,7 @@ describe "/tasks", ->
                 done()
 
         it "Then I have one task", ->
-            testLength @body, 3
+            testLength @body, 1
 
 
     describe "GET /todolists/:listId/tasks/:id/ Show given task", ->

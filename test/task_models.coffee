@@ -6,6 +6,7 @@ helpers = require("./helpers")
 
 
 
+
 initDb = (callback) ->
     list =
         title: "test todolist"
@@ -18,11 +19,3 @@ describe "Task Model", ->
     before (done) ->
         helpers.cleanDb ->
             initDb done
-
-    describe "GET /todolists ", ->
-        it "Retrieve working todo-list", (done) ->
-
-
-    describe "archives",
-        it "When I create three archived"
-

@@ -749,7 +749,8 @@ window.require.define({"lib/slug": function(exports, require, module) {
     }
     result = result.replace(/^\s+|\s+$/g, '');
     result = result.replace(/[-\s]+/g, replacement);
-    return result.replace("" + replacement + "$", '');
+    result.replace("" + replacement + "$", '');
+    return result.toLowerCase();
   };
   
 }});

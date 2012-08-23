@@ -17,7 +17,8 @@ testLength = (body, length) ->
 initDb = (callback) ->
     async.series [
         helpers.createTodoListFunction "My Tasks", "/all/my-tasks"
-        helpers.createTodoListFunction "", "/all/recipe/dessert"
+        helpers.createTodoListFunction "Recipe", "/all/recipe"
+        helpers.createTodoListFunction "Dessert", "/all/recipe/dessert"
     ], ->
         callback()
 

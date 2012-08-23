@@ -61,12 +61,19 @@ describe "/todolists", ->
                 response.statusCode.should.equal 200
                 todolists = JSON.parse body
                 todolists.rows.length.should.equal 3
-                todolists.rows[0].title.should.equal "Recipes"
-                todolists.rows[0].path.should.equal "/all/recipes"
-                todolists.rows[0].humanPath.should.equal "All,Recipes"
-                todolists.rows[1].title.should.equal "Dessert"
-                todolists.rows[1].path.should.equal "/all/recipes/dessert"
-                todolists.rows[1].humanPath.should.equal "All,Recipes,Dessert"
+
+                for list in todolists.rows
+                    if list.title == "Recipes"
+                        recipeList = list
+                    else if list.title == "Dessert"
+                        dessertList = list
+
+                should.exist recipeList
+                should.exist dessertList
+                recipeList.path.should.equal "/all/recipes"
+                recipeList.humanPath.should.equal "All,Recipes"
+                dessertList.path.should.equal "/all/recipes/dessert"
+                dessertList.humanPath.should.equal "All,Recipes,Dessert"
                 done()
 
         it "And it should have updated tree structure properly", (done) ->
@@ -96,12 +103,19 @@ describe "/todolists", ->
                 response.statusCode.should.equal 200
                 todolists = JSON.parse body
                 todolists.rows.length.should.equal 5
-                todolists.rows[0].title.should.equal "Recipes"
-                todolists.rows[0].path.should.equal "/all/travel/recipes"
-                todolists.rows[0].humanPath.should.equal "All,Travel,Recipes"
-                todolists.rows[1].title.should.equal "Dessert"
-                todolists.rows[1].path.should.equal "/all/travel/recipes/dessert"
-                todolists.rows[1].humanPath.should.equal "All,Travel,Recipes,Dessert"
+
+                for list in todolists.rows
+                    if list.title == "Recipes"
+                        recipeList = list
+                    else if list.title == "Dessert"
+                        dessertList = list
+
+                should.exist recipeList
+                should.exist dessertList
+                recipeList.path.should.equal "/all/travel/recipes"
+                recipeList.humanPath.should.equal "All,Travel,Recipes"
+                dessertList.path.should.equal "/all/travel/recipes/dessert"
+                dessertList.humanPath.should.equal "All,Travel,Recipes,Dessert"
                 done()
 
         it "And it should have updated tree structure properly", (done) ->

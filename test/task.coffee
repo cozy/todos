@@ -39,7 +39,7 @@ describe "/tasks", ->
         it "Retrieve working todo-list", (done) ->
             client.get "todolists/", (error, response, body) =>
                 body = JSON.parse(body)
-                testLength body, 2
+                testLength body, 3
                 @listId = body.rows[0].id
                 done()
 

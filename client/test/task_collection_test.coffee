@@ -44,9 +44,9 @@ describe 'Task Collection', ->
 
         it "when collection is reset with a list of tasks", ->
             @tasks = [
-                new Task id: 5, list :123, description:"task 05"
-                new Task id: 6, list :123, description:"task 06"
-                new Task id: 7, list :123, description:"task 07"
+                new Task id: 5, list: 123, description:"task 05", done: false
+                new Task id: 6, list: 123, description:"task 06", done: true
+                new Task id: 7, list: 123, description:"task 07", done: false
             ]
             @collection.onReset @tasks
             @collection.add task, silent: true for task in @tasks
@@ -81,12 +81,87 @@ describe 'Task Collection', ->
         it "and a task line is added as last row", ->
             expect(@view.$(".task .description:last").val()).to.equal "task 08"
 
-    describe "getPreviousTask", ->
+    describe "get tasks", ->
         it "getPreviousTask", ->
             @previousTask = @collection.getPreviousTask @task
             expect(@previousTask.id).to.equal 7
 
-    describe "getNextTask", ->
         it "getNextTask", ->
             @nextTask = @collection.getNextTask @previousTask
             expect(@nextTask.id).to.equal 8
+
+        it "getPreviousTodoTask", ->
+            @previousTask = @collection.getPreviousTodoTask @tasks[2]
+            expect(@previousTask.id).to.equal 5
+
+        it "getNextTodoTask", ->
+            @nextTask = @collection.getNextTodoTask @tasks[0]
+            expect(@nextTask.id).to.equal 7
+
+    describe "insert/remove", ->
+        it "insertTask", ->
+            @task = new Task id: 9, list: 123, description: "task 09"
+            @task.save = (attributes, callbacks) ->
+                callbacks.success()
+
+            @collection.insertTask @tasks[1], @task
+            expect(@collection.at(4).get "previousTask").to.equal 4
+            expect(@collection.at(5).get "previousTask").to.equal 5
+            expect(@collection.at(6).get "previousTask").to.equal 6
+            expect(@collection.at(7).get "previousTask").to.equal 9
+            expect(@collection.at(8).get "previousTask").to.equal 7
+            expect(@collection.at(4).get "nextTask").to.equal 6
+            expect(@collection.at(5).get "nextTask").to.equal 9
+            expect(@collection.at(6).get "nextTask").to.equal 7
+            expect(@collection.at(7).get "nextTask").to.equal 8
+            expect(@collection.at(8).get "nextTask").to.equal undefined
+
+            expect(@task.url).to.equal "todolists/123/tasks/9/"
+
+            expect(@view.$(".task").length).to.equal 9
+
+        it "removeTask", ->
+            @tasks[1].destroy (callbacks) ->
+                callbacks.success()
+            @collection.removeTask @tasks[1]
+            expect(@collection.at(4).get "previousTask").to.equal 4
+            expect(@collection.at(5).get "previousTask").to.equal 5
+            expect(@collection.at(6).get "previousTask").to.equal 9
+            expect(@collection.at(7).get "previousTask").to.equal 7
+            expect(@collection.at(4).get "nextTask").to.equal 9
+            expect(@collection.at(5).get "nextTask").to.equal 7
+            expect(@collection.at(6).get "nextTask").to.equal 8
+            expect(@collection.at(7).get "nextTask").to.equal undefined
+
+            # It looks like backbone removing is not handled by brunch tests
+            #expect(@view.$(".task").length).to.equal 8
+
+    describe "up/down", ->
+        it "up", ->
+            @collection.up @task
+            expect(@collection.at(4).get "previousTask").to.equal 4
+            expect(@collection.at(5).get "previousTask").to.equal 9
+            expect(@collection.at(6).get "previousTask").to.equal 5
+            expect(@collection.at(7).get "previousTask").to.equal 7
+            expect(@collection.at(4).get "nextTask").to.equal 5
+            expect(@collection.at(5).get "nextTask").to.equal 7
+            expect(@collection.at(6).get "nextTask").to.equal 8
+            expect(@collection.at(7).get "nextTask").to.equal undefined
+
+
+        it "down", ->
+            @collection.down @task
+            for task in @collection.toArray()
+                console.log task.get "previousTask"
+                console.log task.description
+                console.log task.get "nextTask"
+            expect(@collection.at(4).get "previousTask").to.equal 4
+            expect(@collection.at(5).get "previousTask").to.equal 5
+            expect(@collection.at(6).get "previousTask").to.equal 9
+            expect(@collection.at(7).get "previousTask").to.equal 7
+            expect(@collection.at(4).get "nextTask").to.equal 9
+            expect(@collection.at(5).get "nextTask").to.equal 7
+            expect(@collection.at(6).get "nextTask").to.equal 8
+            expect(@collection.at(7).get "nextTask").to.equal undefined
+
+

@@ -148,10 +148,14 @@ window.require.define({"collections/tasks": function(exports, require, module) {
     };
 
     TaskCollection.prototype.insertTask = function(previousTask, task, callbacks) {
-      var index,
+      var index, nextTask,
         _this = this;
       index = this.toArray().indexOf(previousTask);
-      task.set("nextTask", previousTask.nextTask);
+      if (previousTask.get("nextTask") != null) {
+        nextTask = this.at(index + 1);
+        nextTask.set("previousTask", task.id);
+      }
+      task.set("nextTask", previousTask.get("nextTask"));
       task.setPreviousTask(previousTask);
       task.collection = this;
       task.url = "" + this.url + "/";
@@ -159,7 +163,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
         success: function() {
           task.url = "" + _this.url + "/" + task.id + "/";
           _this.add(task, {
-            at: index,
+            at: index + 1,
             silent: true
           });
           _this.view.insertTask(previousTask.view, task);

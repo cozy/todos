@@ -129,15 +129,18 @@ window.require.define({"test/task_collection_test": function(exports, require, m
           new Task({
             id: 5,
             list: 123,
-            description: "task 05"
+            description: "task 05",
+            done: false
           }), new Task({
             id: 6,
             list: 123,
-            description: "task 06"
+            description: "task 06",
+            done: true
           }), new Task({
             id: 7,
             list: 123,
-            description: "task 07"
+            description: "task 07",
+            done: false
           })
         ];
         this.collection.onReset(this.tasks);
@@ -193,16 +196,93 @@ window.require.define({"test/task_collection_test": function(exports, require, m
         return expect(this.view.$(".task .description:last").val()).to.equal("task 08");
       });
     });
-    describe("getPreviousTask", function() {
-      return it("getPreviousTask", function() {
+    describe("get tasks", function() {
+      it("getPreviousTask", function() {
         this.previousTask = this.collection.getPreviousTask(this.task);
         return expect(this.previousTask.id).to.equal(7);
       });
-    });
-    return describe("getNextTask", function() {
-      return it("getNextTask", function() {
+      it("getNextTask", function() {
         this.nextTask = this.collection.getNextTask(this.previousTask);
         return expect(this.nextTask.id).to.equal(8);
+      });
+      it("getPreviousTodoTask", function() {
+        this.previousTask = this.collection.getPreviousTodoTask(this.tasks[2]);
+        return expect(this.previousTask.id).to.equal(5);
+      });
+      return it("getNextTodoTask", function() {
+        this.nextTask = this.collection.getNextTodoTask(this.tasks[0]);
+        return expect(this.nextTask.id).to.equal(7);
+      });
+    });
+    describe("insert/remove", function() {
+      it("insertTask", function() {
+        this.task = new Task({
+          id: 9,
+          list: 123,
+          description: "task 09"
+        });
+        this.task.save = function(attributes, callbacks) {
+          return callbacks.success();
+        };
+        this.collection.insertTask(this.tasks[1], this.task);
+        expect(this.collection.at(4).get("previousTask")).to.equal(4);
+        expect(this.collection.at(5).get("previousTask")).to.equal(5);
+        expect(this.collection.at(6).get("previousTask")).to.equal(6);
+        expect(this.collection.at(7).get("previousTask")).to.equal(9);
+        expect(this.collection.at(8).get("previousTask")).to.equal(7);
+        expect(this.collection.at(4).get("nextTask")).to.equal(6);
+        expect(this.collection.at(5).get("nextTask")).to.equal(9);
+        expect(this.collection.at(6).get("nextTask")).to.equal(7);
+        expect(this.collection.at(7).get("nextTask")).to.equal(8);
+        expect(this.collection.at(8).get("nextTask")).to.equal(void 0);
+        expect(this.task.url).to.equal("todolists/123/tasks/9/");
+        return expect(this.view.$(".task").length).to.equal(9);
+      });
+      return it("removeTask", function() {
+        this.tasks[1].destroy(function(callbacks) {
+          return callbacks.success();
+        });
+        this.collection.removeTask(this.tasks[1]);
+        expect(this.collection.at(4).get("previousTask")).to.equal(4);
+        expect(this.collection.at(5).get("previousTask")).to.equal(5);
+        expect(this.collection.at(6).get("previousTask")).to.equal(9);
+        expect(this.collection.at(7).get("previousTask")).to.equal(7);
+        expect(this.collection.at(4).get("nextTask")).to.equal(9);
+        expect(this.collection.at(5).get("nextTask")).to.equal(7);
+        expect(this.collection.at(6).get("nextTask")).to.equal(8);
+        return expect(this.collection.at(7).get("nextTask")).to.equal(void 0);
+      });
+    });
+    return describe("up/down", function() {
+      it("up", function() {
+        this.collection.up(this.task);
+        expect(this.collection.at(4).get("previousTask")).to.equal(4);
+        expect(this.collection.at(5).get("previousTask")).to.equal(9);
+        expect(this.collection.at(6).get("previousTask")).to.equal(5);
+        expect(this.collection.at(7).get("previousTask")).to.equal(7);
+        expect(this.collection.at(4).get("nextTask")).to.equal(5);
+        expect(this.collection.at(5).get("nextTask")).to.equal(7);
+        expect(this.collection.at(6).get("nextTask")).to.equal(8);
+        return expect(this.collection.at(7).get("nextTask")).to.equal(void 0);
+      });
+      return it("down", function() {
+        var task, _i, _len, _ref;
+        this.collection.down(this.task);
+        _ref = this.collection.toArray();
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          task = _ref[_i];
+          console.log(task.get("previousTask"));
+          console.log(task.description);
+          console.log(task.get("nextTask"));
+        }
+        expect(this.collection.at(4).get("previousTask")).to.equal(4);
+        expect(this.collection.at(5).get("previousTask")).to.equal(5);
+        expect(this.collection.at(6).get("previousTask")).to.equal(9);
+        expect(this.collection.at(7).get("previousTask")).to.equal(7);
+        expect(this.collection.at(4).get("nextTask")).to.equal(9);
+        expect(this.collection.at(5).get("nextTask")).to.equal(7);
+        expect(this.collection.at(6).get("nextTask")).to.equal(8);
+        return expect(this.collection.at(7).get("nextTask")).to.equal(void 0);
       });
     });
   });

@@ -15,7 +15,7 @@ exports.createTodoListFunction = (title, path) ->
             title: title
             path: path
 
-        client.post "todolists/", todolist, callback
+        TodoList.create todolist, callback
 
         
 exports.createTaskFunction = (list, done, description) ->

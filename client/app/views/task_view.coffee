@@ -81,6 +81,7 @@ class exports.TaskLine extends Backbone.View
     # TODO: display indicator to say that it is saving.
     onTodoButtonClicked: (event) =>
         if @model.done then @model.setUndone() else @model.setDone()
+        @model.url = "todolists/#{@model.list}/tasks/#{@model.id}"
         @model.save { done: @model.done },
             success: ->
             error: ->

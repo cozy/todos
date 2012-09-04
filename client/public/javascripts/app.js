@@ -153,7 +153,9 @@ window.require.define({"collections/tasks": function(exports, require, module) {
       index = this.toArray().indexOf(previousTask);
       if (previousTask.get("nextTask") != null) {
         nextTask = this.at(index + 1);
-        nextTask.set("previousTask", task.id);
+        if (nextTask != null) {
+          nextTask.set("previousTask", task.id);
+        }
       }
       task.set("nextTask", previousTask.get("nextTask"));
       task.setPreviousTask(previousTask);
@@ -1050,10 +1052,32 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     HomeView.prototype.setLayout = function() {
-      return $(this.el).layout({
-        size: "350",
-        minSize: "350",
-        resizable: true
+      var size,
+        _this = this;
+      size = $(window).width();
+      if (size < 700) {
+        this.layout = $(this.el).layout({
+          size: "250",
+          minSize: "250",
+          resizable: true,
+          togglerLength_closed: "0",
+          togglerLength_opened: "0"
+        });
+        this.layout.toggle("west");
+      } else {
+        this.layout = $(this.el).layout({
+          size: "250",
+          minSize: "250",
+          resizable: true
+        });
+      }
+      this.previousSize = size;
+      return $(window).resize(function() {
+        size = $(window).width();
+        if ((size < 700 && _this.previousSize > 700) || (size > 700 && _this.previousSize < 700)) {
+          _this.layout.toggle("west");
+        }
+        return _this.previousSize = size;
       });
     };
 
@@ -1122,7 +1146,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
           return _this.todolist.show();
         });
       } else {
-        return $("#todo-list").html(null);
+        this.renderTodolist(null);
+        return this.todolist.show();
       }
     };
 
@@ -1164,7 +1189,9 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.renderTodolist = function(todolist) {
       var todolistWidget, _ref;
-      todolist.url = "todolists/" + todolist.id;
+      if (todolist != null) {
+        todolist.url = "todolists/" + todolist.id;
+      }
       if ((_ref = this.currentTodolist) != null) {
         _ref.view.blurAllTaskDescriptions();
       }
@@ -1314,6 +1341,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
       } else {
         this.model.setDone();
       }
+      this.model.url = "todolists/" + this.model.list + "/tasks/" + this.model.id;
       return this.model.save({
         done: this.model.done
       }, {
@@ -1511,7 +1539,10 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
       this.todoListView = todoListView;
       this.el = el;
       TaskList.__super__.constructor.call(this);
-      id = this.todoListView != null ? this.todoListView.model.id : null;
+      id = null;
+      if ((this.todoListView != null) && (this.todoListView.model != null)) {
+        id = this.todoListView.model.id;
+      }
       this.tasks = new TaskCollection(this, id, options);
     }
 
@@ -1687,8 +1718,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.onAddClicked = __bind(this.onAddClicked, this);
 
       TodoListWidget.__super__.constructor.call(this);
-      this.id = this.model.slug;
-      this.model.view = this;
+      if (this.model != null) {
+        this.id = this.model.slug;
+        this.model.view = this;
+      }
     }
 
     TodoListWidget.prototype.remove = function() {
@@ -1715,10 +1748,15 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.newButton.click(this.onAddClicked);
       this.showButtonsButton.unbind("click");
       this.showButtonsButton.click(this.onEditClicked);
-      breadcrumb = this.model.humanPath.split(",");
-      breadcrumb.pop();
-      this.breadcrumb.html(breadcrumb.join(" / "));
-      this.title.html(this.model.title);
+      if (this.model != null) {
+        breadcrumb = this.model.humanPath.split(",");
+        breadcrumb.pop();
+        this.breadcrumb.html(breadcrumb.join(" / "));
+        this.title.html(this.model.title);
+      } else {
+        this.breadcrumb.html("");
+        this.title.html("all tasks");
+      }
       return this.el;
     };
 
@@ -1774,21 +1812,28 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
     TodoListWidget.prototype.loadData = function() {
       var _this = this;
-      this.archiveTasks.url += "/archives";
+      if (!(this.model != null)) {
+        this.tasks.url = "tasks/todo";
+        this.archiveTasks.url = "tasks/archives";
+      } else {
+        this.archiveTasks.url += "/archives";
+      }
       this.archiveTasks.fetch();
       return this.tasks.fetch({
         success: function() {
           if ($(".task:not(.done)").length > 0) {
             return $(".task:first .description").focus();
           } else {
-            return _this.onAddClicked();
+            if (typeof model !== "undefined" && model !== null) {
+              return _this.onAddClicked();
+            }
           }
         }
       });
     };
 
     TodoListWidget.prototype.moveToTaskList = function(task) {
-      return this.tasks.prependTask(task);
+      return this.tasks.onTaskAdded(task);
     };
 
     TodoListWidget.prototype.blurAllTaskDescriptions = function() {

@@ -34,10 +34,31 @@ class exports.HomeView extends Backbone.View
 
     # Use jquery layout so set main layout of current window.
     setLayout: ->
-        $(@el).layout
-            size: "350"
-            minSize: "350"
-            resizable: true
+
+        # some tricks to make design more responsive
+        size = $(window).width()
+        if size < 700
+            @layout = $(@el).layout
+                size: "250"
+                minSize: "250"
+                resizable: true
+                togglerLength_closed: "0"
+                togglerLength_opened: "0"
+
+            @layout.toggle "west"
+        else
+            @layout = $(@el).layout
+                size: "250"
+                minSize: "250"
+                resizable: true
+        @previousSize = size
+
+        $(window).resize =>
+            size = $(window).width()
+            if (size < 700 and @previousSize > 700) or (size > 700 and @previousSize < 700)
+                @layout.toggle "west"
+            @previousSize = size
+            
 
     # Grab tree data, then build and display it. 
     # Links callback to tree events (creation, renaming...)
@@ -96,7 +117,8 @@ class exports.HomeView extends Backbone.View
                 @renderTodolist todolist
                 @todolist.show()
         else
-            $("#todo-list").html(null)
+            @renderTodolist null
+            @todolist.show()
 
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
@@ -135,7 +157,7 @@ class exports.HomeView extends Backbone.View
     # Fill todolist widget with todolist data. Then load todo task list 
     # and archives for this todolist.
     renderTodolist: (todolist) ->
-        todolist.url = "todolists/#{todolist.id}"
+        todolist.url = "todolists/#{todolist.id}" if todolist?
         @currentTodolist?.view.blurAllTaskDescriptions()
         @currentTodolist = todolist
         todolistWidget = new TodoListWidget @currentTodolist

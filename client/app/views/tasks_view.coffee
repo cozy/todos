@@ -10,7 +10,9 @@ class exports.TaskList extends Backbone.View
     constructor: (@todoListView, @el, options) ->
         super()
 
-        id = if @todoListView? then @todoListView.model.id else null
+        id = null
+        id =  @todoListView.model.id if @todoListView? and @todoListView.model?
+
         @tasks = new TaskCollection @, id, options
 
     # Add a line at the bottom of the list.

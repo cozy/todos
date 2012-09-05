@@ -148,10 +148,16 @@ window.require.define({"collections/tasks": function(exports, require, module) {
     };
 
     TaskCollection.prototype.insertTask = function(previousTask, task, callbacks) {
-      var index,
+      var index, nextTask,
         _this = this;
       index = this.toArray().indexOf(previousTask);
-      task.set("nextTask", previousTask.nextTask);
+      if (previousTask.get("nextTask") != null) {
+        nextTask = this.at(index + 1);
+        if (nextTask != null) {
+          nextTask.set("previousTask", task.id);
+        }
+      }
+      task.set("nextTask", previousTask.get("nextTask"));
       task.setPreviousTask(previousTask);
       task.collection = this;
       task.url = "" + this.url + "/";
@@ -159,7 +165,7 @@ window.require.define({"collections/tasks": function(exports, require, module) {
         success: function() {
           task.url = "" + _this.url + "/" + task.id + "/";
           _this.add(task, {
-            at: index,
+            at: index + 1,
             silent: true
           });
           _this.view.insertTask(previousTask.view, task);
@@ -337,6 +343,64 @@ window.require.define({"helpers": function(exports, require, module) {
       });
     }
 
+    BrunchApplication.prototype.initializeJQueryExtensions = function() {
+      return $.fn.spin = function(opts, color) {
+        var presets;
+        presets = {
+          tiny: {
+            lines: 8,
+            length: 2,
+            width: 2,
+            radius: 3
+          },
+          small: {
+            lines: 8,
+            length: 4,
+            width: 3,
+            radius: 5
+          },
+          large: {
+            lines: 10,
+            length: 8,
+            width: 4,
+            radius: 8
+          }
+        };
+        if (Spinner) {
+          return this.each(function() {
+            var $this, spinner;
+            $this = $(this);
+            spinner = $this.data("spinner");
+            console.log($this.data());
+            console.log(spinner);
+            if (spinner != null) {
+              spinner.stop();
+              return $this.data("spinner", null);
+            } else if (opts !== false) {
+              if (typeof opts === "string") {
+                if (opts in presets) {
+                  opts = presets[opts];
+                } else {
+                  opts = {};
+                }
+                if (color) {
+                  opts.color = color;
+                }
+              }
+              spinner = new Spinner($.extend({
+                color: $this.css("color")
+              }, opts));
+              spinner.spin(this);
+              return $this.data("spinner", spinner);
+            }
+          });
+        } else {
+          throw "Spinner class not available.";
+          return null;
+        }
+      };
+    };
+
     BrunchApplication.prototype.initialize = function() {
       return null;
     };
@@ -380,7 +444,8 @@ window.require.define({"initialize": function(exports, require, module) {
 
     Application.prototype.initialize = function() {
       this.router = new MainRouter;
-      return this.homeView = new HomeView;
+      this.homeView = new HomeView;
+      return this.initializeJQueryExtensions();
     };
 
     return Application;
@@ -1046,15 +1111,38 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     HomeView.prototype.setLayout = function() {
-      return $(this.el).layout({
-        size: "350",
-        minSize: "350",
-        resizable: true
+      var size,
+        _this = this;
+      size = $(window).width();
+      if (size < 700) {
+        this.layout = $(this.el).layout({
+          size: "250",
+          minSize: "250",
+          resizable: true,
+          togglerLength_closed: "0",
+          togglerLength_opened: "0"
+        });
+        this.layout.toggle("west");
+      } else {
+        this.layout = $(this.el).layout({
+          size: "250",
+          minSize: "250",
+          resizable: true
+        });
+      }
+      this.previousSize = size;
+      return $(window).resize(function() {
+        size = $(window).width();
+        if ((size < 700 && _this.previousSize > 700) || (size > 700 && _this.previousSize < 700)) {
+          _this.layout.toggle("west");
+        }
+        return _this.previousSize = size;
       });
     };
 
     HomeView.prototype.loadData = function() {
       var _this = this;
+      this.$("#tree").spin();
       return $.get("tree/", function(data) {
         _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
           onCreate: _this.onTodoListCreated,
@@ -1118,11 +1206,13 @@ window.require.define({"views/home_view": function(exports, require, module) {
           return _this.todolist.show();
         });
       } else {
-        return $("#todo-list").html(null);
+        this.renderTodolist(null);
+        return this.todolist.show();
       }
     };
 
     HomeView.prototype.onTreeLoaded = function() {
+      this.$("#tree").spin();
       if (this.treeCreationCallback != null) {
         return this.treeCreationCallback();
       }
@@ -1160,7 +1250,9 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.renderTodolist = function(todolist) {
       var todolistWidget, _ref;
-      todolist.url = "todolists/" + todolist.id;
+      if (todolist != null) {
+        todolist.url = "todolists/" + todolist.id;
+      }
       if ((_ref = this.currentTodolist) != null) {
         _ref.view.blurAllTaskDescriptions();
       }
@@ -1244,6 +1336,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
       this.setListeners();
       this.$(".task-buttons").hide();
       this.descriptionField.data('before', this.descriptionField.val());
+      this.todoButton = this.$(".todo-button");
       return this.el;
     };
 
@@ -1305,17 +1398,23 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
+      var _this = this;
+      this.showLoading();
       if (this.model.done) {
         this.model.setUndone();
       } else {
         this.model.setDone();
       }
+      this.model.url = "todolists/" + this.model.list + "/tasks/" + this.model.id;
       return this.model.save({
         done: this.model.done
       }, {
-        success: function() {},
+        success: function() {
+          return _this.hideLoading();
+        },
         error: function() {
-          return alert("An error occured, modifications were not saved.");
+          alert("An error occured, modifications were not saved.");
+          return _this.hideLoading();
         }
       });
     };
@@ -1325,38 +1424,53 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
+      var _this = this;
       if (!this.model.done && this.model.collection.up(this.model)) {
         this.focusDescription();
+        this.showLoading();
         return this.model.save({
-          success: function() {},
+          success: function() {
+            return _this.hideLoading();
+          },
           error: function() {
-            return alert("An error occured, modifications were not saved.");
+            alert("An error occured, modifications were not saved.");
+            return _this.hideLoading();
           }
         });
       }
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
+      var _this = this;
       if (!this.model.done && this.model.collection.down(this.model)) {
+        this.showLoading();
         return this.model.save({
-          success: function() {},
+          success: function() {
+            return _this.hideLoading();
+          },
           error: function() {
-            return alert("An error occured, modifications were not saved.");
+            alert("An error occured, modifications were not saved.");
+            return _this.hideLoading();
           }
         });
       }
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
+      var _this = this;
       if (!(keyCode === 8 || this.descriptionField.val().length === 0)) {
         this.saving = false;
         this.model.description = this.descriptionField.val();
+        this.showLoading();
         return this.model.save({
           description: this.model.description
         }, {
-          success: function() {},
+          success: function() {
+            return _this.hideLoading();
+          },
           error: function() {
-            return alert("An error occured, modifications were not saved.");
+            alert("An error occured, modifications were not saved.");
+            return _this.hideLoading();
           }
         });
       }
@@ -1379,14 +1493,18 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onEnterKeyup = function() {
+      var _this = this;
+      this.showLoading();
       return this.model.collection.insertTask(this.model, new Task({
         description: "new task"
       }), {
         success: function(task) {
-          return helpers.selectAll(task.view.descriptionField);
+          helpers.selectAll(task.view.descriptionField);
+          return _this.hideLoading();
         },
         error: function() {
-          return alert("Saving failed, an error occured.");
+          alert("Saving failed, an error occured.");
+          return _this.hideLoading();
         }
       });
     };
@@ -1457,14 +1575,18 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.delTask = function(callback) {
+      var _this = this;
+      this.showLoading();
       return this.model.collection.removeTask(this.model, {
         success: function() {
           if (callback) {
-            return callback();
+            callback();
           }
+          return _this.hideLoading();
         },
         error: function() {
-          return alert("An error occured, deletion was not saved.");
+          alert("An error occured, deletion was not saved.");
+          return _this.hideLoading();
         }
       });
     };
@@ -1475,6 +1597,20 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
     TaskLine.prototype.hideButtons = function() {
       return this.buttons.hide();
+    };
+
+    TaskLine.prototype.showLoading = function() {
+      this.todoButton.html("&nbsp;");
+      return this.todoButton.spin("tiny");
+    };
+
+    TaskLine.prototype.hideLoading = function() {
+      if (this.model.done) {
+        this.todoButton.html("done");
+      } else {
+        this.todoButton.html("todo");
+      }
+      return this.todoButton.spin();
     };
 
     return TaskLine;
@@ -1507,7 +1643,10 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
       this.todoListView = todoListView;
       this.el = el;
       TaskList.__super__.constructor.call(this);
-      id = this.todoListView != null ? this.todoListView.model.id : null;
+      id = null;
+      if ((this.todoListView != null) && (this.todoListView.model != null)) {
+        id = this.todoListView.model.id;
+      }
       this.tasks = new TaskCollection(this, id, options);
     }
 
@@ -1683,8 +1822,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.onAddClicked = __bind(this.onAddClicked, this);
 
       TodoListWidget.__super__.constructor.call(this);
-      this.id = this.model.slug;
-      this.model.view = this;
+      if (this.model != null) {
+        this.id = this.model.slug;
+        this.model.view = this;
+      }
     }
 
     TodoListWidget.prototype.remove = function() {
@@ -1711,10 +1852,15 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.newButton.click(this.onAddClicked);
       this.showButtonsButton.unbind("click");
       this.showButtonsButton.click(this.onEditClicked);
-      breadcrumb = this.model.humanPath.split(",");
-      breadcrumb.pop();
-      this.breadcrumb.html(breadcrumb.join(" / "));
-      this.title.html(this.model.title);
+      if (this.model != null) {
+        breadcrumb = this.model.humanPath.split(",");
+        breadcrumb.pop();
+        this.breadcrumb.html(breadcrumb.join(" / "));
+        this.title.html(this.model.title);
+      } else {
+        this.breadcrumb.html("");
+        this.title.html("all tasks");
+      }
       return this.el;
     };
 
@@ -1770,21 +1916,41 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
     TodoListWidget.prototype.loadData = function() {
       var _this = this;
-      this.archiveTasks.url += "/archives";
-      this.archiveTasks.fetch();
+      if (!(this.model != null)) {
+        this.tasks.url = "tasks/todo";
+        this.archiveTasks.url = "tasks/archives";
+      } else {
+        this.archiveTasks.url += "/archives";
+      }
+      $(this.archiveTasks.view.el).spin();
+      $(this.tasks.view.el).spin();
+      this.archiveTasks.fetch({
+        success: function() {
+          return $(_this.archiveTasks.view.el).spin();
+        },
+        error: function() {
+          return $(_this.archiveTasks.view.el).spin();
+        }
+      });
       return this.tasks.fetch({
         success: function() {
           if ($(".task:not(.done)").length > 0) {
-            return $(".task:first .description").focus();
+            $(".task:first .description").focus();
           } else {
-            return _this.onAddClicked();
+            if (typeof model !== "undefined" && model !== null) {
+              _this.onAddClicked();
+            }
           }
+          return $(_this.tasks.view.el).spin();
+        },
+        error: function() {
+          return $(_this.tasks.view.el).spin();
         }
       });
     };
 
     TodoListWidget.prototype.moveToTaskList = function(task) {
-      return this.tasks.prependTask(task);
+      return this.tasks.onTaskAdded(task);
     };
 
     TodoListWidget.prototype.blurAllTaskDescriptions = function() {

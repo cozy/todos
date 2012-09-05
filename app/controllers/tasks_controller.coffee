@@ -37,6 +37,9 @@ before 'set list id', ->
 action 'all', ->
     Task.all {}, returnTasks
 
+action 'all-todo', ->
+    Task.allTodo null, returnTasks
+
 action 'all-archives', ->
     Task.archives null, returnTasks
 

@@ -46,19 +46,24 @@ class exports.TaskCollection extends Backbone.Collection
     # Insert task at a given position, update links then save task to backend.
     insertTask: (previousTask, task, callbacks) ->
         index = @toArray().indexOf previousTask
-        task.set "nextTask", previousTask.nextTask
+        if previousTask.get("nextTask")?
+            nextTask = @at(index + 1)
+            nextTask?.set "previousTask", task.id
+        task.set "nextTask", previousTask.get "nextTask"
         task.setPreviousTask previousTask
         task.collection = @
+
 
         task.url = "#{@url}/"
         task.save task.attributes,
             success: =>
                 task.url = "#{@url}/#{task.id}/"
-                @add task, { at: index, silent: true }
+                @add task, { at: (index + 1), silent: true }
                 @view.insertTask previousTask.view, task
                 callbacks?.success(task)
             error: =>
                 callbacks?.error
+                # should make a rollback...
 
     # Return previous task, if there is no previous task, it returns null.
     getPreviousTask: (task) ->

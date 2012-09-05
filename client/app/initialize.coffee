@@ -10,4 +10,6 @@ class exports.Application extends BrunchApplication
     @router = new MainRouter
     @homeView = new HomeView
 
+    @initializeJQueryExtensions()
+
 window.app = new exports.Application

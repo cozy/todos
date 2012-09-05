@@ -79,11 +79,14 @@ Task.allTodo = (listId, callback) ->
 
         callback null, result
 
-    Task.all { where: { done: false, list: listId } }, (err, tasks) ->
-        if err
-            callback err, null
-        else
-            orderTasks tasks, callback
+    if listId?
+        Task.all { where: { done: false, list: listId } }, (err, tasks) ->
+            if err
+                callback err, null
+            else
+                orderTasks tasks, callback
+    else
+        Task.all { where: { done: false }, order: "description DESC" }, callback
 
 # Set given task as first task of todo task list.
 Task.setFirstTask = (task, callback) ->
@@ -126,7 +129,7 @@ Task.setNextLink = (task, callback) ->
     if task.nextTask?
         Task.find task.nextTask, (err, nextTask) ->
             return callback err if err
-            return callback null if not nexTask?
+            return callback null if not nextTask?
 
             nextTask.previousTask = task.id
             nextTask.save (err) ->
@@ -176,12 +179,14 @@ Task.createNew = (task, callback) ->
     Task.create task, (err, task) ->
         return callback err if err
 
-        if not task.done \
-           and not task.previousTask?
-            Task.setFirstTask task, callback
+        if not task.done
+            if not task.previousTask?
+                Task.setFirstTask task, callback
+            else
+                Task.insertTask task, (err) ->
+                    callback err, task
         else
-            Task.insertTask task, (err) ->
-                callback err, task
+            callback err, task
 
 # Change next task ID of previous task with next task ID of current task.
 Task.removePreviousLink = (task, callback) ->

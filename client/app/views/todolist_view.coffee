@@ -15,8 +15,9 @@ class exports.TodoListWidget extends Backbone.View
     constructor: (@model) ->
         super()
 
-        @id = @model.slug
-        @model.view = @
+        if @model?
+            @id = @model.slug
+            @model.view = @
 
     remove: ->
         $(@el).remove()
@@ -45,10 +46,14 @@ class exports.TodoListWidget extends Backbone.View
         @showButtonsButton.unbind "click"
         @showButtonsButton.click @onEditClicked
 
-        breadcrumb = @model.humanPath.split(",")
-        breadcrumb.pop()
-        @breadcrumb.html breadcrumb.join(" / ")
-        @title.html @model.title
+        if @model?
+            breadcrumb = @model.humanPath.split(",")
+            breadcrumb.pop()
+            @breadcrumb.html breadcrumb.join(" / ")
+            @title.html @model.title
+        else
+            @breadcrumb.html ""
+            @title.html "all tasks"
 
         @el
 
@@ -97,18 +102,33 @@ class exports.TodoListWidget extends Backbone.View
     # Load data then focus on first task loaded.
     # If list is empty a new task is automatically created.
     loadData: ->
-        @archiveTasks.url += "/archives"
-        @archiveTasks.fetch()
+        if not @model?
+            @tasks.url = "tasks/todo"
+            @archiveTasks.url = "tasks/archives"
+        else
+            @archiveTasks.url += "/archives"
+
+
+        $(@archiveTasks.view.el).spin()
+        $(@tasks.view.el).spin()
+        @archiveTasks.fetch
+            success: =>
+                $(@archiveTasks.view.el).spin()
+            error: =>
+                $(@archiveTasks.view.el).spin()
         @tasks.fetch
             success: =>
                 if $(".task:not(.done)").length > 0
                     $(".task:first .description").focus()
                 else
-                    @onAddClicked()
+                    @onAddClicked() if model?
+                $(@tasks.view.el).spin()
+            error: =>
+                $(@tasks.view.el).spin()
 
     # Add task to todo task list. 
     moveToTaskList: (task) ->
-        @tasks.prependTask task
+        @tasks.onTaskAdded task
 
 
     # Force task saving if task was modified.

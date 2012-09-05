@@ -107,13 +107,24 @@ class exports.TodoListWidget extends Backbone.View
             @archiveTasks.url = "tasks/archives"
         else
             @archiveTasks.url += "/archives"
-        @archiveTasks.fetch()
+
+
+        $(@archiveTasks.view.el).spin()
+        $(@tasks.view.el).spin()
+        @archiveTasks.fetch
+            success: =>
+                $(@archiveTasks.view.el).spin()
+            error: =>
+                $(@archiveTasks.view.el).spin()
         @tasks.fetch
             success: =>
                 if $(".task:not(.done)").length > 0
                     $(".task:first .description").focus()
                 else
                     @onAddClicked() if model?
+                $(@tasks.view.el).spin()
+            error: =>
+                $(@tasks.view.el).spin()
 
     # Add task to todo task list. 
     moveToTaskList: (task) ->

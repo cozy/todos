@@ -64,6 +64,7 @@ class exports.HomeView extends Backbone.View
     # Links callback to tree events (creation, renaming...)
     # Set listeners for other buttons
     loadData: ->
+        @$("#tree").spin()
         $.get "tree/", (data) =>
            @tree = new Tree @.$("#nav"), @.$("#tree"), data,
                 onCreate: @onTodoListCreated
@@ -123,6 +124,7 @@ class exports.HomeView extends Backbone.View
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
     onTreeLoaded: =>
+        @$("#tree").spin()
         @treeCreationCallback() if @treeCreationCallback?
 
     # When todolist is dropped, its old path and its new path are sent to server

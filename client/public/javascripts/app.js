@@ -1142,6 +1142,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.loadData = function() {
       var _this = this;
+      this.$("#tree").spin();
       return $.get("tree/", function(data) {
         _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
           onCreate: _this.onTodoListCreated,
@@ -1211,6 +1212,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     HomeView.prototype.onTreeLoaded = function() {
+      this.$("#tree").spin();
       if (this.treeCreationCallback != null) {
         return this.treeCreationCallback();
       }
@@ -1920,16 +1922,29 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       } else {
         this.archiveTasks.url += "/archives";
       }
-      this.archiveTasks.fetch();
+      $(this.archiveTasks.view.el).spin();
+      $(this.tasks.view.el).spin();
+      this.archiveTasks.fetch({
+        success: function() {
+          return $(_this.archiveTasks.view.el).spin();
+        },
+        error: function() {
+          return $(_this.archiveTasks.view.el).spin();
+        }
+      });
       return this.tasks.fetch({
         success: function() {
           if ($(".task:not(.done)").length > 0) {
-            return $(".task:first .description").focus();
+            $(".task:first .description").focus();
           } else {
             if (typeof model !== "undefined" && model !== null) {
-              return _this.onAddClicked();
+              _this.onAddClicked();
             }
           }
+          return $(_this.tasks.view.el).spin();
+        },
+        error: function() {
+          return $(_this.tasks.view.el).spin();
         }
       });
     };

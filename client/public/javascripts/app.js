@@ -343,6 +343,64 @@ window.require.define({"helpers": function(exports, require, module) {
       });
     }
 
+    BrunchApplication.prototype.initializeJQueryExtensions = function() {
+      return $.fn.spin = function(opts, color) {
+        var presets;
+        presets = {
+          tiny: {
+            lines: 8,
+            length: 2,
+            width: 2,
+            radius: 3
+          },
+          small: {
+            lines: 8,
+            length: 4,
+            width: 3,
+            radius: 5
+          },
+          large: {
+            lines: 10,
+            length: 8,
+            width: 4,
+            radius: 8
+          }
+        };
+        if (Spinner) {
+          return this.each(function() {
+            var $this, spinner;
+            $this = $(this);
+            spinner = $this.data("spinner");
+            console.log($this.data());
+            console.log(spinner);
+            if (spinner != null) {
+              spinner.stop();
+              return $this.data("spinner", null);
+            } else if (opts !== false) {
+              if (typeof opts === "string") {
+                if (opts in presets) {
+                  opts = presets[opts];
+                } else {
+                  opts = {};
+                }
+                if (color) {
+                  opts.color = color;
+                }
+              }
+              spinner = new Spinner($.extend({
+                color: $this.css("color")
+              }, opts));
+              spinner.spin(this);
+              return $this.data("spinner", spinner);
+            }
+          });
+        } else {
+          throw "Spinner class not available.";
+          return null;
+        }
+      };
+    };
+
     BrunchApplication.prototype.initialize = function() {
       return null;
     };
@@ -386,7 +444,8 @@ window.require.define({"initialize": function(exports, require, module) {
 
     Application.prototype.initialize = function() {
       this.router = new MainRouter;
-      return this.homeView = new HomeView;
+      this.homeView = new HomeView;
+      return this.initializeJQueryExtensions();
     };
 
     return Application;
@@ -1275,6 +1334,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
       this.setListeners();
       this.$(".task-buttons").hide();
       this.descriptionField.data('before', this.descriptionField.val());
+      this.todoButton = this.$(".todo-button");
       return this.el;
     };
 
@@ -1336,6 +1396,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
+      var _this = this;
+      this.showLoading();
       if (this.model.done) {
         this.model.setUndone();
       } else {
@@ -1345,9 +1407,12 @@ window.require.define({"views/task_view": function(exports, require, module) {
       return this.model.save({
         done: this.model.done
       }, {
-        success: function() {},
+        success: function() {
+          return _this.hideLoading();
+        },
         error: function() {
-          return alert("An error occured, modifications were not saved.");
+          alert("An error occured, modifications were not saved.");
+          return _this.hideLoading();
         }
       });
     };
@@ -1357,38 +1422,53 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
+      var _this = this;
       if (!this.model.done && this.model.collection.up(this.model)) {
         this.focusDescription();
+        this.showLoading();
         return this.model.save({
-          success: function() {},
+          success: function() {
+            return _this.hideLoading();
+          },
           error: function() {
-            return alert("An error occured, modifications were not saved.");
+            alert("An error occured, modifications were not saved.");
+            return _this.hideLoading();
           }
         });
       }
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
+      var _this = this;
       if (!this.model.done && this.model.collection.down(this.model)) {
+        this.showLoading();
         return this.model.save({
-          success: function() {},
+          success: function() {
+            return _this.hideLoading();
+          },
           error: function() {
-            return alert("An error occured, modifications were not saved.");
+            alert("An error occured, modifications were not saved.");
+            return _this.hideLoading();
           }
         });
       }
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
+      var _this = this;
       if (!(keyCode === 8 || this.descriptionField.val().length === 0)) {
         this.saving = false;
         this.model.description = this.descriptionField.val();
+        this.showLoading();
         return this.model.save({
           description: this.model.description
         }, {
-          success: function() {},
+          success: function() {
+            return _this.hideLoading();
+          },
           error: function() {
-            return alert("An error occured, modifications were not saved.");
+            alert("An error occured, modifications were not saved.");
+            return _this.hideLoading();
           }
         });
       }
@@ -1411,14 +1491,18 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onEnterKeyup = function() {
+      var _this = this;
+      this.showLoading();
       return this.model.collection.insertTask(this.model, new Task({
         description: "new task"
       }), {
         success: function(task) {
-          return helpers.selectAll(task.view.descriptionField);
+          helpers.selectAll(task.view.descriptionField);
+          return _this.hideLoading();
         },
         error: function() {
-          return alert("Saving failed, an error occured.");
+          alert("Saving failed, an error occured.");
+          return _this.hideLoading();
         }
       });
     };
@@ -1489,14 +1573,18 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.delTask = function(callback) {
+      var _this = this;
+      this.showLoading();
       return this.model.collection.removeTask(this.model, {
         success: function() {
           if (callback) {
-            return callback();
+            callback();
           }
+          return _this.hideLoading();
         },
         error: function() {
-          return alert("An error occured, deletion was not saved.");
+          alert("An error occured, deletion was not saved.");
+          return _this.hideLoading();
         }
       });
     };
@@ -1507,6 +1595,20 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
     TaskLine.prototype.hideButtons = function() {
       return this.buttons.hide();
+    };
+
+    TaskLine.prototype.showLoading = function() {
+      this.todoButton.html("&nbsp;");
+      return this.todoButton.spin("tiny");
+    };
+
+    TaskLine.prototype.hideLoading = function() {
+      if (this.model.done) {
+        this.todoButton.html("done");
+      } else {
+        this.todoButton.html("todo");
+      }
+      return this.todoButton.spin();
     };
 
     return TaskLine;

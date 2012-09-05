@@ -40,6 +40,7 @@ class exports.TaskLine extends Backbone.View
 
         @.$(".task-buttons").hide()
         @descriptionField.data 'before', @descriptionField.val()
+        @todoButton = @$(".todo-button")
 
         @el
 
@@ -80,12 +81,15 @@ class exports.TaskLine extends Backbone.View
     # backend.
     # TODO: display indicator to say that it is saving.
     onTodoButtonClicked: (event) =>
+        @showLoading()
         if @model.done then @model.setUndone() else @model.setDone()
         @model.url = "todolists/#{@model.list}/tasks/#{@model.id}"
         @model.save { done: @model.done },
-            success: ->
-            error: ->
+            success: =>
+                @hideLoading()
+            error: =>
                 alert "An error occured, modifications were not saved."
+                @hideLoading()
 
     # On delete clicked, send delete request to server then remove task line
     # from DOM.
@@ -98,28 +102,37 @@ class exports.TaskLine extends Backbone.View
         if not @model.done and @model.collection.up @model
             @focusDescription()
 
+            @showLoading()
             @model.save
-                success: ->
-                error: ->
+                success: =>
+                    @hideLoading()
+                error: =>
                     alert "An error occured, modifications were not saved."
+                    @hideLoading()
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
         if not @model.done and @model.collection.down @model
+            @showLoading()
             @model.save
-                success: ->
-                error: ->
+                success: =>
+                    @hideLoading()
+                error: =>
                     alert "An error occured, modifications were not saved."
+                    @hideLoading()
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>
         unless keyCode == 8 or @descriptionField.val().length == 0
             @saving = false
             @model.description = @descriptionField.val()
+            @showLoading()
             @model.save { description: @model.description },
-                success: ->
-                error: ->
+                success: =>
+                    @hideLoading()
+                error: =>
                     alert "An error occured, modifications were not saved."
+                    @hideLoading()
 
     # Change focus to next task.
     onUpKeyup: ->
@@ -139,12 +152,15 @@ class exports.TaskLine extends Backbone.View
 
     # When enter key is up a new task is created below current one.
     onEnterKeyup: ->
+        @showLoading()
         @model.collection.insertTask @model, \
              new Task(description: "new task"),
-             success: (task) ->
+             success: (task) =>
                  helpers.selectAll task.view.descriptionField
-             error: ->
+                 @hideLoading()
+             error: =>
                  alert "Saving failed, an error occured."
+                 @hideLoading()
 
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
@@ -207,11 +223,14 @@ class exports.TaskLine extends Backbone.View
 
     # Delete task from collection and remove this field from view.
     delTask: (callback) ->
+        @showLoading()
         @model.collection.removeTask @model,
-            success: ->
+            success: =>
                 callback() if callback
-            error: ->
+                @hideLoading()
+            error: =>
                 alert "An error occured, deletion was not saved."
+                @hideLoading()
 
     # Show buttons linked to task.
     showButtons: ->
@@ -220,3 +239,11 @@ class exports.TaskLine extends Backbone.View
     # Hide buttons linked to task.
     hideButtons: ->
         @buttons.hide()
+
+    showLoading: ->
+        @todoButton.html "&nbsp;"
+        @todoButton.spin "tiny"
+
+    hideLoading: ->
+        if @model.done then @todoButton.html "done" else @todoButton.html "todo"
+        @todoButton.spin()

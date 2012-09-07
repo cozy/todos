@@ -1140,7 +1140,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.loadData = function() {
       var _this = this;
-      this.$("#tree").spin();
+      this.$("#tree-loading-indicator").spin();
       return $.get("tree/", function(data) {
         _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
           onCreate: _this.onTodoListCreated,
@@ -1210,7 +1210,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     HomeView.prototype.onTreeLoaded = function() {
-      this.$("#tree").spin();
+      this.$("#tree-loading-indicator").spin();
       if (this.treeCreationCallback != null) {
         return this.treeCreationCallback();
       }
@@ -1743,7 +1743,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div>');
   }
   return buf.join("");
   };

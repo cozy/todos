@@ -1428,7 +1428,6 @@ window.require.define({"views/task_view": function(exports, require, module) {
         this.showLoading();
         return this.model.save(null, {
           success: function() {
-            alert("ok");
             _this.todoButton = _this.$(".todo-button");
             return _this.hideLoading();
           },

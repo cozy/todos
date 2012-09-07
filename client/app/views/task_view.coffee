@@ -103,7 +103,6 @@ class exports.TaskLine extends Backbone.View
             @showLoading()
             @model.save null,
                 success: =>
-                    alert "ok"
                     @todoButton = @$(".todo-button")
                     @hideLoading()
                 error: =>

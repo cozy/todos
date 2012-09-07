@@ -1422,8 +1422,12 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
-      var _this = this;
-      if (!this.model.done && this.model.collection.up(this.model)) {
+      var condition,
+        _this = this;
+      condition = this.model.collection.listId != null;
+      condition = condition && !this.model.done;
+      condition = condition && this.model.collection.up(this.model);
+      if (condition) {
         this.focusDescription();
         this.showLoading();
         return this.model.save(null, {
@@ -1441,8 +1445,12 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      var _this = this;
-      if (!this.model.done && this.model.collection.down(this.model)) {
+      var condition,
+        _this = this;
+      condition = this.model.collection.listId != null;
+      condition = condition && !this.model.done;
+      condition = condition && this.model.collection.down(this.model);
+      if (condition) {
         this.showLoading();
         return this.model.save(null, {
           success: function() {
@@ -1496,19 +1504,21 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
     TaskLine.prototype.onEnterKeyup = function() {
       var _this = this;
-      this.showLoading();
-      return this.model.collection.insertTask(this.model, new Task({
-        description: "new task"
-      }), {
-        success: function(task) {
-          helpers.selectAll(task.view.descriptionField);
-          return _this.hideLoading();
-        },
-        error: function() {
-          alert("Saving failed, an error occured.");
-          return _this.hideLoading();
-        }
-      });
+      if (this.model.collection.listId != null) {
+        this.showLoading();
+        return this.model.collection.insertTask(this.model, new Task({
+          description: "new task"
+        }), {
+          success: function(task) {
+            helpers.selectAll(task.view.descriptionField);
+            return _this.hideLoading();
+          },
+          error: function() {
+            alert("Saving failed, an error occured.");
+            return _this.hideLoading();
+          }
+        });
+      }
     };
 
     TaskLine.prototype.onBackspaceKeyup = function() {

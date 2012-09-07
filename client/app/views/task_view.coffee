@@ -79,7 +79,6 @@ class exports.TaskLine extends Backbone.View
 
     # On todo button clicked, update task state and send modifications to 
     # backend.
-    # TODO: display indicator to say that it is saving.
     onTodoButtonClicked: (event) =>
         @showLoading()
         if @model.done then @model.setUndone() else @model.setDone()

@@ -371,8 +371,6 @@ window.require.define({"helpers": function(exports, require, module) {
             var $this, spinner;
             $this = $(this);
             spinner = $this.data("spinner");
-            console.log($this.data());
-            console.log(spinner);
             if (spinner != null) {
               spinner.stop();
               return $this.data("spinner", null);
@@ -1428,11 +1426,14 @@ window.require.define({"views/task_view": function(exports, require, module) {
       if (!this.model.done && this.model.collection.up(this.model)) {
         this.focusDescription();
         this.showLoading();
-        return this.model.save({
+        return this.model.save(null, {
           success: function() {
+            alert("ok");
+            _this.todoButton = _this.$(".todo-button");
             return _this.hideLoading();
           },
           error: function() {
+            _this.todoButton = _this.$(".todo-button");
             alert("An error occured, modifications were not saved.");
             return _this.hideLoading();
           }
@@ -1444,11 +1445,13 @@ window.require.define({"views/task_view": function(exports, require, module) {
       var _this = this;
       if (!this.model.done && this.model.collection.down(this.model)) {
         this.showLoading();
-        return this.model.save({
+        return this.model.save(null, {
           success: function() {
+            _this.todoButton = _this.$(".todo-button");
             return _this.hideLoading();
           },
           error: function() {
+            _this.todoButton = _this.$(".todo-button");
             alert("An error occured, modifications were not saved.");
             return _this.hideLoading();
           }
@@ -1937,7 +1940,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           if ($(".task:not(.done)").length > 0) {
             $(".task:first .description").focus();
           } else {
-            if (typeof model !== "undefined" && model !== null) {
+            if (_this.model != null) {
               _this.onAddClicked();
             }
           }

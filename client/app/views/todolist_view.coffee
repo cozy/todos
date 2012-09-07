@@ -121,7 +121,7 @@ class exports.TodoListWidget extends Backbone.View
                 if $(".task:not(.done)").length > 0
                     $(".task:first .description").focus()
                 else
-                    @onAddClicked() if model?
+                    @onAddClicked() if @model?
                 $(@tasks.view.el).spin()
             error: =>
                 $(@tasks.view.el).spin()

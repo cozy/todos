@@ -88,9 +88,9 @@ action 'update', ->
     answer = (err) ->
         if err
             console.log err
-            send error: 'Task cannot be updated', 500
+            send error: true, msg: 'Task cannot be updated', 500
         else
-            send success: 'Task updated'
+            send success: true, msg: 'Task updated'
 
     # Task move from todo to done
     if body.done? and body.done and @task.done != body.done

@@ -93,7 +93,6 @@ class exports.TaskLine extends Backbone.View
 
     # On delete clicked, send delete request to server then remove task line
     # from DOM.
-    # TODO: display indicator to say that it is saving.
     onDelButtonClicked: (event) =>
         @delTask()
 
@@ -103,10 +102,13 @@ class exports.TaskLine extends Backbone.View
             @focusDescription()
 
             @showLoading()
-            @model.save
+            @model.save null,
                 success: =>
+                    alert "ok"
+                    @todoButton = @$(".todo-button")
                     @hideLoading()
                 error: =>
+                    @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
 
@@ -114,12 +116,15 @@ class exports.TaskLine extends Backbone.View
     onDownButtonClicked: (event) =>
         if not @model.done and @model.collection.down @model
             @showLoading()
-            @model.save
+            @model.save null,
                 success: =>
+                    @todoButton = @$(".todo-button")
                     @hideLoading()
                 error: =>
+                    @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+            
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>

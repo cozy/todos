@@ -172,8 +172,10 @@ describe "Task Model", ->
                     Task.allTodo @listId1, (err, tasks) ->
                         tasks.length.should.equal 8
                         tasks[0].id.should.equal newTask.id
+                        done()
             
             it "Task is todo with link set", (done) ->
+                done()
                 
 ## Create a new task and add it to the todo task list if its state is not done.
 #Task.createNew = (task, callback) ->

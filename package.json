@@ -25,7 +25,9 @@
   , "mocha":            ">= 0"
   , "chai":             ">= 0"
   , "should":           ">= 0"
-  , "request":          ">= 0"
+  }
+, "devDependencies": 
+  { "request-json":          ">= 0"
   }
 , "scripts":
   { "test": "cake tests"

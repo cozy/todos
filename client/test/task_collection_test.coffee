@@ -151,10 +151,6 @@ describe 'Task Collection', ->
 
         it "down", ->
             @collection.down @task
-            for task in @collection.toArray()
-                console.log task.get "previousTask"
-                console.log task.description
-                console.log task.get "nextTask"
             expect(@collection.at(4).get "previousTask").to.equal 4
             expect(@collection.at(5).get "previousTask").to.equal 5
             expect(@collection.at(6).get "previousTask").to.equal 9

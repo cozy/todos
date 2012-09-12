@@ -1,6 +1,6 @@
 should = require('chai').Should()
 async = require('async')
-Client = require('../common/test/client').Client
+Client = require('request-json').JsonClient
 DataTree = require("../common/tree/tree_object").Tree
 app = require('../server')
 helpers = require("./helpers")
@@ -16,34 +16,33 @@ describe "/todolists", ->
 
     after (done) ->
         app.close()
-        #helpers.cleanDb done
-        done()
+        helpers.cleanDb done
 
 
     describe "POST /todolists Creates a todolist and update tree.", ->
 
         it "When I create several todolists", (done) ->
             async.series [
-                helpers.createTodoListFunction "Recipe", "/all/recipe"
-                helpers.createTodoListFunction "Dessert", "/all/recipe/dessert"
-                helpers.createTodoListFunction "Todo", "/all/todo"
+                helpers.createFullTodoListFunction "Recipe", "/all/recipe"
+                helpers.createFullTodoListFunction "Dessert","/all/recipe/dessert"
+                helpers.createFullTodoListFunction "Todo", "/all/todo"
             ], ->
                 done()
 
         it "Then it should have 3 todolists created", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
-                todolists = JSON.parse body
-                todolists.rows.length.should.equal 3
-                todolists.rows[0].title.should.equal "Recipe"
-                todolists.rows[0].path.should.equal "/all/recipe"
-                todolists.rows[0].humanPath.should.equal "All,Recipe"
-                @recipeTodoList = todolists.rows[0]
+                todolists = body.rows
+                todolists.length.should.equal 3
+                todolists[0].title.should.equal "Recipe"
+                todolists[0].path.should.equal "/all/recipe"
+                todolists[0].humanPath.should.equal "All,Recipe"
+                @recipeTodoList = todolists[0]
                 done()
 
         it "And it should have updated tree structure properly", (done) ->
             client.get "tree/", (error, response, body) =>
-                tree = new DataTree JSON.parse(body)
+                tree = new DataTree body
                 should.exist tree.all.recipe.dessert
                 should.exist tree.all.recipe
                 should.exist tree.all.todo
@@ -59,12 +58,12 @@ describe "/todolists", ->
         it "Then it should have rename recipe todolist and its children", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
-                todolists = JSON.parse body
+                todolists = body
                 todolists.rows.length.should.equal 3
 
                 for list in todolists.rows
                     if list.title == "Recipes"
-                        recipeList = list
+                       recipeList = list
                     else if list.title == "Dessert"
                         dessertList = list
 
@@ -78,7 +77,7 @@ describe "/todolists", ->
 
         it "And it should have updated tree structure properly", (done) ->
             client.get "tree/", (error, response, body) =>
-                tree = new DataTree JSON.parse(body)
+                tree = new DataTree body
                 should.exist tree.all.recipes
                 should.exist tree.all.recipes.dessert
                 should.exist tree.all.todo
@@ -89,9 +88,9 @@ describe "/todolists", ->
         
         it "When I add two new todolists", (done) ->
             async.series [
-                helpers.createTodoListFunction "Travel", "/all/travel", "04"
-                helpers.createTodoListFunction "Cambodia", \
-                                               "/all/travel/cambodia", "05"
+                helpers.createFullTodoListFunction "Travel", "/all/travel"
+                helpers.createFullTodoListFunction "Cambodia", \
+                                               "/all/travel/cambodia"
             ], ->
                 done()
 
@@ -101,7 +100,7 @@ describe "/todolists", ->
         it "Then it should have move recipe todolist and its children", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
-                todolists = JSON.parse body
+                todolists = body
                 todolists.rows.length.should.equal 5
 
                 for list in todolists.rows
@@ -120,7 +119,7 @@ describe "/todolists", ->
 
         it "And it should have updated tree structure properly", (done) ->
             client.get "tree/", (error, response, body) =>
-                tree = new DataTree JSON.parse(body)
+                tree = new DataTree body
                 should.not.exist tree.all.recipes
                 should.exist tree.all.travel.recipes
                 should.exist tree.all.travel.recipes.dessert
@@ -131,18 +130,18 @@ describe "/todolists", ->
     describe "DELETE /todolists/:id Deletes a todolist and update tree.", ->
         
         it "When I delete Recipe todolist", (done) ->
-            client.delete "todolists/#{@recipeTodoList.id}", done
+            client.del "todolists/#{@recipeTodoList.id}", done
 
         it "Then it should have delete recipe todolist and its children", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
-                todolists = JSON.parse body
+                todolists = body
                 todolists.rows.length.should.equal 3
                 done()
 
         it "And it should have updated tree structure properly", (done) ->
             client.get "tree/", (error, response, body) =>
-                tree = new DataTree JSON.parse(body)
+                tree = new DataTree body
                 should.not.exist tree.all.recipe
                 should.exist tree.all.todo
                 should.exist tree.all.travel

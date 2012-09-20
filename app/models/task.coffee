@@ -1,37 +1,18 @@
 async = require "async"
 
-# DestroyTask corresponding to given condition
-Task.destroySome = (condition, callback) ->
-
-    # TODO Replace this with async lib call.
-    wait = 0
-    error = null
-    done = (err) ->
-        error = error || err
-        if --wait == 0
-            callback(error)
-
-    Task.all condition, (err, data) ->
-        if err then return callback(err)
-        if data.length == 0 then return callback(null)
-
-        wait = data.length
-        data.forEach (obj) ->
-            obj.destroy done
-
-
 # Delete all tasks.
 Task.destroyAll = (callback) ->
-    Task.destroySome {}, callback
+    Task.requestDestroy "all", callback
 
 # Get all archived tasks for a given list
 Task.archives = (listId, callback) ->
-    if listId?
-        Task.all { where: { done: true, list: listId }, \
-                   order: "completionDate DESC" }, callback
+    if not listId?
+        Task.request "archive", callback
     else
-        Task.all { where: { done: true }, \
-                   order: "completionDate DESC" }, callback
+        params =
+            startkey: [listId]
+            limit: 30
+        Task.request "archiveList", params, callback
     
 # Returns all tasks of which state is todo. Order them following the link
 # list.
@@ -80,28 +61,41 @@ Task.allTodo = (listId, callback) ->
         callback null, result
 
     if listId?
-        Task.all { where: { done: false, list: listId } }, (err, tasks) ->
+        Task.retrieveTodoList listId, (err, tasks) ->
             if err
                 callback err, null
             else
                 orderTasks tasks, callback
     else
-        Task.all { where: { done: false }, order: "description DESC" }, callback
+        Task.request "todos", callback
+
+Task.retrieveTodoList = (list, callback) ->
+    params =
+        startkey: [list]
+    Task.request "todosList", params, callback
+
+getFirstTask = (tasks) ->
+    tasks[tasks.length - 1]
+
+    firstTask = null
+    for task in tasks
+        firstTask = task if not task.previousTask?
+    firstTask
 
 # Set given task as first task of todo task list.
 Task.setFirstTask = (task, callback) ->
-    Task.all { where: { done: false, list: task.list, \
-                        previousTask: null } }, \
-             (err, tasks) ->
+    Task.retrieveTodoList task.list, (err, tasks) ->
         return callback(err, null) if err
 
         if not tasks.length \
            or (tasks.length == 1 and tasks[0].id == task.id)
             callback null, task
         else
-            firstTask = tasks[0]
+            firstTask = getFirstTask(tasks)
+            
             firstTask.previousTask = task.id
             task.nextTask = firstTask.id
+            task.previousTask = null
             firstTask.save (err) ->
                 return callback(err, null) if err
 

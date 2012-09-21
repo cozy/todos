@@ -47,7 +47,7 @@ class exports.TodoListWidget extends Backbone.View
         @showButtonsButton.click @onEditClicked
 
         if @model?
-            breadcrumb = @model.humanPath.split(",")
+            breadcrumb = @model.path
             breadcrumb.pop()
             @breadcrumb.html breadcrumb.join(" / ")
             @title.html @model.title
@@ -121,7 +121,10 @@ class exports.TodoListWidget extends Backbone.View
                 if $(".task:not(.done)").length > 0
                     $(".task:first .description").focus()
                 else
-                    @onAddClicked() if model?
+                    #TODO: it requires to lock the selection when list is loaded, because
+                    # a tasks created when list is empty could appeared in another list
+                    # if another list is selected too quickly after a task creation
+                    @onAddClicked() if @model?
                 $(@tasks.view.el).spin()
             error: =>
                 $(@tasks.view.el).spin()

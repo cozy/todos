@@ -59,7 +59,7 @@ Tree.moveOrRenameNode = (noteId, newTitle, newParentId, cbk) ->
 # USE FOR INIT DATABASE ONLY
 ###
 Tree.destroyAll = (callback) ->
-    Tree.requestDestroy "all", callback
+    Tree.requestDestroy "all", key:"TodoList", callback
 
 ###
 # Normally only one tree should be stored for this app. This function return

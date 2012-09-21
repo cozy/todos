@@ -10,10 +10,17 @@ Task.archives = (listId, callback) ->
         Task.request "archive", callback
     else
         params =
-            startkey: [listId]
+            startkey: [listId, {}]
+            endkey: [listId + "0", {}]
             limit: 30
         Task.request "archiveList", params, callback
     
+
+Task.retrieveTodoList = (listId, callback) ->
+    params =
+        key: listId
+    Task.request "todosList", params, callback
+
 # Returns all tasks of which state is todo. Order them following the link
 # list.
 Task.allTodo = (listId, callback) ->
@@ -68,11 +75,6 @@ Task.allTodo = (listId, callback) ->
                 orderTasks tasks, callback
     else
         Task.request "todos", callback
-
-Task.retrieveTodoList = (list, callback) ->
-    params =
-        startkey: [list]
-    Task.request "todosList", params, callback
 
 getFirstTask = (tasks) ->
     tasks[tasks.length - 1]

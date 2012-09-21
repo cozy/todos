@@ -5434,116 +5434,6 @@ ol {
   border: 1px solid #ebe5e2;
   background-color: #fcfcfc;
 }
-#tree {
-  font-size: 12;
-  padding: 10px;
-  border-top: 1px solid #fff;
-  background-color: #f1f1ef;
-}
-#tree li {
-  padding: 0;
-}
-#tree ins {
-  width: 14px;
-}
-#tree a {
-  text-transform: lowercase;
-  padding: 3px 5px;
-  margin: 2px 0px;
-  border: 1px solid transparent;
-  font-weight: bold;
-  color: #3d2100;
-}
-#tree a.jstree-clicked {
-  background: #87b52e;
-  color: #fafffa;
-}
-#tree a:hover {
-  -moz-box-shadow: 1px 1px 1px #662;
-  -webkit-box-shadow: 1px 1px 1px #662;
-  -webkit-box-shadow: 1px 1px 1px #662;
-  box-shadow: 1px 1px 1px #662;
-  background: #f4e1b9;
-}
-#tree a.jstree-clicked:hover {
-  color: #3d2100;
-}
-#tree-buttons {
-  border-bottom: 1px solid #aaa;
-  background-color: #ebe7e4;
-  padding: 2% 4%;
-}
-#tree-buttons div {
-  display: inline;
-  background-repeat: no-repeat;
-  background-position: center;
-  cursor: pointer;
-}
-#tree-buttons i,
-#tree-buttons .spacer {
-  display: block;
-}
-#tree-buttons div.button:hover {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffdd97), color-stop(1, #ffb338));
-  background: -webkit-linear-gradient(top, #ffdd97 0%, #ffb338 100%);
-  background: -moz-linear-gradient(top, #ffdd97 0%, #ffb338 100%);
-  background: -o-linear-gradient(top, #ffdd97 0%, #ffb338 100%);
-  background: -ms-linear-gradient(top, #ffdd97 0%, #ffb338 100%);
-  background: linear-gradient(top, #ffdd97 0%, #ffb338 100%);
-}
-#tree-buttons div.button {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f2e5ce), color-stop(1, #f2e5de));
-  background: -webkit-linear-gradient(top, #f2e5ce 0%, #f2e5de 100%);
-  background: -moz-linear-gradient(top, #f2e5ce 0%, #f2e5de 100%);
-  background: -o-linear-gradient(top, #f2e5ce 0%, #f2e5de 100%);
-  background: -ms-linear-gradient(top, #f2e5ce 0%, #f2e5de 100%);
-  background: linear-gradient(top, #f2e5ce 0%, #f2e5de 100%);
-  -moz-box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  color: #000;
-  border: 1px solid #3d2100;
-  -webkit-border-radius: 2px 2px 2px 2px;
-  border-radius: 2px 2px 2px 2px;
-}
-#tree-buttons div.button:active {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #eaa328), color-stop(1, #f4cc86));
-  background: -webkit-linear-gradient(top, #eaa328 0%, #f4cc86 100%);
-  background: -moz-linear-gradient(top, #eaa328 0%, #f4cc86 100%);
-  background: -o-linear-gradient(top, #eaa328 0%, #f4cc86 100%);
-  background: -ms-linear-gradient(top, #eaa328 0%, #f4cc86 100%);
-  background: linear-gradient(top, #eaa328 0%, #f4cc86 100%);
-  -moz-box-shadow: 0 0px 0 rgba(255,255,255,0.12) inset, 0 0px 1px rgba(0,0,0,0.35);
-  -webkit-box-shadow: 0 0px 0 rgba(255,255,255,0.12) inset, 0 0px 1px rgba(0,0,0,0.35);
-  -webkit-box-shadow: 0 0px 0 rgba(255,255,255,0.12) inset, 0 0px 1px rgba(0,0,0,0.35);
-  box-shadow: 0 0px 0 rgba(255,255,255,0.12) inset, 0 0px 1px rgba(0,0,0,0.35);
-}
-#tree-search-field {
-  margin-top: 8px;
-  width: 97%;
-  -moz-box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.12) inset, 1px 1px 1px rgba(0,0,0,0.35);
-  border: 1px solid #3d2100;
-  -webkit-border-radius: 2px 2px 2px 2px;
-  border-radius: 2px 2px 2px 2px;
-  display: none;
-}
-#tree-buttons div.button-active {
-  -moz-box-shadow: 0 0 0 0;
-  -webkit-box-shadow: 0 0 0 0;
-  -webkit-box-shadow: 0 0 0 0;
-  box-shadow: 0 0 0 0;
-}
-#tree a.jstree-search {
-  color: #ffa60b;
-}
-#have-done-list-button {
-  max-width: 100%;
-  float: right;
-}
 #todo-list {
   padding-bottom: 1%;
 }
@@ -5696,6 +5586,209 @@ ol {
   .ui-layout-toggler {
     display: none;
   }
+}
+/**
+//#tree
+  //font-size 12
+  //padding 10px
+  //border-top 1px solid white
+  //background-color bgcolornav
+
+//#tree li
+  //padding 0
+
+//#tree ins
+  //width 14px
+
+//#tree a
+  //text-transform lowercase
+  //padding 3px 5px
+  //margin 2px 0px
+  //border 1px solid transparent
+  //font-weight bold
+  //color treelinkcolor
+
+//#tree a.jstree-clicked
+  //background bgcolortreeselected 
+  //color #FAFFFA
+
+//#tree a:hover
+  //shadow 1px 1px 1px treetexthovershadowcolor
+  //background bgcolortreetexthover
+
+//#tree a.jstree-clicked:hover
+  //color treelinkcolor
+
+//#tree-buttons
+  //border-bottom 1px solid bordercolortoolbar
+  //background-color bgcolortoolbar
+  //padding 2% 4%
+
+//#tree-buttons div
+  //display inline
+  //background-repeat no-repeat
+  //background-position center
+  //cursor pointer
+
+//#tree-buttons i
+
+//#tree-buttons .spacer
+  //display block
+
+//#tree-buttons div.button:hover
+  //background: linear-gradient(top , bgcolorhoverbuttons 0%, bgclearcolorhoverbuttons 100%)
+
+//#tree-buttons div.button
+  //background linear-gradient(top, bgcolorbuttons 0%, bgclearcolorbuttons 100%)
+  //shadow 0 1px 0 rgba(255, 255, 255, 0.12) inset, 1px 1px 1px rgba(0, 0, 0, 0.35)
+  //color black
+  //border 1px solid treebuttonbordercolor
+  //border-radius 2px 2px 2px 2px
+
+//#tree-buttons div.button:active
+  //background linear-gradient(top, bgcoloractivebuttons 0%, bgclearcoloractivebuttons 100%)
+  //shadow 0 0px 0 rgba(255, 255, 255, 0.12) inset, 0 0px 1px rgba(0, 0, 0, 0.35)
+
+//#tree-search-field
+  //margin-top 8px
+  //width 97%
+  //shadow 0 1px 0 rgba(255, 255, 255, 0.12) inset, 1px 1px 1px rgba(0, 0, 0, 0.35)
+  //border 1px solid treebuttonbordercolor
+  //border-radius 2px 2px 2px 2px
+  //display none
+
+//#tree-buttons div.button-active
+  //shadow 0 0 0 0
+
+//#tree a.jstree-search
+  //color: orange 
+
+//#have-done-list-button
+  //max-width: 100%
+  //float: right
+
+  // To do list
+  */
+#nav {
+  position: absolute;
+  bottom: 10px;
+  top: 10px;
+  right: 0px;
+  left: 10px;
+  margin-bottom: 0;
+}
+#tree {
+  font-size: 14px;
+  background-color: transparent;
+  margin-top: 10px;
+  outline: none;
+}
+#tree li {
+  padding: 0;
+  position: relative;
+}
+#tree ins {
+  width: 14px;
+}
+#tree a {
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+  border: 0px 0px 0px 0px solid transparent;
+  color: treelinkcolor;
+  left: 15px;
+  right: 0px;
+  position: absolute;
+}
+#tree a.jstree-clicked {
+  background: #c5ebf9;
+  border: 0;
+}
+#tree a.jstree-hovered {
+  border: 0;
+}
+.jstree-rename-input {
+  margin-left: -18px;
+}
+#tree-buttons-root {
+  display: none;
+  top: 0;
+  position: absolute;
+  right: 10px;
+  top: 0px;
+}
+#tree-buttons-root div {
+  display: inline;
+  cursor: pointer;
+  padding-left: 3px;
+}
+#tree-buttons {
+  display: none;
+  top: 0;
+  position: absolute;
+  right: 10px;
+  top: 0px;
+}
+#tree-buttons div {
+  display: inline;
+  cursor: pointer;
+  padding-left: 3px;
+}
+.bold-name {
+  font-weight: bold;
+}
+.text-dropdown i {
+  padding-right: 5px;
+}
+.tag-special {
+  background-color: #fff;
+  border: none;
+  border: 1px solid #fff;
+  height: 14px;
+  position: relative;
+  margin: 0 2px 2px 0;
+  padding: 0 3px 0 3px;
+  color: #000;
+  font: 11px "lucida grande", tahoma, verdana, arial, sans-serif;
+}
+#tree-search-field {
+  width: 200px;
+  padding-right: 20px;
+}
+#suppr-button {
+  position: absolute;
+  top: 23px;
+  left: 202px;
+  z-index: 2;
+}
+#suppr-button:hover {
+  cursor: pointer;
+}
+.ui-layout-west {
+  border: 0px;
+}
+.ui-layout-center {
+  border: 0px;
+}
+.ui-layout-resizer-open:hover {
+  background: #fff;
+}
+.ui-layout-resizer {
+  background-color: #fff;
+  border-right: 2px solid #fff;
+  border-left: 2px solid #fff;
+  width: 10px;
+}
+.ui-layout-pane {
+  border-right: 0px;
+}
+.ui-layout-toggler {
+  background-color: #fff;
+  border: 0px;
+  position: absolute;
+  right: 0px;
+}
+.ui-layout-resizer-open:hover .ui-layout-toggler {
+  background-color: #bfbfbf;
 }
 /* ==|== non-semantic helper classes ========================================
    Please define your styles before this section.

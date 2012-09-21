@@ -66,7 +66,8 @@ class exports.HomeView extends Backbone.View
     loadData: ->
         @$("#tree").spin()
         $.get "tree/", (data) =>
-           @tree = new Tree @.$("#nav"), @.$("#tree"), data,
+           window.tree = data
+           @tree = new Tree @.$("#nav"), data,
                 onCreate: @onTodoListCreated
                 onRename: @onTodoListRenamed
                 onRemove: @onTodoListRemoved
@@ -76,6 +77,7 @@ class exports.HomeView extends Backbone.View
 
            @haveDoneButton = $("#have-done-list-button")
            @haveDoneButton.click @onHaveDoneButtonClicked
+           @haveDoneButton.hide()
 
 
     ###
@@ -83,39 +85,46 @@ class exports.HomeView extends Backbone.View
     ###
 
     # Save todolist creation to backend. Update corresponding node metadata.
-    onTodoListCreated: (path, newName, data) =>
-        path = path + "/" + helpers.slugify(newName)
+    onTodoListCreated: (parentId, newName, data) =>
         TodoList.createTodoList
-            path: path
             title: newName
+            parent_id: parentId
             , (todolist) =>
                 data.rslt.obj.data "id", todolist.id
+                data.rslt.obj[0].id = todolist.id
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.obj
 
+
     # Persist todolist renaming and update view rendering.
-    onTodoListRenamed: (path, newName, data) =>
+    onTodoListRenamed: (listId, newName, data) =>
         if newName?
-            TodoList.updateTodoList data.rslt.obj.data("id"),
+            TodoList.updateTodoList listId,
                 title: newName
             , () =>
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.obj
             
     # Persist todo list deletion and remove todo list details from view.
-    onTodoListRemoved: (path) =>
+    onTodoListRemoved: (listId) =>
+        if @currentTodolist and @currentTodolist.id == listId
+            @currentTodolist.destroy()
+        else
+            TodoList.deleteTodoList listId, ->
         $("#todo-list").html(null)
-        @currentTodolist.destroy()
 
     # When a todolist is selected, the todolist widget is displayed and fill 
     # with todolist data.
     # Route is updated with selected todo list path.
-    onTodoListSelected: (path, id) =>
-        path = "/#{path}" if path.indexOf("/")
-        app.router.navigate "todolist#{path}", trigger: false
-        if id?
-            TodoList.getTodoList id, (todolist) =>
-                @renderTodolist todolist
+    onTodoListSelected: (path, id, data) =>
+        if id? and id != "tree-node-all"
+            console.log id
+            console.log path
+            TodoList.getTodoList id, (list) =>
+                console.log list
+                path = list.path.join("/")
+                app.router.navigate "todolist/#{list.id}/#{path}", trigger: false
+                @renderTodolist list
                 @todolist.show()
         else
             @renderTodolist null
@@ -129,14 +138,8 @@ class exports.HomeView extends Backbone.View
 
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.
-    onTodoListDropped: (newPath, oldPath, todolistTitle, data) =>
-        newPath = newPath + "/" + helpers.slugify(todolistTitle)
-        alert newPath
-        TodoList.updateTodoList data.rslt.o.data("id"),
-            path: newPath
-            , () =>
-                data.inst.deselect_all()
-                data.inst.select_node data.rslt.o
+    onTodoListDropped: (nodeId, targetNodeId) =>
+        TodoList.updateTodoList nodeId, {parent_id:targetNodeId} , () ->
 
     # When have done button is clicked, have done list is displayed or hidden
     # depending of its current state. When have done list is show, its data
@@ -153,8 +156,10 @@ class exports.HomeView extends Backbone.View
     ###
 
     # Force selection inside tree of todolist represented by given path.
-    selectList: (path) ->
-        @tree.selectNode path
+    selectList: (id) ->
+        if id == "all"
+           id = 'tree-node-all'
+        @tree.selectNode id
 
     # Fill todolist widget with todolist data. Then load todo task list 
     # and archives for this todolist.

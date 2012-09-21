@@ -10,8 +10,8 @@ Task.archives = (listId, callback) ->
         Task.request "archive", callback
     else
         params =
-            startkey: [listId, {}]
-            endkey: [listId + "0", {}]
+            startkey: [listId]
+            endkey: [listId + "0"]
             limit: 30
         Task.request "archiveList", params, callback
     

@@ -7,9 +7,10 @@ class exports.Application extends BrunchApplication
   # If you have a big application, perhaps it's a good idea to
   # group things by their type e.g. `@views = {}; @views.home = new HomeView`.
   initialize: ->
+    @initializeJQueryExtensions()
+    
     @router = new MainRouter
     @homeView = new HomeView
 
-    @initializeJQueryExtensions()
 
 window.app = new exports.Application

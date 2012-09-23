@@ -1,7 +1,10 @@
 class exports.MainRouter extends Backbone.Router
     routes:
         '': 'home'
-        "todolist/:id/:path" : "list"
+        "todolist/:id/all/:path" : "list"
+
+    initialize: ->
+        @route(/^todolist\/(.*?)\/(.*?)$/, 'list')
 
     # Entry point, render app and select last selected list.
     home: (callback) ->

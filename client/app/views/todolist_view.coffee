@@ -132,7 +132,8 @@ class exports.TodoListWidget extends Backbone.View
     # Refresh breadcrump with data from current model.
     refreshBreadcrump: ->
         if @model?
-            breadcrumb = @model.path
+            breadcrumb = @model.get "path"
+            breadcrumb = @model.path if not breadcrumb
             breadcrumb.pop()
             @breadcrumb.html breadcrumb.join(" / ")
             @title.html @model.title

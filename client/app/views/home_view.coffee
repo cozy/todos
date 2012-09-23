@@ -141,11 +141,8 @@ class exports.HomeView extends Backbone.View
     onTodoListDropped: (nodeId, targetNodeId) =>
         TodoList.updateTodoList nodeId, {parent_id:targetNodeId} , () =>
             TodoList.getTodoList nodeId, (body) =>
-                setTimeout ->
-                    if @currentTodolist?
-                        @currentTodolist.set "path", body.path
-                        @currentTodolist.view.refreshBreadcrump()
-                , 200
+                @currentTodolist.set "path", body.path
+                @currentTodolist.view.refreshBreadcrump()
 
     # When have done button is clicked, have done list is displayed or hidden
     # depending of its current state. When have done list is show, its data

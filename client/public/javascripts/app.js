@@ -443,9 +443,9 @@ window.require.define({"initialize": function(exports, require, module) {
     }
 
     Application.prototype.initialize = function() {
+      this.initializeJQueryExtensions();
       this.router = new MainRouter;
-      this.homeView = new HomeView;
-      return this.initializeJQueryExtensions();
+      return this.homeView = new HomeView;
     };
 
     return Application;
@@ -1020,7 +1020,11 @@ window.require.define({"routers/main_router": function(exports, require, module)
 
     MainRouter.prototype.routes = {
       '': 'home',
-      "todolist/:id/:path": "list"
+      "todolist/:id/all/:path": "list"
+    };
+
+    MainRouter.prototype.initialize = function() {
+      return this.route(/^todolist\/(.*?)\/(.*?)$/, 'list');
     };
 
     MainRouter.prototype.home = function(callback) {
@@ -1231,12 +1235,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
         parent_id: targetNodeId
       }, function() {
         return TodoList.getTodoList(nodeId, function(body) {
-          return setTimeout(function() {
-            if (this.currentTodolist != null) {
-              this.currentTodolist.set("path", body.path);
-              return this.currentTodolist.view.refreshBreadcrump();
-            }
-          }, 200);
+          _this.currentTodolist.set("path", body.path);
+          return _this.currentTodolist.view.refreshBreadcrump();
         });
       });
     };
@@ -1965,7 +1965,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     TodoListWidget.prototype.refreshBreadcrump = function() {
       var breadcrumb;
       if (this.model != null) {
-        breadcrumb = this.model.path;
+        breadcrumb = this.model.get("path");
+        if (!breadcrumb) {
+          breadcrumb = this.model.path;
+        }
         breadcrumb.pop();
         this.breadcrumb.html(breadcrumb.join(" / "));
         return this.title.html(this.model.title);

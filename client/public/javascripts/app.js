@@ -1755,7 +1755,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };
@@ -2282,14 +2282,19 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
         }
       };
       $("#tree-remove").on("click", function(e) {
-        var nodeToDelete, noteToDelete_id;
+        var nodeToDelete,
+          _this = this;
         console.log("event : tree-remove.click");
         nodeToDelete = this.parentElement.parentElement.parentElement;
-        noteToDelete_id = nodeToDelete.id;
-        if (noteToDelete_id !== 'tree-node-all') {
-          jstreeEl.jstree("remove", nodeToDelete);
-          homeViewCbk.onRemove(noteToDelete_id);
-        }
+        $('#confirm-delete-modal').modal('show');
+        $("#yes-button").on("click", function(e) {
+          var noteToDelete_id;
+          noteToDelete_id = nodeToDelete.id;
+          if (noteToDelete_id !== 'tree-node-all') {
+            jstreeEl.jstree("remove", nodeToDelete);
+            return homeViewCbk.onRemove(noteToDelete_id);
+          }
+        });
         e.preventDefault();
         return e.stopPropagation();
       });

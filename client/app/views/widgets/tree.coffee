@@ -436,18 +436,14 @@ class exports.Tree
 
         $("#tree-remove").on "click", (e) ->
             console.log "event : tree-remove.click"
+            nodeToDelete = @parentElement.parentElement.parentElement
             #$(this).tooltip('hide')
-            #modalAlert.modal('show')
-            #modalYesBtn.on "click", (e) ->
-                #console.log "event : tree-remove.click"
-                #recursiveRemoveSuggestionList(nodeToDelete)
-            nodeToDelete = this.parentElement.parentElement.parentElement
-            noteToDelete_id = nodeToDelete.id
-            if noteToDelete_id != 'tree-node-all'
-                jstreeEl.jstree("remove" , nodeToDelete)
-                homeViewCbk.onRemove noteToDelete_id
-                #modalYesBtn.focus() # TODO : doesn't work ?? but works in debug ...
-            # DO NOT CHANGE  :-)
+            $('#confirm-delete-modal').modal('show')
+            $("#yes-button").on "click", (e) =>
+                noteToDelete_id = nodeToDelete.id
+                if noteToDelete_id != 'tree-node-all'
+                    jstreeEl.jstree("remove" , nodeToDelete)
+                    homeViewCbk.onRemove noteToDelete_id
             e.preventDefault()
             e.stopPropagation()
         

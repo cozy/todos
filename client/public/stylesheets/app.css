@@ -5431,7 +5431,6 @@ ol {
   -webkit-box-shadow: 2px 2px 5px #668;
   -webkit-box-shadow: 2px 2px 5px #668;
   box-shadow: 2px 2px 5px #668;
-  border: 1px solid #ebe5e2;
   background-color: #fcfcfc;
 }
 #todo-list {
@@ -5680,8 +5679,9 @@ ol {
 #tree {
   font-size: 14px;
   background-color: transparent;
-  margin-top: 10px;
+  margin-top: 15px;
   outline: none;
+  padding-left: 8px;
 }
 #tree li {
   padding: 0;
@@ -5774,21 +5774,16 @@ ol {
 }
 .ui-layout-resizer {
   background-color: #fff;
-  border-right: 2px solid #fff;
-  border-left: 2px solid #fff;
   width: 10px;
 }
 .ui-layout-pane {
   border-right: 0px;
 }
 .ui-layout-toggler {
-  background-color: #fff;
+  background-color: #ccc;
   border: 0px;
   position: absolute;
   right: 0px;
-}
-.ui-layout-resizer-open:hover .ui-layout-toggler {
-  background-color: #bfbfbf;
 }
 /* ==|== non-semantic helper classes ========================================
    Please define your styles before this section.

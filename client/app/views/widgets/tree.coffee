@@ -391,7 +391,7 @@ class exports.Tree
             #)
 
         $("#tree-create").on "click", (e) ->
-            jstreeEl.jstree("create", this.parentElement.parentElement , 0 , "New note")
+            jstreeEl.jstree("create", this.parentElement.parentElement , 0 , "New list")
             #$(this).tooltip('hide')
             e.stopPropagation()
             e.preventDefault()
@@ -402,7 +402,7 @@ class exports.Tree
             #)
 
         $("#tree-create-root").on "click", (e) ->
-            jstreeEl.jstree("create", this.parentElement.parentElement , 0 , "New note")
+            jstreeEl.jstree("create", this.parentElement.parentElement , 0 , "New list")
             #$(this).tooltip('hide')
             e.stopPropagation()
             e.preventDefault()

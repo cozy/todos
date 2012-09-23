@@ -147,12 +147,22 @@ action 'update', ->
             isToUpdate = true
         if isToUpdate
             newData.id = params.id
-            TodoList.upsert(newData, cbk)
+            list = new TodoList newData
+            list.updateAttributes newData, cbk
         else
             cbk(null)
-            
+        
 action 'destroy', ->
-    TodoList.destroy params.id, ->
-        send success: 'TodoList succesfuly deleted', 200
-
+    TodoList.destroy params.id, (err) ->
+        if err
+            send error: true, msg: "Server error occured.", 500
+        else
+            data =
+                startkey: [params.id]
+                endkey: [params.id + "0"]
+            Task.requestDestroy "todoslist", data, (err) ->
+            if err
+                send error: true, msg: "Server error occured.", 500
+            else
+                send success: 'TodoList succesfuly deleted', 200
 

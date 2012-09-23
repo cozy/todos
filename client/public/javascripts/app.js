@@ -1019,23 +1019,20 @@ window.require.define({"routers/main_router": function(exports, require, module)
     }
 
     MainRouter.prototype.routes = {
-      '': 'home'
+      '': 'home',
+      "todolist/:id/:path": "list"
     };
 
-    MainRouter.prototype.initialize = function() {
-      return this.route(/^todolist\/(.*?)$/, 'list');
-    };
-
-    MainRouter.prototype.home = function() {
+    MainRouter.prototype.home = function(callback) {
       $('body').html(app.homeView.render().el);
       app.homeView.setLayout();
-      return app.homeView.loadData();
+      return app.homeView.loadData(callback);
     };
 
-    MainRouter.prototype.list = function(path) {
+    MainRouter.prototype.list = function(id, path) {
       var selectList;
       selectList = function() {
-        return app.homeView.selectList(path);
+        return app.homeView.selectList(id);
       };
       if ($("#tree-create").length > 0) {
         return selectList();
@@ -1144,10 +1141,10 @@ window.require.define({"views/home_view": function(exports, require, module) {
       });
     };
 
-    HomeView.prototype.loadData = function() {
+    HomeView.prototype.loadData = function(callback) {
       var _this = this;
       this.$("#tree").spin();
-      return $.get("tree/", function(data) {
+      $.get("tree/", function(data) {
         window.tree = data;
         _this.tree = new Tree(_this.$("#nav"), data, {
           onCreate: _this.onTodoListCreated,
@@ -1161,6 +1158,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
         _this.haveDoneButton.click(_this.onHaveDoneButtonClicked);
         return _this.haveDoneButton.hide();
       });
+      return this.treeLoadedCallback = callback;
     };
 
     /*
@@ -1208,9 +1206,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
         console.log(id);
         console.log(path);
         return TodoList.getTodoList(id, function(list) {
-          console.log(list);
-          path = list.path.join("/");
-          app.router.navigate("todolist/" + list.id + "/" + path, {
+          app.router.navigate("todolist" + path, {
             trigger: false
           });
           _this.renderTodolist(list);
@@ -1224,15 +1220,25 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.onTreeLoaded = function() {
       this.$("#tree").spin();
-      if (this.treeCreationCallback != null) {
-        return this.treeCreationCallback();
+      if (this.treeLoadedCallback != null) {
+        return this.treeLoadedCallback();
       }
     };
 
     HomeView.prototype.onTodoListDropped = function(nodeId, targetNodeId) {
+      var _this = this;
       return TodoList.updateTodoList(nodeId, {
         parent_id: targetNodeId
-      }, function() {});
+      }, function() {
+        return TodoList.getTodoList(nodeId, function(body) {
+          return setTimeout(function() {
+            if (this.currentTodolist != null) {
+              this.currentTodolist.set("path", body.path);
+              return this.currentTodolist.view.refreshBreadcrump();
+            }
+          }, 200);
+        });
+      });
     };
 
     HomeView.prototype.onHaveDoneButtonClicked = function() {
@@ -1845,7 +1851,6 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
 
     TodoListWidget.prototype.render = function() {
-      var breadcrumb;
       $(this.el).html(require('./templates/todolist'));
       this.title = this.$(".todo-list-title .description");
       this.breadcrumb = this.$(".todo-list-title .breadcrumb");
@@ -1860,15 +1865,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.newButton.click(this.onAddClicked);
       this.showButtonsButton.unbind("click");
       this.showButtonsButton.click(this.onEditClicked);
-      if (this.model != null) {
-        breadcrumb = this.model.path;
-        breadcrumb.pop();
-        this.breadcrumb.html(breadcrumb.join(" / "));
-        this.title.html(this.model.title);
-      } else {
-        this.breadcrumb.html("");
-        this.title.html("all tasks");
-      }
+      this.refreshBreadcrump();
       return this.el;
     };
 
@@ -1963,6 +1960,19 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
     TodoListWidget.prototype.blurAllTaskDescriptions = function() {
       return this.$(".task .description").trigger("blur");
+    };
+
+    TodoListWidget.prototype.refreshBreadcrump = function() {
+      var breadcrumb;
+      if (this.model != null) {
+        breadcrumb = this.model.path;
+        breadcrumb.pop();
+        this.breadcrumb.html(breadcrumb.join(" / "));
+        return this.title.html(this.model.title);
+      } else {
+        this.breadcrumb.html("");
+        return this.title.html("all tasks");
+      }
     };
 
     return TodoListWidget;
@@ -2237,12 +2247,12 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       modalYesBtn = $("#modal-yes");
       tree_buttons_root = $("#tree-buttons-root");
       $("#tree-create").on("click", function(e) {
-        jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New note");
+        jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New list");
         e.stopPropagation();
         return e.preventDefault();
       });
       $("#tree-create-root").on("click", function(e) {
-        jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New note");
+        jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New list");
         e.stopPropagation();
         return e.preventDefault();
       });

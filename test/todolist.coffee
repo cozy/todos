@@ -125,6 +125,16 @@ describe "/todolists", ->
 
     describe "DELETE /todolists/:id Deletes a todolist and update tree.", ->
         
+        before (done) ->
+            task1 = description: "my first task"
+            task2 = description: "my second task"
+            path = "todolists/#{@recipeTodoList.id}/tasks/"
+            client.post path, task1, (error, response, body) =>
+                @task1Id = body.id
+                client.post path, task2, (error, response, body) =>
+                    @task2Id = body.id
+                    done()
+
         it "When I delete Recipe todolist", (done) ->
             client.del "todolists/#{@recipeTodoList.id}", done
 
@@ -135,6 +145,13 @@ describe "/todolists", ->
                 todolists.rows.length.should.equal 3
                 done()
 
+        it "And all tasks linked to the list are deleted", (done) ->
+            Task.exists @task1Id, (err, exists) =>
+                exists.should.not.be.ok
+                Task.exists @task2Id, (err, exists) =>
+                    exists.should.not.be.ok
+                    done()
+                
         it "And it should have updated tree structure properly", (done) ->
             client.get "tree/", (error, response, body) =>
                 tree = new DataTree JSON.stringify body

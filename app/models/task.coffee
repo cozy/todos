@@ -1,8 +1,12 @@
 async = require "async"
 
 # Delete all tasks.
-Task.destroyAll = (callback) ->
-    Task.requestDestroy "all", callback
+Task.destroyAll = (params, callback) ->
+    callback = params if typeof(params) == "function"
+    console.log params
+    console.log callback
+    
+    Task.requestDestroy "all", params, callback
 
 # Get all archived tasks for a given list
 Task.archives = (listId, callback) ->
@@ -18,7 +22,8 @@ Task.archives = (listId, callback) ->
 
 Task.retrieveTodoList = (listId, callback) ->
     params =
-        key: listId
+        startkey: [listId]
+        endkey: [listId + "0"]
     Task.request "todosList", params, callback
 
 # Returns all tasks of which state is todo. Order them following the link

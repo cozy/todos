@@ -63,7 +63,7 @@ class exports.HomeView extends Backbone.View
     # Grab tree data, then build and display it. 
     # Links callback to tree events (creation, renaming...)
     # Set listeners for other buttons
-    loadData: ->
+    loadData: (callback) ->
         @$("#tree").spin()
         $.get "tree/", (data) =>
            window.tree = data
@@ -78,6 +78,8 @@ class exports.HomeView extends Backbone.View
            @haveDoneButton = $("#have-done-list-button")
            @haveDoneButton.click @onHaveDoneButtonClicked
            @haveDoneButton.hide()
+
+        @treeLoadedCallback = callback
 
 
     ###
@@ -121,9 +123,7 @@ class exports.HomeView extends Backbone.View
             console.log id
             console.log path
             TodoList.getTodoList id, (list) =>
-                console.log list
-                path = list.path.join("/")
-                app.router.navigate "todolist/#{list.id}/#{path}", trigger: false
+                app.router.navigate "todolist#{path}", trigger: false
                 @renderTodolist list
                 @todolist.show()
         else
@@ -134,12 +134,18 @@ class exports.HomeView extends Backbone.View
     # function was called is run.
     onTreeLoaded: =>
         @$("#tree").spin()
-        @treeCreationCallback() if @treeCreationCallback?
+        @treeLoadedCallback() if @treeLoadedCallback?
 
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.
     onTodoListDropped: (nodeId, targetNodeId) =>
-        TodoList.updateTodoList nodeId, {parent_id:targetNodeId} , () ->
+        TodoList.updateTodoList nodeId, {parent_id:targetNodeId} , () =>
+            TodoList.getTodoList nodeId, (body) =>
+                setTimeout ->
+                    if @currentTodolist?
+                        @currentTodolist.set "path", body.path
+                        @currentTodolist.view.refreshBreadcrump()
+                , 200
 
     # When have done button is clicked, have done list is displayed or hidden
     # depending of its current state. When have done list is show, its data
@@ -157,8 +163,7 @@ class exports.HomeView extends Backbone.View
 
     # Force selection inside tree of todolist represented by given path.
     selectList: (id) ->
-        if id == "all"
-           id = 'tree-node-all'
+        id = 'tree-node-all' if id == "all"
         @tree.selectNode id
 
     # Fill todolist widget with todolist data. Then load todo task list 

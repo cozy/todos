@@ -5,6 +5,7 @@ class exports.BrunchApplication
       @initialize this
       Backbone.history.start()
 
+  # Initialize Spin JS the lib that displays loading indicators
   initializeJQueryExtensions: ->
     $.fn.spin = (opts, color) ->
       presets =
@@ -58,9 +59,11 @@ class exports.BrunchApplication
 exports.selectAll = (input) ->
     input.setSelection(0, input.val().length)
 
+
 # Change a string into its slug shape (only alphanumeric char and hyphens
 # instead of spaces.
 exports.slugify = require "./lib/slug"
+
 
 # Transform a todolist path into its regular expression shape.
 exports.getPathRegExp = (path) ->

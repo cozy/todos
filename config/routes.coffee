@@ -11,11 +11,14 @@ exports.routes = (map) ->
     map.put '/todolists/:listId/tasks/:id', 'tasks#update'
     map.del '/todolists/:listId/tasks/:id', 'tasks#destroy'
 
-    map.get '/todolists', 'todolists#all'
-    map.post '/todolists', 'todolists#create'
+    # routes for todolists interactions
+    map.get  '/todolists'     , 'todolists#all'
+    map.post '/todolists'     , 'todolists#create'
     map.post '/todolists/path', 'todolists#allForPath'
-    map.get '/todolists/:id', 'todolists#show'
-    map.put '/todolists/:id', 'todolists#update'
-    map.del '/todolists/:id', 'todolists#destroy'
+    map.get  '/todolists/:id' , 'todolists#show'
+    map.put  '/todolists/:id' , 'todolists#update'
+    
+    map.del  '/todolists/:id' , 'todolists#destroy'
 
-    map.get '/tree', 'tree#tree'
+    # routes for tree interactions
+    map.get  '/tree'      , 'tree#tree'

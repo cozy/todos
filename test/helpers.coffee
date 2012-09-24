@@ -1,4 +1,4 @@
-Client = require('../common/test/client').Client
+Client = require('request-json').JsonClient
 client = new Client("http://localhost:8888/")
 
 
@@ -17,20 +17,20 @@ exports.createTodoListFunction = (title, path) ->
 
         TodoList.create todolist, callback
 
-exports.createFullTodoListFunction = (title, path) ->
+exports.newTodoListFunction = (title, parentId) ->
     (callback) ->
         todolist =
             title: title
-            path: path
+            parent_id: path
 
-        client.post "todolists/", todolist, callback
+    client.post "todolists/", todolist, callback
         
 exports.createTaskFunction = (list, done, description) ->
     (callback) ->
         task =
             list: list
             done: done
-            descrption: description
+            description: description
 
-        Task.create task, callback
-        
+        Task.create task, (err, taskObject) ->
+            Task.setFirstTask taskObject, callback

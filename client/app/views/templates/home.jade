@@ -3,3 +3,14 @@
    #tree-loading-indicator
 #todo-list.ui-layout-center
 
+div#confirm-delete-modal.modal.hide.fade.in(tabindex="-1", role="dialog", 
+                                            aria-hidden="true")
+    div.modal-header
+        h3#confirm-delete-modal-label Warning!
+    div.modal-body
+        p 
+            | You are about to delete this list, its tasks and its sub lists. Do
+            | you want to continue?
+    div.modal-footer
+        button#yes-button.btn(data-dismiss="modal", aria-hidden="true") Yes
+        button.btn.btn-info(data-dismiss="modal", aria-hidden="true") No

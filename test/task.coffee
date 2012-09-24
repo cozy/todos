@@ -1,6 +1,6 @@
 should = require('chai').Should()
 async = require('async')
-Client = require('../common/test/client').Client
+Client = require('request-json').JsonClient
 app = require('../server')
 helpers = require("./helpers")
 
@@ -38,8 +38,8 @@ describe "/tasks", ->
     describe "GET /todolists ", ->
         it "Retrieve working todo-list", (done) ->
             client.get "todolists/", (error, response, body) =>
-                body = JSON.parse(body)
-                testLength body, 3
+                body = body
+                testLength body, 2
                 @listId = body.rows[0].id
                 done()
 
@@ -64,7 +64,7 @@ describe "/tasks", ->
         it "When I send a request to retrieve tasks", (done) ->
             client.get "todolists/#{@listId}/tasks/", (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I got one task", ->
@@ -85,7 +85,7 @@ describe "/tasks", ->
             client.get "todolists/#{@listId}/tasks/archives",  \
                         (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then my task has been modified", ->
@@ -97,7 +97,7 @@ describe "/tasks", ->
             client.get "todolists/#{@listId}/tasks/", \
                        (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
     
         it "Then I got no tasks", ->
@@ -109,7 +109,7 @@ describe "/tasks", ->
             client.get "tasks/archives/", \
                        (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I have one task", ->
@@ -122,7 +122,7 @@ describe "/tasks", ->
             client.get "todolists/#{@listId}/tasks/#{@id}/", \
                        (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I got all its data", ->
@@ -134,7 +134,7 @@ describe "/tasks", ->
 
     describe "DELETE /todolists/:listId/tasks/:id/ Delete given task", ->
         it "When I send a deletion request for first task", (done) ->
-            client.delete "todolists/#{@listId}/tasks/#{@id}/", \
+            client.del "todolists/#{@listId}/tasks/#{@id}/", \
                           (error, response, body) =>
                 @response = response
                 @body = body
@@ -145,7 +145,7 @@ describe "/tasks", ->
             client.get "todolists/#{@listId}/tasks/#{@id}/", \
                        (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I got a 404 response", ->
@@ -180,7 +180,7 @@ describe "/tasks", ->
         it "And I send a request to retrieve tasks", (done) ->
             client.get "todolists/#{@listId}/tasks/", (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I got 3 ordered tasks", ->
@@ -204,7 +204,7 @@ describe "/tasks", ->
 
         it "And I send a request to retrieve tasks", (done) ->
             client.get "todolists/#{@listId}/tasks/", (error, response, body) =>
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I got 3 ordered tasks", ->
@@ -220,14 +220,14 @@ describe "/tasks", ->
 
     describe "DELETE /todolists/:listId/tasks/:id/ Del task + update order", ->
         it "When I delete first task (second place) ", (done) ->
-            client.delete "todolists/#{@listId}/tasks/#{@id}/", \
+            client.del "todolists/#{@listId}/tasks/#{@id}/", \
                           (error, response, body) =>
                 done()
 
         it "And I send a request to retrieve tasks", (done) ->
             client.get "todolists/#{@listId}/tasks/", \
                        (error, response, body) =>
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then I got 2 ordered tasks without first task", ->
@@ -252,7 +252,7 @@ describe "/tasks", ->
 
         it "And I send a request to retrieve tasks", (done) ->
             client.get "todolists/#{@listId}/tasks/", (error, response, body) =>
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "My new task is set as first one", ->
@@ -286,7 +286,7 @@ describe "/tasks", ->
         it "And I send a request to retrieve todo tasks", (done) ->
             client.get "todolists/#{@listId}/tasks/", (error, response, body) =>
                 @response = response
-                @body = JSON.parse body
+                @body = body
                 done()
 
         it "Then my task is still at same position", ->

@@ -45,15 +45,7 @@ class exports.TodoListWidget extends Backbone.View
         @newButton.click @onAddClicked
         @showButtonsButton.unbind "click"
         @showButtonsButton.click @onEditClicked
-
-        if @model?
-            breadcrumb = @model.humanPath.split(",")
-            breadcrumb.pop()
-            @breadcrumb.html breadcrumb.join(" / ")
-            @title.html @model.title
-        else
-            @breadcrumb.html ""
-            @title.html "all tasks"
+        @refreshBreadcrump()
 
         @el
 
@@ -130,7 +122,18 @@ class exports.TodoListWidget extends Backbone.View
     moveToTaskList: (task) ->
         @tasks.onTaskAdded task
 
-
     # Force task saving if task was modified.
     blurAllTaskDescriptions: ->
         @.$(".task .description").trigger("blur")
+
+    # Refresh breadcrump with data from current model.
+    refreshBreadcrump: ->
+        if @model?
+            breadcrumb = @model.get "path"
+            breadcrumb = @model.path if not breadcrumb
+            breadcrumb.pop()
+            @breadcrumb.html breadcrumb.join(" / ")
+            @title.html @model.title
+        else
+            @breadcrumb.html ""
+            @title.html "all tasks"

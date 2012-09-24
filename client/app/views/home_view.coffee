@@ -44,7 +44,6 @@ class exports.HomeView extends Backbone.View
                 resizable: true
                 togglerLength_closed: "0"
                 togglerLength_opened: "0"
-
             @layout.toggle "west"
         else
             @layout = $(@el).layout
@@ -53,6 +52,7 @@ class exports.HomeView extends Backbone.View
                 resizable: true
         @previousSize = size
 
+        # Update layout when windows size is changed
         $(window).resize =>
             size = $(window).width()
             if (size < 700 and @previousSize > 700) or (size > 700 and @previousSize < 700)
@@ -97,15 +97,13 @@ class exports.HomeView extends Backbone.View
                 data.inst.deselect_all()
                 data.inst.select_node data.rslt.obj
 
-
     # Persist todolist renaming and update view rendering.
     onTodoListRenamed: (listId, newName, data) =>
         if newName?
             TodoList.updateTodoList listId,
                 title: newName
             , () =>
-                data.inst.deselect_all()
-                data.inst.select_node data.rslt.obj
+                @tree.selectNode listId
             
     # Persist todo list deletion and remove todo list details from view.
     onTodoListRemoved: (listId) =>
@@ -120,8 +118,6 @@ class exports.HomeView extends Backbone.View
     # Route is updated with selected todo list path.
     onTodoListSelected: (path, id, data) =>
         if id? and id != "tree-node-all"
-            console.log id
-            console.log path
             TodoList.getTodoList id, (list) =>
                 app.router.navigate "todolist#{path}", trigger: false
                 @renderTodolist list

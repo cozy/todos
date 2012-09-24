@@ -31,8 +31,6 @@ class exports.BrunchApplication
         @each ->
           $this = $(this)
           spinner = $this.data("spinner")
-          console.log $this.data()
-          console.log spinner
           if spinner?
             spinner.stop()
             $this.data "spinner", null

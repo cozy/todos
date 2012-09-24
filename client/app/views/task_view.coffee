@@ -79,7 +79,6 @@ class exports.TaskLine extends Backbone.View
 
     # On todo button clicked, update task state and send modifications to 
     # backend.
-    # TODO: display indicator to say that it is saving.
     onTodoButtonClicked: (event) =>
         @showLoading()
         if @model.done then @model.setUndone() else @model.setDone()
@@ -93,7 +92,6 @@ class exports.TaskLine extends Backbone.View
 
     # On delete clicked, send delete request to server then remove task line
     # from DOM.
-    # TODO: display indicator to say that it is saving.
     onDelButtonClicked: (event) =>
         @delTask()
 
@@ -240,10 +238,12 @@ class exports.TaskLine extends Backbone.View
     hideButtons: ->
         @buttons.hide()
 
+    # Display loading indicator inside todo/done button and hide button text.
     showLoading: ->
         @todoButton.html "&nbsp;"
         @todoButton.spin "tiny"
 
+    # Hide loading indicator and restore button text.
     hideLoading: ->
-        if @model.done then @todoButton.html "done" else @todoButton.html "todo"
         @todoButton.spin()
+        if @model.done then @todoButton.html "done" else @todoButton.html "todo"

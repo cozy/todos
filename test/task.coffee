@@ -16,8 +16,8 @@ testLength = (body, length) ->
 
 initDb = (callback) ->
     async.series [
-        helpers.createTodoListFunction "My Tasks", "/all/my-tasks"
-        helpers.createTodoListFunction "", "/all/recipe/dessert"
+        helpers.createTodoListFunction "My Tasks", ["My Tasks"]
+        helpers.createTodoListFunction "", ["Recipes", "Dessert"]
     ], ->
         callback()
 
@@ -37,10 +37,10 @@ describe "/tasks", ->
     describe "GET /todolists ", ->
         it "Retrieve working todo-list", (done) ->
             client.get "todolists/", (error, response, body) =>
-                body = body
                 testLength body, 2
                 @listId = body.rows[0].id
                 done()
+
 
     describe "POST /todolists/:listId/tasks Create a task", ->
         it "When I send data for a task creation", (done) ->
@@ -150,6 +150,7 @@ describe "/tasks", ->
         it "Then I got a 404 response", ->
              @response.statusCode.should.equal 404
 
+
     describe "POST /todolists/:listId/tasks/ Create linked tasks", ->
         it "When I create two new tasks", (done) ->
             task =
@@ -193,6 +194,7 @@ describe "/tasks", ->
             @body.rows[2].previousTask.should.equal @id2
 
             @id = @body.rows[0].id
+
 
     describe "PUT /todolists/:listId/tasks/:id/ Modify task order", ->
         it "When I send move second task to first place", (done) ->
@@ -265,6 +267,7 @@ describe "/tasks", ->
             @body.rows[2].description.should.equal "my third task"
             @body.rows[2].previousTask.should.equal @id2
             should.not.exist @body.rows[2].nextTask
+
 
     describe "PUT /todolists/:listId/tasks/:id/ From done to todo", ->
         it "When I set first task to done", (done) ->

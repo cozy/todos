@@ -1,5 +1,7 @@
 load 'application'
 
+async = require "async"
+
 
 ###--------------------------------------#
 # Helpers
@@ -147,11 +149,13 @@ action 'update', ->
 
 # Destroy todo list and all tasks linked to that list.
 action 'destroy', ->
-    ids = Tree.tree.getAllChildrens params.id
+    ids = Tree.dataTree.getAllChildrens params.id
+    ids.push params.id
     destroyListAndTasks = (id) ->
         (callback) ->
             TodoList.destroy id, (err) ->
                 if err
+                    console.log err
                     callback err
                 else
                     data =
@@ -165,4 +169,3 @@ action 'destroy', ->
             send error: true, msg: "Server error occured.", 500
         else
             send success: 'TodoLists and tasks succesfuly deleted', 200
-

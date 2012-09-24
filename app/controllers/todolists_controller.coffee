@@ -1,5 +1,7 @@
 load 'application'
 
+async = require "async"
+
 
 ###--------------------------------------#
 # Helpers
@@ -147,22 +149,8 @@ action 'update', ->
 
 # Destroy todo list and all tasks linked to that list.
 action 'destroy', ->
-    ids = Tree.tree.getAllChildrens params.id
-    destroyListAndTasks = (id) ->
-        (callback) ->
-            TodoList.destroy id, (err) ->
-                if err
-                    callback err
-                else
-                    data =
-                        startkey: [id]
-                        endkey: [id + "0"]
-                    Task.requestDestroy "todoslist", data, callback
-    funcs = []
-    funcs.push destroyListAndTasks(id) for id in ids
-    async.series funcs, (err) ->
+    TodoList.destroy params.id, (err) ->
         if err
             send error: true, msg: "Server error occured.", 500
         else
             send success: 'TodoLists and tasks succesfuly deleted', 200
-

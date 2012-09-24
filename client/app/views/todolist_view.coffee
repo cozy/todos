@@ -37,15 +37,15 @@ class exports.TodoListWidget extends Backbone.View
         @tasks = @taskList.tasks
         @archiveTasks = @archiveList.tasks
 
+        @refreshBreadcrump()
+
         @newButton = $("#new-task-button")
         @showButtonsButton = $("#edit-button")
         @newButton.hide()
-
         @newButton.unbind "click"
         @newButton.click @onAddClicked
         @showButtonsButton.unbind "click"
         @showButtonsButton.click @onEditClicked
-        @refreshBreadcrump()
 
         @el
 
@@ -136,4 +136,4 @@ class exports.TodoListWidget extends Backbone.View
             @title.html @model.title
         else
             @breadcrumb.html ""
-            @title.html "all tasks"
+            @title.html "All tasks"

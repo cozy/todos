@@ -1193,8 +1193,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
         return TodoList.updateTodoList(listId, {
           title: newName
         }, function() {
-          data.inst.deselect_all();
-          return data.inst.select_node(data.rslt.obj);
+          return _this.tree.selectNode(listId);
         });
       }
     };
@@ -1211,8 +1210,6 @@ window.require.define({"views/home_view": function(exports, require, module) {
     HomeView.prototype.onTodoListSelected = function(path, id, data) {
       var _this = this;
       if ((id != null) && id !== "tree-node-all") {
-        console.log(id);
-        console.log(path);
         return TodoList.getTodoList(id, function(list) {
           app.router.navigate("todolist" + path, {
             trigger: false
@@ -1643,12 +1640,12 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.hideLoading = function() {
+      this.todoButton.spin();
       if (this.model.done) {
-        this.todoButton.html("done");
+        return this.todoButton.html("done");
       } else {
-        this.todoButton.html("todo");
+        return this.todoButton.html("todo");
       }
-      return this.todoButton.spin();
     };
 
     return TaskLine;
@@ -1886,6 +1883,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.archiveList = new TaskList(this, this.$("#archive-list"));
       this.tasks = this.taskList.tasks;
       this.archiveTasks = this.archiveList.tasks;
+      this.refreshBreadcrump();
       this.newButton = $("#new-task-button");
       this.showButtonsButton = $("#edit-button");
       this.newButton.hide();
@@ -1893,7 +1891,6 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.newButton.click(this.onAddClicked);
       this.showButtonsButton.unbind("click");
       this.showButtonsButton.click(this.onEditClicked);
-      this.refreshBreadcrump();
       return this.el;
     };
 
@@ -2002,7 +1999,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
         return this.title.html(this.model.title);
       } else {
         this.breadcrumb.html("");
-        return this.title.html("all tasks");
+        return this.title.html("All tasks");
       }
     };
 
@@ -2076,7 +2073,7 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
 
   /* Widget to easily manipulate data tree (navigation for cozy apps)
   Properties :
-      currentPath      = ex : /all/coutries/great_britain  ("great_britain" is the uglified name of the note)
+      currentPath      = ex : /all/coutries/great_britain 
       currentData      = data : jstree data obj sent by the select
       currentNote_uuid : uuid of the currently selected note
       widget           = @jstreeEl.jstree
@@ -2089,92 +2086,14 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
 
   exports.Tree = (function() {
     /**
-    #suggestionList is a global array containing all the suggestions for the
-    #autocompletion plugin
-    #this array contains objects with the nature of the suggestion
-    #(folder, tag, search string...) and the string corresponding to the suggestion
-    */
-
-    var suggestionList, _sortFunction;
-
-    suggestionList = [];
-
-    /**
-    #used by the .sort() method to be efficient with our structure
-    */
-
-
-    _sortFunction = function(a, b) {
-      if (a.name > b.name) {
-        return 1;
-      } else if (a.name === b.name) {
-        return 0;
-      } else if (a.name < b.name) {
-        return -1;
-      }
-    };
-
-    /**
-    #this method update the array suggestionList when the user add, rename or remove
-    #a node
-    #input: action : neither create, rename or remove,
-    #nodeName : in case of create and remove : the name of the new note or the note to remove
-    # in case of rename : the new name of the note
-    #oldName : only for rename : the name that will be replaced in the note
-    #output : suggestionList updated
-    */
-
-
-    Tree.prototype._updateSuggestionList = function(action, nodeName, oldName) {
-      var i, object;
-      if (action === "create") {
-        object = {
-          type: "folder",
-          name: nodeName
-        };
-        suggestionList.push(object);
-        return suggestionList.sort(_sortFunction);
-      } else if (action === "rename") {
-        i = 0;
-        while (suggestionList[i].name !== oldName) {
-          i++;
-        }
-        suggestionList[i].name = nodeName;
-        return suggestionList.sort(_sortFunction);
-      } else if (action === "remove") {
-        i = 0;
-        while (suggestionList[i].name !== nodeName) {
-          i++;
-        }
-        return suggestionList.splice(i, 1);
-      }
-    };
-
-    /**
     # Initialize jsTree tree with options : sorting, create/rename/delete,
     # unique children and json data for loading.
-    # params :
-    #   navEl : 
-    #   data :
-    #   homeViewCbk :
     */
-
 
     function Tree(navEl, data, homeViewCbk) {
       this._getSlugPath = __bind(this._getSlugPath, this);
-
-      var jstreeEl, supprButton;
-      jstreeEl = $("#tree");
-      this.jstreeEl = jstreeEl;
-      supprButton = $("#suppr-button");
-      this.supprButton = supprButton;
+      this.jstreeEl = $("#tree");
       navEl.prepend(require('../templates/tree_buttons'));
-      /**
-      # Creation of the jstree
-      # jstree is a plugin to implement the node tree
-      # Please visit http://www.jstree.com/ for more information
-      */
-
       data = JSON.parse(data);
       this.widget = this.jstreeEl.jstree({
         plugins: ["themes", "json_data", "ui", "crrm", "unique", "sort", "cookies", "types", "hotkeys", "dnd", "search"],
@@ -2228,35 +2147,6 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
         }
       });
       this.setListeners(homeViewCbk);
-      /**
-      #Autocompletion
-      */
-
-      /*
-              #this function allow to select what appears in the suggestion list while
-              #the user type something in the search input
-              #input : array of suggestions, current string in the search input
-              #outputs : an array containing strings corresponding to suggestions 
-              #depending on the searchstring
-      */
-
-      /**
-      #used by textext to change the render of the suggestion list
-      #attach an icon to a certain type in the autocomplete list
-      #input : suggestion : a string which is the suggestion, 
-      #array : the array is suggestionList containing all the suggestions
-      # possible and their nature
-      */
-
-      /**
-      #treat the content of the input and launch the jstree search function
-      */
-
-      /**
-      #Textext plugin is used to implement the autocomplete plugin
-      #Please visit http://textextjs.com/ for more information about this plugin
-      */
-
     }
 
     /**
@@ -2266,54 +2156,50 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
 
 
     Tree.prototype.setListeners = function(homeViewCbk) {
-      var Tree, jstreeEl, modalAlert, modalYesBtn, progressBar, recursiveRemoveSuggestionList, supprButton, textPrompt, tree_buttons, tree_buttons_root, tree_buttons_target,
+      var jstreeEl, textPrompt, tree_buttons, tree_buttons_root, tree_buttons_target,
         _this = this;
-      Tree = this;
-      jstreeEl = this.jstreeEl;
-      supprButton = this.supprButton;
-      this.progressBar = $(".bar");
-      progressBar = this.progressBar;
       tree_buttons = $("#tree-buttons");
-      modalAlert = $('#myModal');
-      modalYesBtn = $("#modal-yes");
       tree_buttons_root = $("#tree-buttons-root");
+      jstreeEl = this.jstreeEl;
+      $("#tree-create").tooltip({
+        placement: "bottom",
+        title: "Add a sub-list"
+      });
       $("#tree-create").on("click", function(e) {
         jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New list");
+        $(this).tooltip('hide');
         e.stopPropagation();
         return e.preventDefault();
+      });
+      $("#tree-create-root").tooltip({
+        placement: "bottom",
+        title: "Add a list"
       });
       $("#tree-create-root").on("click", function(e) {
         jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New list");
+        $(this).tooltip('hide');
         e.stopPropagation();
         return e.preventDefault();
       });
+      $("#tree-rename").tooltip({
+        placement: "bottom",
+        title: "Rename a list"
+      });
       $("#tree-rename").on("click", function(e) {
         jstreeEl.jstree("rename", this.parentElement.parentElement);
+        $(this).tooltip('hide');
         e.preventDefault();
         return e.stopPropagation();
       });
-      /**
-      # this function remove the sons of a removed node in the suggestion list
-      */
-
-      recursiveRemoveSuggestionList = function(nodeToDelete) {
-        var node, _i, _len, _ref;
-        if (nodeToDelete.children[2] === void 0) {
-          return Tree._updateSuggestionList("remove", nodeToDelete.children[1].text.replace(/\s/, ""), null);
-        } else {
-          _ref = nodeToDelete.children[2].children;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            node = _ref[_i];
-            recursiveRemoveSuggestionList(node);
-          }
-          return Tree._updateSuggestionList("remove", nodeToDelete.children[1].text.replace(/\s/, ""), null);
-        }
-      };
+      $("#tree-remove").tooltip({
+        placement: "bottom",
+        title: "Remove a list"
+      });
       $("#tree-remove").on("click", function(e) {
         var nodeToDelete,
           _this = this;
-        console.log("event : tree-remove.click");
         nodeToDelete = this.parentElement.parentElement.parentElement;
+        $(this).tooltip('hide');
         $('#confirm-delete-modal').modal('show');
         $("#yes-button").on("click", function(e) {
           var noteToDelete_id;
@@ -2346,26 +2232,14 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
         }
       });
       textPrompt = $(".text-prompt");
-      supprButton.click(function() {
-        $(".text-tags").empty();
-        textPrompt.css("padding-left", "5px");
-        textPrompt.css("padding-top", "3px");
-        $(".text-wrap").css("height", "22px");
-        $(".text-core").css("height", "22px");
-        $(".text-dropdown").css("top", "22px");
-        return supprButton.css("display", "none");
-      });
       this.widget.on("create.jstree", function(e, data) {
         var nodeName, parentId;
-        console.log("event : create.jstree");
         nodeName = data.inst.get_text(data.rslt.obj);
-        _this._updateSuggestionList("create", nodeName, null);
         parentId = data.rslt.parent[0].id;
         return homeViewCbk.onCreate(parentId, data.rslt.name, data);
       });
       this.widget.on("rename.jstree", function(e, data) {
         var newNodeName, oldNodeName;
-        console.log("event : rename.jstree");
         newNodeName = data.rslt.new_name;
         oldNodeName = data.rslt.old_name;
         if (oldNodeName !== newNodeName) {
@@ -2374,7 +2248,6 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       });
       this.widget.on("select_node.jstree", function(e, data) {
         var nodeName, note_uuid, parent, path;
-        console.log("event : select_node.jstree");
         note_uuid = data.rslt.obj[0].id;
         if (note_uuid === "tree-node-all") {
           path = "/all";
@@ -2391,14 +2264,11 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       });
       this.widget.on("move_node.jstree", function(e, data) {
         var nodeId, targetNodeId;
-        console.log("event : move_node.jstree");
         nodeId = data.rslt.o[0].id;
         targetNodeId = data.rslt.o[0].parentElement.parentElement.id;
         return homeViewCbk.onDrop(nodeId, targetNodeId);
       });
       return this.widget.on("loaded.jstree", function(e, data) {
-        console.log("event : loaded.jstree");
-        progressBar.css("width", "20%");
         return homeViewCbk.onLoaded();
       });
     };
@@ -2406,22 +2276,18 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
     /**
     #Select node corresponding to given path
     #if note_uuid exists in the jstree it is selected
-    #otherwise if there is no seleted node, we select the root
+    #otherwise if there is no selected node, we select the root
     */
 
 
     Tree.prototype.selectNode = function(note_uuid) {
-      var jstreeEl, node, progressBar, tree;
-      progressBar = this.progressBar;
-      jstreeEl = this.jstreeEl;
-      console.log("Tree.selectNode( " + note_uuid + " )");
-      progressBar.css("width", "50%");
+      var node;
       node = $("#" + note_uuid);
       if (node[0]) {
-        tree = jstreeEl.jstree("deselect_all", null);
-        return tree = jstreeEl.jstree("select_node", node);
-      } else if (!this.widget.jstree("get_selected")[0]) {
-        return tree = jstreeEl.jstree("select_node", "#tree-node-all");
+        this.jstreeEl.jstree("deselect_all", null);
+        return this.jstreeEl.jstree("select_node", node);
+      } else if (!this.jstreeEl.jstree("get_selected")[0]) {
+        return this.jstreeEl.jstree("select_node", "#tree-node-all");
       }
     };
 

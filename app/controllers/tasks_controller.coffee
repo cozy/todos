@@ -2,9 +2,9 @@ load 'application'
 
 async = require 'async'
 
-
+###
 # Helpers
-
+###
 
 # Return to client a task list like this
 # { length: number of taks, rows: task list }
@@ -15,6 +15,7 @@ returnTasks = (err, tasks) ->
     else
         send number: tasks.length, rows: tasks
 
+# If action is an instance action, it loads corresponding task
 before 'load task', ->
     Task.find params.id, (err, task) =>
         if err
@@ -30,10 +31,11 @@ before 'set list id', ->
     @listId = params.listId
     next()
 
+
+###
 # Controllers
+###
 
-
-# Return all tasks
 action 'all', ->
     Task.all {}, returnTasks
 
@@ -43,7 +45,7 @@ action 'all-todo', ->
 action 'all-archives', ->
     Task.archives null, returnTasks
 
-# Return all task 
+# Return all todo tasks for given list.
 action 'todo', ->
     Task.allTodo @listId, (err, tasks) ->
         if err
@@ -54,6 +56,7 @@ action 'todo', ->
         else
             send number: tasks.length, rows: tasks
 
+# Return all done tasks for given list.
 action 'archives', ->
     Task.archives @listId, returnTasks
 

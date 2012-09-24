@@ -5,8 +5,8 @@ TodoList.all = (callback) -> TodoList.request "all", callback
 
 ###
 # Delete all notes.
-# This method doesn't update the tree.
-# USE FOR INIT DATABASE ONLY
+# This method doesn't update the tree. Better suited for database clearing 
+# or test writing.
 ###
 TodoList.destroyAll = (callback) ->
     TodoList.requestDestroy "all", callback

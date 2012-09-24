@@ -7,8 +7,7 @@ Tree.all = (params, callback) -> Tree.request "all", params, callback
 ###
 # Add a node corresponding to the note in the dataTree.
 # Save the tree
-# Call at the end : cbk(error) after the tree is saved.
-# Rq : the id of the created note is in the note itself
+# The id of the created note is in the note itself
 ###
 Tree.addNode = (note, parent_id, cbk)->
     Tree.dataTree.addNode(note,parent_id)
@@ -23,7 +22,6 @@ Tree.addNode = (note, parent_id, cbk)->
 # Update the title in the dataTree.
 # update the path of the note and propagates to its children.
 # Save the tree
-# Call at the end : cbk(error) after the tree is saved.
 ###
 Tree.moveOrRenameNode = (noteId, newTitle, newParentId, cbk) ->
 
@@ -55,8 +53,7 @@ Tree.moveOrRenameNode = (noteId, newTitle, newParentId, cbk) ->
                 cbk(null)
 
 ###
-# Remove all tree from database.
-# USE FOR INIT DATABASE ONLY
+# Remove all tree of type TodoList from database.
 ###
 Tree.destroyAll = (callback) ->
     Tree.requestDestroy "all", key:"TodoList", callback
@@ -70,15 +67,16 @@ Tree.destroyAll = (callback) ->
 Tree.getOrCreate = (callback) ->
     Tree.all key:"TodoList", (err, trees) ->
         if err
-            send error: 'An error occured', 500
+            callback err
         else if trees.length == 0
-            console.log "create tree"
-            
             newDataTree =  new DataTree()
-            Tree.create { struct: newDataTree.toJson(), type: "TodoList" }, (err,tree)->
+            data =
+                struct: newDataTree.toJson()
+                type: "TodoList"
+            Tree.create data, (err,tree)->
                 Tree.dataTree = newDataTree
                 Tree.tree     = tree
-                callback(null,tree)
+                callback(null, tree)
         else
             Tree.tree = trees[0]
             Tree.dataTree = new DataTree(trees[0].struct)
@@ -88,5 +86,4 @@ Tree.getOrCreate = (callback) ->
 # retuns the path of the note in the cbk(err, path)
 ###
 Tree.getPath = (note_id, cbk)->
-    path = Tree.dataTree.getPath(note_id)
-    return path
+    return Tree.dataTree.getPath(note_id)

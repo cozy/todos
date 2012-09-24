@@ -3,8 +3,6 @@ async = require "async"
 # Delete all tasks.
 Task.destroyAll = (params, callback) ->
     callback = params if typeof(params) == "function"
-    console.log params
-    console.log callback
     
     Task.requestDestroy "all", params, callback
 

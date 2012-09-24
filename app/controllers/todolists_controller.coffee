@@ -149,22 +149,7 @@ action 'update', ->
 
 # Destroy todo list and all tasks linked to that list.
 action 'destroy', ->
-    ids = Tree.dataTree.getAllChildrens params.id
-    ids.push params.id
-    destroyListAndTasks = (id) ->
-        (callback) ->
-            TodoList.destroy id, (err) ->
-                if err
-                    console.log err
-                    callback err
-                else
-                    data =
-                        startkey: [id]
-                        endkey: [id + "0"]
-                    Task.requestDestroy "todoslist", data, callback
-    funcs = []
-    funcs.push destroyListAndTasks(id) for id in ids
-    async.series funcs, (err) ->
+    TodoList.destroy params.id, (err) ->
         if err
             send error: true, msg: "Server error occured.", 500
         else

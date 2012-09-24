@@ -20,9 +20,20 @@ TodoList.destroyAll = (callback) ->
 TodoList.destroy = (nodeId, cbk)->
 
     # called in parallele to delete each note in the db
-    _deleteTodoList = (noteId,cbk)->
-        TodoList.find noteId, (err, note)->
-            note.destroy cbk
+    _deleteTodoList = (listId, cbk) ->
+        TodoList.find listId, (err, list) ->
+            if err
+                cbk err
+            else
+                list.destroy (err) ->
+                    if err
+                        cbk err
+                    else
+                        data =
+                            startkey: [listId]
+                            endkey: [listId + "0"]
+                        Task.requestDestroy "todoslist", data, cbk
+
     
     # vars
     dataTree = Tree.dataTree

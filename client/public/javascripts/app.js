@@ -443,9 +443,9 @@ window.require.define({"initialize": function(exports, require, module) {
     }
 
     Application.prototype.initialize = function() {
+      this.initializeJQueryExtensions();
       this.router = new MainRouter;
-      this.homeView = new HomeView;
-      return this.initializeJQueryExtensions();
+      return this.homeView = new HomeView;
     };
 
     return Application;
@@ -996,6 +996,10 @@ window.require.define({"models/todolist": function(exports, require, module) {
       });
     };
 
+    TodoList.deleteTodoList = function(id, callback) {
+      return request("DELETE", "todolists/" + id, callback);
+    };
+
     return TodoList;
 
   })(BaseModel);
@@ -1015,23 +1019,24 @@ window.require.define({"routers/main_router": function(exports, require, module)
     }
 
     MainRouter.prototype.routes = {
-      '': 'home'
+      '': 'home',
+      "todolist/:id/all/:path": "list"
     };
 
     MainRouter.prototype.initialize = function() {
-      return this.route(/^todolist\/(.*?)$/, 'list');
+      return this.route(/^todolist\/(.*?)\/(.*?)$/, 'list');
     };
 
-    MainRouter.prototype.home = function() {
+    MainRouter.prototype.home = function(callback) {
       $('body').html(app.homeView.render().el);
       app.homeView.setLayout();
-      return app.homeView.loadData();
+      return app.homeView.loadData(callback);
     };
 
-    MainRouter.prototype.list = function(path) {
+    MainRouter.prototype.list = function(id, path) {
       var selectList;
       selectList = function() {
-        return app.homeView.selectList(path);
+        return app.homeView.selectList(id);
       };
       if ($("#tree-create").length > 0) {
         return selectList();
@@ -1140,11 +1145,12 @@ window.require.define({"views/home_view": function(exports, require, module) {
       });
     };
 
-    HomeView.prototype.loadData = function() {
+    HomeView.prototype.loadData = function(callback) {
       var _this = this;
       this.$("#tree").spin();
-      return $.get("tree/", function(data) {
-        _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
+      $.get("tree/", function(data) {
+        window.tree = data;
+        _this.tree = new Tree(_this.$("#nav"), data, {
           onCreate: _this.onTodoListCreated,
           onRename: _this.onTodoListRenamed,
           onRemove: _this.onTodoListRemoved,
@@ -1153,8 +1159,10 @@ window.require.define({"views/home_view": function(exports, require, module) {
           onDrop: _this.onTodoListDropped
         });
         _this.haveDoneButton = $("#have-done-list-button");
-        return _this.haveDoneButton.click(_this.onHaveDoneButtonClicked);
+        _this.haveDoneButton.click(_this.onHaveDoneButtonClicked);
+        return _this.haveDoneButton.hide();
       });
+      return this.treeLoadedCallback = callback;
     };
 
     /*
@@ -1162,23 +1170,23 @@ window.require.define({"views/home_view": function(exports, require, module) {
     */
 
 
-    HomeView.prototype.onTodoListCreated = function(path, newName, data) {
+    HomeView.prototype.onTodoListCreated = function(parentId, newName, data) {
       var _this = this;
-      path = path + "/" + helpers.slugify(newName);
       return TodoList.createTodoList({
-        path: path,
-        title: newName
+        title: newName,
+        parent_id: parentId
       }, function(todolist) {
         data.rslt.obj.data("id", todolist.id);
+        data.rslt.obj[0].id = todolist.id;
         data.inst.deselect_all();
         return data.inst.select_node(data.rslt.obj);
       });
     };
 
-    HomeView.prototype.onTodoListRenamed = function(path, newName, data) {
+    HomeView.prototype.onTodoListRenamed = function(listId, newName, data) {
       var _this = this;
       if (newName != null) {
-        return TodoList.updateTodoList(data.rslt.obj.data("id"), {
+        return TodoList.updateTodoList(listId, {
           title: newName
         }, function() {
           data.inst.deselect_all();
@@ -1187,22 +1195,25 @@ window.require.define({"views/home_view": function(exports, require, module) {
       }
     };
 
-    HomeView.prototype.onTodoListRemoved = function(path) {
-      $("#todo-list").html(null);
-      return this.currentTodolist.destroy();
+    HomeView.prototype.onTodoListRemoved = function(listId) {
+      if (this.currentTodolist && this.currentTodolist.id === listId) {
+        this.currentTodolist.destroy();
+      } else {
+        TodoList.deleteTodoList(listId, function() {});
+      }
+      return $("#todo-list").html(null);
     };
 
-    HomeView.prototype.onTodoListSelected = function(path, id) {
+    HomeView.prototype.onTodoListSelected = function(path, id, data) {
       var _this = this;
-      if (path.indexOf("/")) {
-        path = "/" + path;
-      }
-      app.router.navigate("todolist" + path, {
-        trigger: false
-      });
-      if (id != null) {
-        return TodoList.getTodoList(id, function(todolist) {
-          _this.renderTodolist(todolist);
+      if ((id != null) && id !== "tree-node-all") {
+        console.log(id);
+        console.log(path);
+        return TodoList.getTodoList(id, function(list) {
+          app.router.navigate("todolist" + path, {
+            trigger: false
+          });
+          _this.renderTodolist(list);
           return _this.todolist.show();
         });
       } else {
@@ -1213,20 +1224,20 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.onTreeLoaded = function() {
       this.$("#tree").spin();
-      if (this.treeCreationCallback != null) {
-        return this.treeCreationCallback();
+      if (this.treeLoadedCallback != null) {
+        return this.treeLoadedCallback();
       }
     };
 
-    HomeView.prototype.onTodoListDropped = function(newPath, oldPath, todolistTitle, data) {
+    HomeView.prototype.onTodoListDropped = function(nodeId, targetNodeId) {
       var _this = this;
-      newPath = newPath + "/" + helpers.slugify(todolistTitle);
-      alert(newPath);
-      return TodoList.updateTodoList(data.rslt.o.data("id"), {
-        path: newPath
+      return TodoList.updateTodoList(nodeId, {
+        parent_id: targetNodeId
       }, function() {
-        data.inst.deselect_all();
-        return data.inst.select_node(data.rslt.o);
+        return TodoList.getTodoList(nodeId, function(body) {
+          _this.currentTodolist.set("path", body.path);
+          return _this.currentTodolist.view.refreshBreadcrump();
+        });
       });
     };
 
@@ -1244,8 +1255,11 @@ window.require.define({"views/home_view": function(exports, require, module) {
     */
 
 
-    HomeView.prototype.selectList = function(path) {
-      return this.tree.selectNode(path);
+    HomeView.prototype.selectList = function(id) {
+      if (id === "all") {
+        id = 'tree-node-all';
+      }
+      return this.tree.selectNode(id);
     };
 
     HomeView.prototype.renderTodolist = function(todolist) {
@@ -1741,7 +1755,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };
@@ -1779,7 +1793,7 @@ window.require.define({"views/templates/tree_buttons": function(exports, require
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="tree-buttons"><button id="tree-create" class="btn btn-info"><i class="icon-plus"></i></button><button id="tree-remove" class="btn btn-info"><i class="icon-remove"></i></button><button id="tree-rename" class="btn btn-info"><i class="icon-pencil"></i></button><button id="tree-search" class="btn btn-info"><i class="icon-search"></i></button><button id="have-done-list-button" class="btn btn-info"><i class="icon-tasks"></i></button><div class="spacer"></div><input id="tree-search-field" type="text"/></div>');
+  buf.push('<div id="tree-buttons-root"><div id="tree-create-root" class="button"><i class="icon-plus"></i></div></div><div id="tree-buttons"><div id="tree-create" class="button"><i class="icon-plus"></i></div><div id="tree-remove" class="button"><i class="icon-remove"></i></div><div id="tree-rename" class="button"><i class="icon-pencil"></i></div></div>');
   }
   return buf.join("");
   };
@@ -1837,7 +1851,6 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
 
     TodoListWidget.prototype.render = function() {
-      var breadcrumb;
       $(this.el).html(require('./templates/todolist'));
       this.title = this.$(".todo-list-title .description");
       this.breadcrumb = this.$(".todo-list-title .breadcrumb");
@@ -1852,15 +1865,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.newButton.click(this.onAddClicked);
       this.showButtonsButton.unbind("click");
       this.showButtonsButton.click(this.onEditClicked);
-      if (this.model != null) {
-        breadcrumb = this.model.humanPath.split(",");
-        breadcrumb.pop();
-        this.breadcrumb.html(breadcrumb.join(" / "));
-        this.title.html(this.model.title);
-      } else {
-        this.breadcrumb.html("");
-        this.title.html("all tasks");
-      }
+      this.refreshBreadcrump();
       return this.el;
     };
 
@@ -1937,7 +1942,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           if ($(".task:not(.done)").length > 0) {
             $(".task:first .description").focus();
           } else {
-            if (typeof model !== "undefined" && model !== null) {
+            if (_this.model != null) {
               _this.onAddClicked();
             }
           }
@@ -1955,6 +1960,22 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
     TodoListWidget.prototype.blurAllTaskDescriptions = function() {
       return this.$(".task .description").trigger("blur");
+    };
+
+    TodoListWidget.prototype.refreshBreadcrump = function() {
+      var breadcrumb;
+      if (this.model != null) {
+        breadcrumb = this.model.get("path");
+        if (!breadcrumb) {
+          breadcrumb = this.model.path;
+        }
+        breadcrumb.pop();
+        this.breadcrumb.html(breadcrumb.join(" / "));
+        return this.title.html(this.model.title);
+      } else {
+        this.breadcrumb.html("");
+        return this.title.html("all tasks");
+      }
     };
 
     return TodoListWidget;
@@ -2023,31 +2044,120 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
   var slugify,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  slugify = require("../../helpers").slugify;
+  slugify = require("helpers").slugify;
+
+  /* Widget to easily manipulate data tree (navigation for cozy apps)
+  Properties :
+      currentPath      = ex : /all/coutries/great_britain  ("great_britain" is the uglified name of the note)
+      currentData      = data : jstree data obj sent by the select
+      currentNote_uuid : uuid of the currently selected note
+      widget           = @jstreeEl.jstree
+      searchField      = $("#tree-search-field")
+      searchButton     = $("#tree-search")
+      noteFull
+      jstreeEl         = $("#tree")
+  */
+
 
   exports.Tree = (function() {
+    /**
+    #suggestionList is a global array containing all the suggestions for the
+    #autocompletion plugin
+    #this array contains objects with the nature of the suggestion
+    #(folder, tag, search string...) and the string corresponding to the suggestion
+    */
 
-    function Tree(navEl, treeEl, data, callbacks) {
-      var tree;
-      this.treeEl = treeEl;
-      this._onSearchChanged = __bind(this._onSearchChanged, this);
+    var suggestionList, _sortFunction;
 
-      this._onSearchClicked = __bind(this._onSearchClicked, this);
+    suggestionList = [];
 
-      this._convertData = __bind(this._convertData, this);
+    /**
+    #used by the .sort() method to be efficient with our structure
+    */
 
-      this._getStringPath = __bind(this._getStringPath, this);
 
-      this.setToolbar(navEl);
-      tree = this._convertData(data);
-      this.widget = this.treeEl.jstree({
+    _sortFunction = function(a, b) {
+      if (a.name > b.name) {
+        return 1;
+      } else if (a.name === b.name) {
+        return 0;
+      } else if (a.name < b.name) {
+        return -1;
+      }
+    };
+
+    /**
+    #this method update the array suggestionList when the user add, rename or remove
+    #a node
+    #input: action : neither create, rename or remove,
+    #nodeName : in case of create and remove : the name of the new note or the note to remove
+    # in case of rename : the new name of the note
+    #oldName : only for rename : the name that will be replaced in the note
+    #output : suggestionList updated
+    */
+
+
+    Tree.prototype._updateSuggestionList = function(action, nodeName, oldName) {
+      var i, object;
+      if (action === "create") {
+        object = {
+          type: "folder",
+          name: nodeName
+        };
+        suggestionList.push(object);
+        return suggestionList.sort(_sortFunction);
+      } else if (action === "rename") {
+        i = 0;
+        while (suggestionList[i].name !== oldName) {
+          i++;
+        }
+        suggestionList[i].name = nodeName;
+        return suggestionList.sort(_sortFunction);
+      } else if (action === "remove") {
+        i = 0;
+        while (suggestionList[i].name !== nodeName) {
+          i++;
+        }
+        return suggestionList.splice(i, 1);
+      }
+    };
+
+    /**
+    # Initialize jsTree tree with options : sorting, create/rename/delete,
+    # unique children and json data for loading.
+    # params :
+    #   navEl : 
+    #   data :
+    #   homeViewCbk :
+    */
+
+
+    function Tree(navEl, data, homeViewCbk) {
+      this._getSlugPath = __bind(this._getSlugPath, this);
+
+      var jstreeEl, supprButton;
+      jstreeEl = $("#tree");
+      this.jstreeEl = jstreeEl;
+      supprButton = $("#suppr-button");
+      this.supprButton = supprButton;
+      navEl.prepend(require('../templates/tree_buttons'));
+      /**
+      # Creation of the jstree
+      # jstree is a plugin to implement the node tree
+      # Please visit http://www.jstree.com/ for more information
+      */
+
+      data = JSON.parse(data);
+      this.widget = this.jstreeEl.jstree({
         plugins: ["themes", "json_data", "ui", "crrm", "unique", "sort", "cookies", "types", "hotkeys", "dnd", "search"],
-        json_data: tree,
+        json_data: {
+          data: data
+        },
         types: {
           "default": {
             valid_children: "default"
           },
-          "root": {
+          root: {
             valid_children: null,
             delete_node: false,
             rename_node: false,
@@ -2055,17 +2165,25 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
             start_drag: false
           }
         },
-        hotkeys: {
-          space: false,
-          up: false,
-          down: false,
-          left: false,
-          right: false,
-          del: false
+        crrm: {
+          move: {
+            check_move: function(data) {
+              if (data.r.attr("id") === "tree-node-all") {
+                return false;
+              } else {
+                return true;
+              }
+            }
+          }
+        },
+        cookies: {
+          save_selected: false
         },
         ui: {
-          select_limit: 1,
-          initially_select: ["tree-node-all"]
+          select_limit: 1
+        },
+        hotkeys: {
+          del: false
         },
         themes: {
           theme: "default",
@@ -2076,116 +2194,207 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
           animation: 0,
           initially_open: ["tree-node-all"]
         },
-        unique: {
-          error_callback: function(node, p, func) {
-            return alert("A note has already that name: '" + node + "'");
-          }
+        search: {
+          search_method: "jstree_contains_multi",
+          show_only_matches: true
         }
       });
-      this.searchField = $("#tree-search-field");
-      this.searchButton = $("#tree-search");
-      this.setListeners(callbacks);
+      this.setListeners(homeViewCbk);
+      /**
+      #Autocompletion
+      */
+
+      /*
+              #this function allow to select what appears in the suggestion list while
+              #the user type something in the search input
+              #input : array of suggestions, current string in the search input
+              #outputs : an array containing strings corresponding to suggestions 
+              #depending on the searchstring
+      */
+
+      /**
+      #used by textext to change the render of the suggestion list
+      #attach an icon to a certain type in the autocomplete list
+      #input : suggestion : a string which is the suggestion, 
+      #array : the array is suggestionList containing all the suggestions
+      # possible and their nature
+      */
+
+      /**
+      #treat the content of the input and launch the jstree search function
+      */
+
+      /**
+      #Textext plugin is used to implement the autocomplete plugin
+      #Please visit http://textextjs.com/ for more information about this plugin
+      */
+
     }
 
-    Tree.prototype.setToolbar = function(navEl) {
-      return navEl.prepend(require('../templates/tree_buttons'));
+    /**
+    # Bind listeners given in parameters with comment events (creation,
+    # update, deletion, selection). Called by the constructor once.
+    */
+
+
+    Tree.prototype.setListeners = function(homeViewCbk) {
+      var Tree, jstreeEl, modalAlert, modalYesBtn, progressBar, recursiveRemoveSuggestionList, supprButton, textPrompt, tree_buttons, tree_buttons_root, tree_buttons_target,
+        _this = this;
+      Tree = this;
+      jstreeEl = this.jstreeEl;
+      supprButton = this.supprButton;
+      this.progressBar = $(".bar");
+      progressBar = this.progressBar;
+      tree_buttons = $("#tree-buttons");
+      modalAlert = $('#myModal');
+      modalYesBtn = $("#modal-yes");
+      tree_buttons_root = $("#tree-buttons-root");
+      $("#tree-create").on("click", function(e) {
+        jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New list");
+        e.stopPropagation();
+        return e.preventDefault();
+      });
+      $("#tree-create-root").on("click", function(e) {
+        jstreeEl.jstree("create", this.parentElement.parentElement, 0, "New list");
+        e.stopPropagation();
+        return e.preventDefault();
+      });
+      $("#tree-rename").on("click", function(e) {
+        jstreeEl.jstree("rename", this.parentElement.parentElement);
+        e.preventDefault();
+        return e.stopPropagation();
+      });
+      /**
+      # this function remove the sons of a removed node in the suggestion list
+      */
+
+      recursiveRemoveSuggestionList = function(nodeToDelete) {
+        var node, _i, _len, _ref;
+        if (nodeToDelete.children[2] === void 0) {
+          return Tree._updateSuggestionList("remove", nodeToDelete.children[1].text.replace(/\s/, ""), null);
+        } else {
+          _ref = nodeToDelete.children[2].children;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            node = _ref[_i];
+            recursiveRemoveSuggestionList(node);
+          }
+          return Tree._updateSuggestionList("remove", nodeToDelete.children[1].text.replace(/\s/, ""), null);
+        }
+      };
+      $("#tree-remove").on("click", function(e) {
+        var nodeToDelete,
+          _this = this;
+        console.log("event : tree-remove.click");
+        nodeToDelete = this.parentElement.parentElement.parentElement;
+        $('#confirm-delete-modal').modal('show');
+        $("#yes-button").on("click", function(e) {
+          var noteToDelete_id;
+          noteToDelete_id = nodeToDelete.id;
+          if (noteToDelete_id !== 'tree-node-all') {
+            jstreeEl.jstree("remove", nodeToDelete);
+            return homeViewCbk.onRemove(noteToDelete_id);
+          }
+        });
+        e.preventDefault();
+        return e.stopPropagation();
+      });
+      tree_buttons_target = $("#nav");
+      this.widget.on("hover_node.jstree", function(event, data) {
+        if (data.rslt.obj[0].id === "tree-node-all") {
+          tree_buttons_root.appendTo(data.args[0]);
+          return tree_buttons_root.css("display", "block");
+        } else {
+          tree_buttons.appendTo(data.args[0]);
+          return tree_buttons.css("display", "block");
+        }
+      });
+      this.widget.on("dehover_node.jstree", function(event, data) {
+        if (data.rslt.obj[0].id === "tree-node-all") {
+          tree_buttons_root.css("display", "none");
+          return tree_buttons_root.appendTo(tree_buttons_target);
+        } else {
+          tree_buttons.css("display", "none");
+          return tree_buttons.appendTo(tree_buttons_target);
+        }
+      });
+      textPrompt = $(".text-prompt");
+      supprButton.click(function() {
+        $(".text-tags").empty();
+        textPrompt.css("padding-left", "5px");
+        textPrompt.css("padding-top", "3px");
+        $(".text-wrap").css("height", "22px");
+        $(".text-core").css("height", "22px");
+        $(".text-dropdown").css("top", "22px");
+        return supprButton.css("display", "none");
+      });
+      this.widget.on("create.jstree", function(e, data) {
+        var nodeName, parentId;
+        console.log("event : create.jstree");
+        nodeName = data.inst.get_text(data.rslt.obj);
+        _this._updateSuggestionList("create", nodeName, null);
+        parentId = data.rslt.parent[0].id;
+        return homeViewCbk.onCreate(parentId, data.rslt.name, data);
+      });
+      this.widget.on("rename.jstree", function(e, data) {
+        var newNodeName, oldNodeName;
+        console.log("event : rename.jstree");
+        newNodeName = data.rslt.new_name;
+        oldNodeName = data.rslt.old_name;
+        if (oldNodeName !== newNodeName) {
+          return homeViewCbk.onRename(data.rslt.obj[0].id, newNodeName);
+        }
+      });
+      this.widget.on("select_node.jstree", function(e, data) {
+        var nodeName, note_uuid, parent, path;
+        console.log("event : select_node.jstree");
+        note_uuid = data.rslt.obj[0].id;
+        if (note_uuid === "tree-node-all") {
+          path = "/all";
+        } else {
+          nodeName = data.inst.get_text(data.rslt.obj);
+          parent = data.inst._get_parent();
+          path = "/" + data.rslt.obj[0].id + _this._getSlugPath(parent, nodeName);
+        }
+        _this.currentPath = path;
+        _this.currentData = data;
+        _this.currentNote_uuid = note_uuid;
+        _this.jstreeEl[0].focus();
+        return homeViewCbk.onSelect(path, note_uuid, data);
+      });
+      this.widget.on("move_node.jstree", function(e, data) {
+        var nodeId, targetNodeId;
+        console.log("event : move_node.jstree");
+        nodeId = data.rslt.o[0].id;
+        targetNodeId = data.rslt.o[0].parentElement.parentElement.id;
+        return homeViewCbk.onDrop(nodeId, targetNodeId);
+      });
+      return this.widget.on("loaded.jstree", function(e, data) {
+        console.log("event : loaded.jstree");
+        progressBar.css("width", "20%");
+        return homeViewCbk.onLoaded();
+      });
     };
 
-    Tree.prototype.setListeners = function(callbacks) {
-      var _this = this;
-      $("#tree-create").click(function() {
-        return _this.treeEl.jstree("create");
-      });
-      $("#tree-rename").click(function() {
-        return _this.treeEl.jstree("rename");
-      });
-      $("#tree-remove").click(function() {
-        return _this.treeEl.jstree("remove");
-      });
-      this.searchButton.click(this._onSearchClicked);
-      this.searchField.keyup(this._onSearchChanged);
-      this.widget.bind("create.jstree", function(e, data) {
-        var idPath, nodeName, parent, path;
-        nodeName = data.inst.get_text(data.rslt.obj);
-        parent = data.rslt.parent;
-        path = _this._getPath(parent, nodeName);
-        path.pop();
-        idPath = "tree-node" + (_this._getPath(parent, nodeName).join("-"));
-        data.rslt.obj.attr("id", idPath);
-        return callbacks.onCreate(path.join("/"), data.rslt.name, data);
-      });
-      this.widget.bind("rename.jstree", function(e, data) {
-        var idPath, nodeName, parent, path;
-        nodeName = data.inst.get_text(data.rslt.obj);
-        parent = data.inst._get_parent(data.rslt.parent);
-        path = _this._getStringPath(parent, data.rslt.old_name);
-        if (path === "all") {
-          return $.jstree.rollback(data.rlbk);
-        } else if (data.rslt.old_name !== data.rslt.new_name) {
-          idPath = "tree-node" + (_this._getPath(parent, nodeName).join("-"));
-          data.rslt.obj.attr("id", idPath);
-          _this.rebuildIds(data, data.rslt.obj, idPath);
-          return callbacks.onRename(path, data.rslt.new_name, data);
-        }
-      });
-      this.widget.bind("remove.jstree", function(e, data) {
-        var nodeName, parent, path;
-        nodeName = data.inst.get_text(data.rslt.obj);
-        parent = data.rslt.parent;
-        path = _this._getStringPath(parent, nodeName);
-        if (path === "all") {
-          return $.jstree.rollback(data.rlbk);
-        } else {
-          return callbacks.onRemove(path);
-        }
-      });
-      this.widget.bind("select_node.jstree", function(e, data) {
-        var nodeName, parent, path;
-        nodeName = data.inst.get_text(data.rslt.obj);
-        parent = data.inst._get_parent(data.rslt.parent);
-        path = _this._getStringPath(parent, nodeName);
-        return callbacks.onSelect(path, data.rslt.obj.data("id"));
-      });
-      this.widget.bind("move_node.jstree", function(e, data) {
-        var newPath, nodeName, oldParent, oldPath, parent;
-        nodeName = data.inst.get_text(data.rslt.o);
-        parent = data.inst._get_parent(data.rslt.o);
-        newPath = _this._getPath(parent, nodeName);
-        newPath.pop();
-        oldParent = data.inst.get_text(data.rslt.op);
-        parent = data.inst._get_parent(data.rslt.op);
-        oldPath = _this._getPath(parent, oldParent);
-        oldPath.push(slugify(nodeName));
-        if (newPath.length === 0) {
-          return $.jstree.rollback(data.rlbk);
-        } else {
-          return callbacks.onDrop(newPath.join("/"), oldPath.join("/"), nodeName, data);
-        }
-      });
-      return this.widget.bind("loaded.jstree", function(e, data) {
-        return callbacks.onLoaded();
-      });
-    };
+    /**
+    #Select node corresponding to given path
+    #if note_uuid exists in the jstree it is selected
+    #otherwise if there is no seleted node, we select the root
+    */
 
-    Tree.prototype.rebuildIds = function(data, obj, idPath) {
-      var child, newIdPath, _i, _len, _ref, _results;
-      _ref = data.inst._get_children(obj);
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        child = _ref[_i];
-        newIdPath = idPath + "-" + slugify($(child).children("a:eq(0)").text());
-        $(child).attr("id", newIdPath);
-        _results.push(this.rebuildIds(data, child, newIdPath));
+
+    Tree.prototype.selectNode = function(note_uuid) {
+      var jstreeEl, node, progressBar, tree;
+      progressBar = this.progressBar;
+      jstreeEl = this.jstreeEl;
+      console.log("Tree.selectNode( " + note_uuid + " )");
+      progressBar.css("width", "50%");
+      node = $("#" + note_uuid);
+      if (node[0]) {
+        tree = jstreeEl.jstree("deselect_all", null);
+        return tree = jstreeEl.jstree("select_node", node);
+      } else if (!this.widget.jstree("get_selected")[0]) {
+        return tree = jstreeEl.jstree("select_node", "#tree-node-all");
       }
-      return _results;
-    };
-
-    Tree.prototype.selectNode = function(path) {
-      var node, nodePath, tree;
-      nodePath = path.replace(/\//g, "-");
-      node = $("#tree-node-" + nodePath);
-      tree = $("#tree").jstree("deselect_all", null);
-      return tree = $("#tree").jstree("select_node", node);
     };
 
     Tree.prototype._getPath = function(parent, nodeName) {
@@ -2202,73 +2411,8 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       return nodes;
     };
 
-    Tree.prototype._getStringPath = function(parent, nodeName) {
+    Tree.prototype._getSlugPath = function(parent, nodeName) {
       return this._getPath(parent, nodeName).join("/");
-    };
-
-    Tree.prototype._convertData = function(data) {
-      var tree;
-      tree = {
-        data: {
-          data: "all",
-          attr: {
-            id: "tree-node-all",
-            rel: "root"
-          },
-          children: []
-        }
-      };
-      this._convertNode(tree.data, data.all, "-all");
-      if (tree.data.length === 0) {
-        tree.data = "loading...";
-      }
-      return tree;
-    };
-
-    Tree.prototype._convertNode = function(parentNode, nodeToConvert, idpath) {
-      var newNode, nodeIdPath, property, _results;
-      _results = [];
-      for (property in nodeToConvert) {
-        if (!(property !== "name" && property !== "id")) {
-          continue;
-        }
-        nodeIdPath = "" + idpath + "-" + (property.replace(/_/g, "-"));
-        newNode = {
-          data: nodeToConvert[property].name,
-          metadata: {
-            id: nodeToConvert[property].id
-          },
-          attr: {
-            id: "tree-node" + nodeIdPath,
-            rel: "default"
-          },
-          children: []
-        };
-        if (parentNode.children === void 0) {
-          parentNode.data.push(newNode);
-        } else {
-          parentNode.children.push(newNode);
-        }
-        _results.push(this._convertNode(newNode, nodeToConvert[property], nodeIdPath));
-      }
-      return _results;
-    };
-
-    Tree.prototype._onSearchClicked = function(event) {
-      if (this.searchField.is(":hidden")) {
-        this.searchField.show();
-        this.searchField.focus();
-        return this.searchButton.addClass("button-active");
-      } else {
-        this.searchField.hide();
-        return this.searchButton.removeClass("button-active");
-      }
-    };
-
-    Tree.prototype._onSearchChanged = function(event) {
-      var searchString;
-      searchString = this.searchField.val();
-      return this.treeEl.jstree("search", searchString);
     };
 
     return Tree;

@@ -43,3 +43,5 @@ class exports.TodoList extends BaseModel
             todolist = new TodoList data
             callback(todolist)
 
+    @deleteTodoList = (id, callback) ->
+        request "DELETE", "todolists/#{id}", callback

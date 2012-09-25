@@ -1145,16 +1145,10 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.loadData = function(callback) {
       var _this = this;
-<<<<<<< HEAD
-      this.$("#tree-loading-indicator").spin();
-      return $.get("tree/", function(data) {
-        _this.tree = new Tree(_this.$("#nav"), _this.$("#tree"), data, {
-=======
       this.$("#tree").spin();
       $.get("tree/", function(data) {
         window.tree = data;
         _this.tree = new Tree(_this.$("#nav"), data, {
->>>>>>> development
           onCreate: _this.onTodoListCreated,
           onRename: _this.onTodoListRenamed,
           onRemove: _this.onTodoListRemoved,
@@ -1224,15 +1218,9 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     HomeView.prototype.onTreeLoaded = function() {
-<<<<<<< HEAD
-      this.$("#tree-loading-indicator").spin();
-      if (this.treeCreationCallback != null) {
-        return this.treeCreationCallback();
-=======
       this.$("#tree").spin();
       if (this.treeLoadedCallback != null) {
         return this.treeLoadedCallback();
->>>>>>> development
       }
     };
 
@@ -1776,11 +1764,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-<<<<<<< HEAD
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div>');
-=======
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
->>>>>>> development
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };

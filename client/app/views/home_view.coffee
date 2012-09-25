@@ -129,13 +129,8 @@ class exports.HomeView extends Backbone.View
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
     onTreeLoaded: =>
-<<<<<<< HEAD
-        @$("#tree-loading-indicator").spin()
-        @treeCreationCallback() if @treeCreationCallback?
-=======
         @$("#tree").spin()
         @treeLoadedCallback() if @treeLoadedCallback?
->>>>>>> development
 
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.

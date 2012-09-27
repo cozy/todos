@@ -7,7 +7,7 @@ DataTree = require("./common/data-tree").DataTree
 
 todolist = new TodoList
     title: "Tutorial"
-    path: ["All","Tutorial"]
+    path: ["Tutorial"]
 
 
 tasks = [

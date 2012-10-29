@@ -168,7 +168,7 @@ class exports.Tree
             newNodeName = data.rslt.new_name
             oldNodeName = data.rslt.old_name
             if oldNodeName != newNodeName
-                homeViewCbk.onRename data.rslt.obj[0].id, newNodeName
+                homeViewCbk.onRename data.rslt.obj[0].id, newNodeName, data.inst
 
         @widget.on "select_node.jstree", (e, data) =>
             note_uuid = data.rslt.obj[0].id
@@ -204,6 +204,14 @@ class exports.Tree
             @jstreeEl.jstree("select_node", node)
         else if not @jstreeEl.jstree("get_selected")[0]
             @jstreeEl.jstree("select_node", "#tree-node-all")
+
+    # Return Currently selected node.
+    getSelectedNode: ->
+        @jstreeEl.jstree("get_selected")
+
+    # Return parent of given child
+    getParent: (child) ->
+        child.parent().parent()
 
     #Returns path to a node for a given node.
     #data.inst is the jstree instance

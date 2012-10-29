@@ -331,6 +331,35 @@ window.require.define({"collections/tasks": function(exports, require, module) {
   
 }});
 
+window.require.define({"collections/todolists": function(exports, require, module) {
+  var TodoList,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  TodoList = require("../models/todolist").TodoList;
+
+  exports.TodoListCollection = (function(_super) {
+
+    __extends(TodoListCollection, _super);
+
+    TodoListCollection.prototype.model = TodoList;
+
+    TodoListCollection.prototype.url = 'todolists/';
+
+    function TodoListCollection() {
+      TodoListCollection.__super__.constructor.call(this);
+    }
+
+    TodoListCollection.prototype.parse = function(response) {
+      return response.rows;
+    };
+
+    return TodoListCollection;
+
+  })(Backbone.Collection);
+  
+}});
+
 window.require.define({"helpers": function(exports, require, module) {
   
   exports.BrunchApplication = (function() {
@@ -862,13 +891,20 @@ window.require.define({"models/task": function(exports, require, module) {
         this.url += "" + this.id + "/";
       }
       this.setSimpleDate(task.completionDate);
+      this.setListName();
     }
 
     Task.prototype.setSimpleDate = function(date) {
       if (!(date != null)) {
         date = new Date();
       }
-      return this.simpleDate = moment(date).format("DD/MM/YYYY");
+      this.simpleDate = moment(date).format("DD/MM/YYYY");
+      return this.fullDate = moment(date).format("DD/MM/YYYY HH:mm");
+    };
+
+    Task.prototype.setListName = function() {
+      this.listTitle = app.homeView.todolists.get(this.list).title;
+      return this.listPath = app.homeView.todolists.get(this.list).path.join(" > ");
     };
 
     Task.prototype.setNextTask = function(task) {
@@ -1018,7 +1054,8 @@ window.require.define({"routers/main_router": function(exports, require, module)
 
     MainRouter.prototype.routes = {
       '': 'home',
-      "todolist/:id/all/:path": "list"
+      "todolist/:id/all/:path": "list",
+      "todolist/all": "list"
     };
 
     MainRouter.prototype.initialize = function() {
@@ -1031,7 +1068,7 @@ window.require.define({"routers/main_router": function(exports, require, module)
       return app.homeView.loadData(callback);
     };
 
-    MainRouter.prototype.list = function(id, path) {
+    MainRouter.prototype.list = function(id) {
       var selectList;
       selectList = function() {
         return app.homeView.selectList(id);
@@ -1054,7 +1091,7 @@ window.require.define({"routers/main_router": function(exports, require, module)
 }});
 
 window.require.define({"views/home_view": function(exports, require, module) {
-  var HaveDoneListModal, TodoList, TodoListWidget, Tree, helpers,
+  var HaveDoneListModal, TodoList, TodoListCollection, TodoListWidget, Tree, helpers,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1062,6 +1099,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
   Tree = require("./widgets/tree").Tree;
 
   TodoList = require("../models/todolist").TodoList;
+
+  TodoListCollection = require("../collections/todolists").TodoListCollection;
 
   TodoListWidget = require("./todolist_view").TodoListWidget;
 
@@ -1096,6 +1135,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
       this.onTodoListRenamed = __bind(this.onTodoListRenamed, this);
 
       this.onTodoListCreated = __bind(this.onTodoListCreated, this);
+      this.todolists = new TodoListCollection();
       HomeView.__super__.constructor.call(this);
     }
 
@@ -1212,12 +1252,16 @@ window.require.define({"views/home_view": function(exports, require, module) {
           return _this.todolist.show();
         });
       } else {
+        app.router.navigate("todolist/all", {
+          trigger: false
+        });
         this.renderTodolist(null);
         return this.todolist.show();
       }
     };
 
     HomeView.prototype.onTreeLoaded = function() {
+      this.todolists.fetch();
       this.$("#tree").spin();
       if (this.treeLoadedCallback != null) {
         return this.treeLoadedCallback();
@@ -1778,7 +1822,20 @@ window.require.define({"views/templates/task": function(exports, require, module
   var interp;
   buf.push('<button class="btn btn-info todo-button">todo</button><input');
   buf.push(attrs({ 'type':("text"), 'contenteditable':("true"), 'value':("" + (model.description) + ""), "class": ('description') }, {"type":true,"contenteditable":true,"value":true}));
-  buf.push('/><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div>');
+  buf.push('/><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
+  if ( model.done)
+  {
+  buf.push('<span class="task-date">' + escape((interp = model.fullDate) == null ? '' : interp) + '</span>');
+  }
+  if ( model.done && !model.collection.listId)
+  {
+  buf.push('&nbsp;|&nbsp;');
+  }
+  if ( !model.collection.listId)
+  {
+  buf.push('<span class="task-list-infos">' + escape((interp = model.listPath) == null ? '' : interp) + '</span>');
+  }
+  buf.push('</div>');
   }
   return buf.join("");
   };
@@ -1972,19 +2029,39 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     };
 
     TodoListWidget.prototype.refreshBreadcrump = function() {
-      var breadcrumb;
       if (this.model != null) {
-        breadcrumb = this.model.get("path");
-        if (!breadcrumb) {
-          breadcrumb = this.model.path;
-        }
-        breadcrumb.pop();
-        this.breadcrumb.html(breadcrumb.join(" / "));
+        $(".breadcrumb a").unbind();
+        this.breadcrumb.html(this.createBreadcrumb());
+        $(".breadcrumb a").click(function(event) {
+          var hash, id, path;
+          event.preventDefault();
+          hash = event.target.hash.substring(1);
+          path = hash.split("/");
+          id = path[1];
+          return app.homeView.selectList(id);
+        });
         return this.title.html(this.model.title);
       } else {
         this.breadcrumb.html("");
         return this.title.html("All tasks");
       }
+    };
+
+    TodoListWidget.prototype.createBreadcrumb = function() {
+      var breadcrumb, currentPath, listName, parent, path, paths;
+      paths = this.model.path;
+      listName = paths.pop();
+      breadcrumb = "";
+      parent = app.homeView.tree.getSelectedNode();
+      while (paths.length > 0) {
+        parent = app.homeView.tree.getParent(parent);
+        path = "#todolist/" + parent[0].id + "/";
+        currentPath = paths.join("/");
+        listName = paths.pop();
+        breadcrumb = "<a href='" + path + currentPath + "'> " + listName + "</a> >" + breadcrumb;
+      }
+      breadcrumb = "<a href='#todolist/all'> All</a> >" + breadcrumb;
+      return breadcrumb;
     };
 
     return TodoListWidget;
@@ -2227,7 +2304,7 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
         newNodeName = data.rslt.new_name;
         oldNodeName = data.rslt.old_name;
         if (oldNodeName !== newNodeName) {
-          return homeViewCbk.onRename(data.rslt.obj[0].id, newNodeName);
+          return homeViewCbk.onRename(data.rslt.obj[0].id, newNodeName, data.inst);
         }
       });
       this.widget.on("select_node.jstree", function(e, data) {
@@ -2273,6 +2350,14 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       } else if (!this.jstreeEl.jstree("get_selected")[0]) {
         return this.jstreeEl.jstree("select_node", "#tree-node-all");
       }
+    };
+
+    Tree.prototype.getSelectedNode = function() {
+      return this.jstreeEl.jstree("get_selected");
+    };
+
+    Tree.prototype.getParent = function(child) {
+      return child.parent().parent();
     };
 
     Tree.prototype._getPath = function(parent, nodeName) {

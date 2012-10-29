@@ -5,3 +5,12 @@ input.description(type="text",contenteditable="true",
     button.up-task-button.btn up
     button.down-task-button.btn down
     button.del-task-button.btn X
+
+
+.task-infos
+    if model.done
+        span.task-date #{model.fullDate}
+    if model.done && !model.collection.listId
+        &nbsp;|&nbsp;
+    if !model.collection.listId
+        span.task-list-infos #{model.listPath}

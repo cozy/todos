@@ -129,11 +129,36 @@ class exports.TodoListWidget extends Backbone.View
     # Refresh breadcrump with data from current model.
     refreshBreadcrump: ->
         if @model?
-            breadcrumb = @model.get "path"
-            breadcrumb = @model.path if not breadcrumb
-            breadcrumb.pop()
-            @breadcrumb.html breadcrumb.join(" / ")
+            $(".breadcrumb a").unbind()
+            @breadcrumb.html @createBreadcrumb()
+            $(".breadcrumb a").click (event) ->
+                event.preventDefault()
+                hash = event.target.hash.substring(1)
+                path = hash.split("/")
+                id = path[1]
+                app.homeView.selectList id
+                                             
             @title.html @model.title
         else
             @breadcrumb.html ""
             @title.html "All tasks"
+
+    # breadcrumb will contain the path of the selected list in a link format(<a>)
+    # the code below generates the breadcrumb corresponding
+    # to the current list path
+    createBreadcrumb: ->
+        paths = @model.path
+        listName = paths.pop()
+        breadcrumb = ""
+
+        parent = app.homeView.tree.getSelectedNode()
+        
+        while paths.length > 0
+            parent = app.homeView.tree.getParent parent
+            path = "#todolist/#{parent[0].id}/"
+            currentPath = paths.join("/")
+            listName = paths.pop()
+            breadcrumb = "<a href='#{path}#{currentPath}'> #{listName}</a> >#{breadcrumb}"
+
+        breadcrumb = "<a href='#todolist/all'> All</a> >#{breadcrumb}"
+        breadcrumb

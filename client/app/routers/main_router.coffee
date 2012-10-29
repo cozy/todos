@@ -2,6 +2,7 @@ class exports.MainRouter extends Backbone.Router
     routes:
         '': 'home'
         "todolist/:id/all/:path" : "list"
+        "todolist/all" : "list"
 
     initialize: ->
         @route(/^todolist\/(.*?)\/(.*?)$/, 'list')
@@ -15,7 +16,7 @@ class exports.MainRouter extends Backbone.Router
     # Select given list (represented by its path), if tree is already
     # rendered, list is directly selected else it loads tree then it selects
     # given list.
-    list: (id, path) ->
+    list: (id) ->
         selectList = ->
             app.homeView.selectList id
 

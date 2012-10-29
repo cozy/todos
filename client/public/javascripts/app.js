@@ -1972,19 +1972,41 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     };
 
     TodoListWidget.prototype.refreshBreadcrump = function() {
-      var breadcrumb;
       if (this.model != null) {
-        breadcrumb = this.model.get("path");
-        if (!breadcrumb) {
-          breadcrumb = this.model.path;
-        }
-        breadcrumb.pop();
-        this.breadcrumb.html(breadcrumb.join(" / "));
+        $(".breadcrumb a").unbind();
+        this.breadcrumb.html(this.createBreadcrumb());
+        $(".breadcrumb a").click(function(event) {
+          var hash, id, path;
+          event.preventDefault();
+          hash = event.target.hash.substring(1);
+          path = hash.split("/");
+          id = path[1];
+          return app.homeView.selectList(id);
+        });
         return this.title.html(this.model.title);
       } else {
         this.breadcrumb.html("");
         return this.title.html("All tasks");
       }
+    };
+
+    TodoListWidget.prototype.createBreadcrumb = function() {
+      var breadcrumb, currentPath, listName, parent, path, paths;
+      paths = this.model.path;
+      listName = paths.pop();
+      breadcrumb = "";
+      parent = app.homeView.tree.getSelectedNode();
+      console.log(parent);
+      while (paths.length > 0) {
+        console.log(parent);
+        parent = app.homeView.tree.getParent(parent);
+        path = "#note/" + parent[0].id + "/";
+        currentPath = paths.join("/");
+        listName = paths.pop();
+        breadcrumb = "<a href='" + path + currentPath + "'> " + listName + "</a> >" + breadcrumb;
+      }
+      breadcrumb = "<a href='#note/all'> All</a> >" + breadcrumb;
+      return breadcrumb;
     };
 
     return TodoListWidget;
@@ -2227,7 +2249,7 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
         newNodeName = data.rslt.new_name;
         oldNodeName = data.rslt.old_name;
         if (oldNodeName !== newNodeName) {
-          return homeViewCbk.onRename(data.rslt.obj[0].id, newNodeName);
+          return homeViewCbk.onRename(data.rslt.obj[0].id, newNodeName, data.inst);
         }
       });
       this.widget.on("select_node.jstree", function(e, data) {
@@ -2273,6 +2295,14 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       } else if (!this.jstreeEl.jstree("get_selected")[0]) {
         return this.jstreeEl.jstree("select_node", "#tree-node-all");
       }
+    };
+
+    Tree.prototype.getSelectedNode = function() {
+      return this.jstreeEl.jstree("get_selected");
+    };
+
+    Tree.prototype.getParent = function(child) {
+      return child.parent().parent();
     };
 
     Tree.prototype._getPath = function(parent, nodeName) {

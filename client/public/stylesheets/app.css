@@ -5561,6 +5561,13 @@ ol {
   margin: 0;
   text-transform: lowercase;
 }
+.breadcrumb a {
+  color: #333;
+}
+.breadcrumb a:hover {
+  font-size: 12px;
+  font-weight: normal;
+}
 .completion-date {
   font-size: 12px;
   border-bottom: 1px solid #eee;

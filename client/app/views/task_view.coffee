@@ -97,27 +97,39 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        if not @model.done and @model.collection.up @model
-            @focusDescription()
+        condition = @model.collection.listId?
+        condition = condition and not @model.done
+        condition = condition and @model.collection.up @model
 
+        if condition
+            @focusDescription()
             @showLoading()
-            @model.save
+            @model.save null,
                 success: =>
+                    @todoButton = @$(".todo-button")
                     @hideLoading()
                 error: =>
+                    @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        if not @model.done and @model.collection.down @model
+        condition = @model.collection.listId?
+        condition = condition and not @model.done
+        condition = condition and @model.collection.down @model
+
+        if condition
             @showLoading()
-            @model.save
+            @model.save null,
                 success: =>
+                    @todoButton = @$(".todo-button")
                     @hideLoading()
                 error: =>
+                    @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+                
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>
@@ -150,15 +162,16 @@ class exports.TaskLine extends Backbone.View
 
     # When enter key is up a new task is created below current one.
     onEnterKeyup: ->
-        @showLoading()
-        @model.collection.insertTask @model, \
-             new Task(description: "new task"),
-             success: (task) =>
-                 helpers.selectAll task.view.descriptionField
-                 @hideLoading()
-             error: =>
-                 alert "Saving failed, an error occured."
-                 @hideLoading()
+        if @model.collection.listId?
+            @showLoading()
+            @model.collection.insertTask @model, \
+                 new Task(description: "new task"),
+                 success: (task) =>
+                     helpers.selectAll task.view.descriptionField
+                     @hideLoading()
+                 error: =>
+                     alert "Saving failed, an error occured."
+                     @hideLoading()
 
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->

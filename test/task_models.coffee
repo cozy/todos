@@ -162,7 +162,6 @@ describe "Task Model", ->
                     Task.archives @listId1, (err, tasks) ->
                         tasks.length.should.equal 4
                         done()
-
             #it "Task is todo with no link set", (done) ->
                 #task = new Task
                     #list: @listId1

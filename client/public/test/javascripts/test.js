@@ -266,15 +266,7 @@ window.require.define({"test/task_collection_test": function(exports, require, m
         return expect(this.collection.at(7).get("nextTask")).to.equal(void 0);
       });
       return it("down", function() {
-        var task, _i, _len, _ref;
         this.collection.down(this.task);
-        _ref = this.collection.toArray();
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          task = _ref[_i];
-          console.log(task.get("previousTask"));
-          console.log(task.description);
-          console.log(task.get("nextTask"));
-        }
         expect(this.collection.at(4).get("previousTask")).to.equal(4);
         expect(this.collection.at(5).get("previousTask")).to.equal(5);
         expect(this.collection.at(6).get("previousTask")).to.equal(9);

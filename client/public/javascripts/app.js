@@ -1433,15 +1433,21 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
-      var _this = this;
-      if (!this.model.done && this.model.collection.up(this.model)) {
+      var condition,
+        _this = this;
+      condition = this.model.collection.listId != null;
+      condition = condition && !this.model.done;
+      condition = condition && this.model.collection.up(this.model);
+      if (condition) {
         this.focusDescription();
         this.showLoading();
-        return this.model.save({
+        return this.model.save(null, {
           success: function() {
+            _this.todoButton = _this.$(".todo-button");
             return _this.hideLoading();
           },
           error: function() {
+            _this.todoButton = _this.$(".todo-button");
             alert("An error occured, modifications were not saved.");
             return _this.hideLoading();
           }
@@ -1450,14 +1456,20 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      var _this = this;
-      if (!this.model.done && this.model.collection.down(this.model)) {
+      var condition,
+        _this = this;
+      condition = this.model.collection.listId != null;
+      condition = condition && !this.model.done;
+      condition = condition && this.model.collection.down(this.model);
+      if (condition) {
         this.showLoading();
-        return this.model.save({
+        return this.model.save(null, {
           success: function() {
+            _this.todoButton = _this.$(".todo-button");
             return _this.hideLoading();
           },
           error: function() {
+            _this.todoButton = _this.$(".todo-button");
             alert("An error occured, modifications were not saved.");
             return _this.hideLoading();
           }
@@ -1503,19 +1515,21 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
     TaskLine.prototype.onEnterKeyup = function() {
       var _this = this;
-      this.showLoading();
-      return this.model.collection.insertTask(this.model, new Task({
-        description: "new task"
-      }), {
-        success: function(task) {
-          helpers.selectAll(task.view.descriptionField);
-          return _this.hideLoading();
-        },
-        error: function() {
-          alert("Saving failed, an error occured.");
-          return _this.hideLoading();
-        }
-      });
+      if (this.model.collection.listId != null) {
+        this.showLoading();
+        return this.model.collection.insertTask(this.model, new Task({
+          description: "new task"
+        }), {
+          success: function(task) {
+            helpers.selectAll(task.view.descriptionField);
+            return _this.hideLoading();
+          },
+          error: function() {
+            alert("Saving failed, an error occured.");
+            return _this.hideLoading();
+          }
+        });
+      }
     };
 
     TaskLine.prototype.onBackspaceKeyup = function() {
@@ -1750,7 +1764,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };

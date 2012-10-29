@@ -1,15 +1,13 @@
 server = require './server'
 async = require "async"
 
-DataTree = require("./common/tree/tree_object").Tree
+DataTree = require("./common/data-tree").DataTree
 
 ## Small script to intialize list of available applications.
 
 todolist = new TodoList
     title: "Tutorial"
-    path: "/all/tutorial"
-    humanPath: "All,Tutorial"
-    tags: "all,tutorial"
+    path: ["Tutorial"]
 
 
 tasks = [
@@ -65,8 +63,8 @@ TodoList.create todolist, (err, list) ->
                 console.log err
                 console.log "Initialization failed (cannot update tree)"
                 process.exit(0)
-            dataTree = new DataTree JSON.parse(tree.struct)
-            dataTree.addNode "/all", list.title, list.id
+            dataTree = new DataTree tree.struct
+            dataTree.addNode list
 
             tree.updateAttributes struct: dataTree.toJson(), (err) ->
                 console.log "Initialization succeeds."

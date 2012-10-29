@@ -2,6 +2,7 @@ should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
 DataTree = require("../common/data-tree").DataTree
+
 app = require('../server')
 helpers = require("./helpers")
 
@@ -16,8 +17,7 @@ describe "/todolists", ->
 
     after (done) ->
         app.close()
-        #helpers.cleanDb done
-        done()
+        helpers.cleanDb done
 
 
     describe "POST /todolists Creates a todolist and update tree.", ->

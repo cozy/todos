@@ -899,7 +899,7 @@ window.require.define({"models/task": function(exports, require, module) {
         date = new Date();
       }
       this.simpleDate = moment(date).format("DD/MM/YYYY");
-      return this.fullDate = moment(date).format("DD/MM/YYYY HH:MM");
+      return this.fullDate = moment(date).format("DD/MM/YYYY HH:mm");
     };
 
     Task.prototype.setListName = function() {

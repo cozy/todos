@@ -19,7 +19,7 @@ class exports.Task extends BaseModel
     setSimpleDate: (date) ->
         date = new Date()if not date?
         @simpleDate = moment(date).format "DD/MM/YYYY"
-        @fullDate = moment(date).format "DD/MM/YYYY HH:MM"
+        @fullDate = moment(date).format "DD/MM/YYYY HH:mm"
 
     # Store list data into model (for display outside list widget).
     setListName: ->

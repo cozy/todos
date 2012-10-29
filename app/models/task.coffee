@@ -9,12 +9,17 @@ Task.destroyAll = (params, callback) ->
 # Get all archived tasks for a given list
 Task.archives = (listId, callback) ->
     if not listId?
-        Task.request "archive", callback
+        params =
+            limit: 30
+            descending: true
+
+        Task.request "archive", params, callback
     else
         params =
-            startkey: [listId]
-            endkey: [listId + "0"]
+            startkey: [listId + "0"]
+            endkey: [listId]
             limit: 30
+            descending: true
         Task.request "archiveList", params, callback
     
 

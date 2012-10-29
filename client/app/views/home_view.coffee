@@ -1,5 +1,6 @@
 {Tree} = require "./widgets/tree"
 {TodoList} = require "../models/todolist"
+{TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
 {HaveDoneListModal} = require "./widgets/have_done_list"
 helpers = require "../helpers"
@@ -15,6 +16,7 @@ class exports.HomeView extends Backbone.View
     initialize: ->
 
     constructor: ->
+        @todolists = new TodoListCollection()
         super()
 
     # Build widgets (task lists) then load data.
@@ -123,12 +125,14 @@ class exports.HomeView extends Backbone.View
                 @renderTodolist list
                 @todolist.show()
         else
+            app.router.navigate "todolist/all", trigger: false
             @renderTodolist null
             @todolist.show()
 
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
     onTreeLoaded: =>
+        @todolists.fetch()
         @$("#tree").spin()
         @treeLoadedCallback() if @treeLoadedCallback?
 

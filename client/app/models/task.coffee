@@ -13,12 +13,19 @@ class exports.Task extends BaseModel
         @url += "#{@id}/" if @id?
         
         @setSimpleDate task.completionDate
+        @setListName()
 
     # Format completionDate into a simple format. Store in simpleDate field.
     setSimpleDate: (date) ->
         date = new Date()if not date?
         @simpleDate = moment(date).format "DD/MM/YYYY"
+        @fullDate = moment(date).format "DD/MM/YYYY HH:MM"
 
+    # Store list data into model (for display outside list widget).
+    setListName: ->
+        @listTitle = app.homeView.todolists.get(@list).title
+        @listPath = app.homeView.todolists.get(@list).path.join(" > ")
+    
     setNextTask: (task) ->
         @set "nextTask", task?.id ? null
         task?.set "previousTask", @id

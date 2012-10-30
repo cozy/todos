@@ -2097,7 +2097,11 @@ window.require.define({"views/todolist_view": function(exports, require, module)
         return this.title.html(this.model.title);
       } else {
         this.breadcrumb.html("");
-        return this.title.html("All tasks");
+        if (this.model.tag != null) {
+          return this.title.html(this.model.tag);
+        } else {
+          return this.title.html("All tasks");
+        }
       }
     };
 

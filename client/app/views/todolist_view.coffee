@@ -138,7 +138,11 @@ class exports.TodoListWidget extends Backbone.View
             @title.html @model.title
         else
             @breadcrumb.html ""
-            @title.html "All tasks"
+
+            if @model.tag?
+                @title.html @model.tag
+            else
+                @title.html "All tasks"
 
     # breadcrumb will contain the path of the selected list in a link format(<a>)
     # the code below generates the breadcrumb corresponding

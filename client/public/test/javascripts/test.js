@@ -75,7 +75,7 @@
 })();
 
 window.require.define({"test/task_collection_test": function(exports, require, module) {
-  var Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
+  var HomeView, Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
 
   Task = require('models/task').Task;
 
@@ -88,6 +88,8 @@ window.require.define({"test/task_collection_test": function(exports, require, m
   TodoListWidget = require('views/todolist_view').TodoListWidget;
 
   TodoList = require('models/todolist').TodoList;
+
+  HomeView = require('views/home_view').HomeView;
 
   TaskCollection.prototype.addNewTask = function(id, list, description) {
     var task;
@@ -102,6 +104,8 @@ window.require.define({"test/task_collection_test": function(exports, require, m
   describe('Task Collection', function() {
     before(function() {
       var todoList, todoListView;
+      window.app = {};
+      window.app.homeView = new HomeView();
       todoList = new TodoList({
         id: 123,
         title: "list 01"
@@ -282,7 +286,7 @@ window.require.define({"test/task_collection_test": function(exports, require, m
 }});
 
 window.require.define({"test/task_model_test": function(exports, require, module) {
-  var Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
+  var HomeView, Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
 
   Task = require('models/task').Task;
 
@@ -295,6 +299,8 @@ window.require.define({"test/task_model_test": function(exports, require, module
   TodoListWidget = require('views/todolist_view').TodoListWidget;
 
   TodoList = require('models/todolist').TodoList;
+
+  HomeView = require('views/home_view').HomeView;
 
   TaskCollection.prototype.addNewTask = function(id, list, description) {
     var task;
@@ -309,10 +315,14 @@ window.require.define({"test/task_model_test": function(exports, require, module
   describe('Task Model', function() {
     before(function() {
       var todoList, todoListView;
+      window.app = {};
+      window.app.homeView = new HomeView();
       todoList = new TodoList({
         id: 123,
-        title: "list 01"
+        title: "list 01",
+        path: ["parent", "list 01"]
       });
+      window.app.homeView.todolists.add(todoList);
       this.model = new Task({
         list: 123,
         description: "task 02",
@@ -330,8 +340,12 @@ window.require.define({"test/task_model_test": function(exports, require, module
     after(function() {});
     describe("Creation", function() {
       it("when I create a model", function() {});
-      return it("its url is automatically set", function() {
+      it("its url is automatically set", function() {
         return expect(this.model.url).to.equal("todolists/" + this.model.list + "/tasks/2/");
+      });
+      return it("just like list data", function() {
+        expect(this.model.listTitle).to.equal("list 01");
+        return expect(this.model.listPath).to.equal("parent > list 01");
       });
     });
     describe("Done", function() {

@@ -155,10 +155,13 @@ class exports.TodoListWidget extends Backbone.View
         
         while paths.length > 0
             parent = app.homeView.tree.getParent parent
-            path = "#todolist/#{parent[0].id}/"
-            currentPath = paths.join("/")
-            listName = paths.pop()
-            breadcrumb = "<a href='#{path}#{currentPath}'> #{listName}</a> >#{breadcrumb}"
+            if parent?
+                path = "#todolist/#{parent[0].id}/"
+                currentPath = paths.join("/")
+                listName = paths.pop()
+                breadcrumb = "<a href='#{path}#{currentPath}'> #{listName}</a> >#{breadcrumb}"
+            else
+                listName = paths.pop()
 
         breadcrumb = "<a href='#todolist/all'> All</a> >#{breadcrumb}"
         breadcrumb

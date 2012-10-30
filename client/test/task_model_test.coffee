@@ -4,6 +4,7 @@
 {TaskList} = require 'views/tasks_view'
 {TodoListWidget} = require 'views/todolist_view'
 {TodoList} = require 'models/todolist'
+{HomeView} = require 'views/home_view'
 
 
 TaskCollection::addNewTask = (id, list, description) ->
@@ -17,9 +18,15 @@ TaskCollection::addNewTask = (id, list, description) ->
 describe 'Task Model', ->
 
     before ->
+        window.app = {}
+        window.app.homeView = new HomeView()
+
         todoList = new TodoList
             id: 123
             title: "list 01"
+            path: ["parent", "list 01"]
+
+        window.app.homeView.todolists.add todoList
 
         @model = new Task
             list: 123
@@ -42,6 +49,10 @@ describe 'Task Model', ->
 
         it "its url is automatically set", ->
             expect(@model.url).to.equal "todolists/#{@model.list}/tasks/2/"
+ 
+        it "just like list data", ->
+            expect(@model.listTitle).to.equal "list 01"
+            expect(@model.listPath).to.equal "parent > list 01"
  
     describe "Done", ->
         it "When task state is changed to done.", ->

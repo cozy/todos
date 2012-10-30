@@ -4,6 +4,7 @@
 {TaskList} = require 'views/tasks_view'
 {TodoListWidget} = require 'views/todolist_view'
 {TodoList} = require 'models/todolist'
+{HomeView} = require 'views/home_view'
 
 
 TaskCollection::addNewTask = (id, list, description) ->
@@ -17,6 +18,9 @@ TaskCollection::addNewTask = (id, list, description) ->
 describe 'Task Collection', ->
 
     before ->
+        window.app = {}
+        window.app.homeView = new HomeView()
+
         todoList = new TodoList
             id: 123
             title: "list 01"

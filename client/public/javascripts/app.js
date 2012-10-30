@@ -903,8 +903,9 @@ window.require.define({"models/task": function(exports, require, module) {
     };
 
     Task.prototype.setListName = function() {
-      this.listTitle = app.homeView.todolists.get(this.list).title;
-      return this.listPath = app.homeView.todolists.get(this.list).path.join(" > ");
+      var _ref, _ref1, _ref2, _ref3;
+      this.listTitle = (_ref = window.app) != null ? (_ref1 = _ref.homeView.todolists.get(this.list)) != null ? _ref1.title : void 0 : void 0;
+      return this.listPath = (_ref2 = window.app) != null ? (_ref3 = _ref2.homeView.todolists.get(this.list)) != null ? _ref3.path.join(" > ") : void 0 : void 0;
     };
 
     Task.prototype.setNextTask = function(task) {
@@ -1558,12 +1559,15 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onEnterKeyup = function() {
-      var _this = this;
+      var task,
+        _this = this;
       if (this.model.collection.listId != null) {
         this.showLoading();
-        return this.model.collection.insertTask(this.model, new Task({
-          description: "new task"
-        }), {
+        task = new Task({
+          description: "new task",
+          list: this.model.collection.listId
+        });
+        return this.model.collection.insertTask(this.model, task, {
           success: function(task) {
             helpers.selectAll(task.view.descriptionField);
             return _this.hideLoading();

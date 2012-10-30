@@ -164,8 +164,11 @@ class exports.TaskLine extends Backbone.View
     onEnterKeyup: ->
         if @model.collection.listId?
             @showLoading()
-            @model.collection.insertTask @model, \
-                 new Task(description: "new task"),
+            task = new Task
+                description: "new task"
+                list: @model.collection.listId
+
+            @model.collection.insertTask @model, task,
                  success: (task) =>
                      helpers.selectAll task.view.descriptionField
                      @hideLoading()

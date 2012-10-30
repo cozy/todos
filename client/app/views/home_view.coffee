@@ -1,5 +1,6 @@
 {Tree} = require "./widgets/tree"
 {TodoList} = require "../models/todolist"
+{TagListView} = require "./taglist_view"
 {TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
 {HaveDoneListModal} = require "./widgets/have_done_list"
@@ -17,6 +18,7 @@ class exports.HomeView extends Backbone.View
 
     constructor: ->
         @todolists = new TodoListCollection()
+        @tagList = ["today", "week", "month"]
         super()
 
     # Build widgets (task lists) then load data.
@@ -24,15 +26,9 @@ class exports.HomeView extends Backbone.View
         $(@el).html require('./templates/home')
 
         @todolist = $("#todo-list")
-        @setUpHaveDoneList()
+        @tagListView = new TagListView @tagList
+        @tagListView.render()
         @
-
-    # Create have done list modal
-    setUpHaveDoneList: ->
-        @haveDoneList = new HaveDoneListModal()
-        @haveDoneList.render()
-        @haveDoneList.hide()
-        $(@el).append(@haveDoneList.el)
 
     # Use jquery layout so set main layout of current window.
     setLayout: ->
@@ -76,10 +72,6 @@ class exports.HomeView extends Backbone.View
                 onSelect: @onTodoListSelected
                 onLoaded: @onTreeLoaded
                 onDrop: @onTodoListDropped
-
-           @haveDoneButton = $("#have-done-list-button")
-           @haveDoneButton.click @onHaveDoneButtonClicked
-           @haveDoneButton.hide()
 
         @treeLoadedCallback = callback
 
@@ -144,16 +136,6 @@ class exports.HomeView extends Backbone.View
                 @currentTodolist.set "path", body.path
                 @currentTodolist.view.refreshBreadcrump()
 
-    # When have done button is clicked, have done list is displayed or hidden
-    # depending of its current state. When have done list is show, its data
-    # are loaded too.
-    onHaveDoneButtonClicked: =>
-        if not @haveDoneList.isVisible()
-            @haveDoneList.show()
-            @haveDoneList.loadData()
-        else
-            @haveDoneList.hide()
-
     ###
     # Functions
     ###
@@ -162,6 +144,13 @@ class exports.HomeView extends Backbone.View
     selectList: (id) ->
         id = 'tree-node-all' if id == "all"
         @tree.selectNode id
+        @tagListView.deselectAll()
+
+    selectTag: (tag) ->
+        @tree.deselectAll()
+        @tagListView.selectTag tag
+        list = new TodoList title: tag, tag: tag
+        @renderTodolist list
 
     # Fill todolist widget with todolist data. Then load todo task list 
     # and archives for this todolist.
@@ -172,4 +161,3 @@ class exports.HomeView extends Backbone.View
         todolistWidget = new TodoListWidget @currentTodolist
         todolistWidget.render()
         todolistWidget.loadData()
-

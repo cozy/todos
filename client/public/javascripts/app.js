@@ -1056,7 +1056,8 @@ window.require.define({"routers/main_router": function(exports, require, module)
     MainRouter.prototype.routes = {
       '': 'home',
       "todolist/:id/all/:path": "list",
-      "todolist/all": "list"
+      "todolist/all": "list",
+      "tag/:tag": "tag"
     };
 
     MainRouter.prototype.initialize = function() {
@@ -1070,16 +1071,24 @@ window.require.define({"routers/main_router": function(exports, require, module)
     };
 
     MainRouter.prototype.list = function(id) {
-      var selectList;
-      selectList = function() {
+      return this.generateHomeView(function() {
         return app.homeView.selectList(id);
-      };
+      });
+    };
+
+    MainRouter.prototype.tag = function(tag) {
+      return this.generateHomeView(function() {
+        return app.homeView.selectTag(tag);
+      });
+    };
+
+    MainRouter.prototype.generateHomeView = function(callback) {
       if ($("#tree-create").length > 0) {
-        return selectList();
+        return callback();
       } else {
         return this.home(function() {
           return setTimeout((function() {
-            return selectList();
+            return callback();
           }), 100);
         });
       }
@@ -1092,7 +1101,7 @@ window.require.define({"routers/main_router": function(exports, require, module)
 }});
 
 window.require.define({"views/home_view": function(exports, require, module) {
-  var HaveDoneListModal, TodoList, TodoListCollection, TodoListWidget, Tree, helpers,
+  var HaveDoneListModal, TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, helpers,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1100,6 +1109,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
   Tree = require("./widgets/tree").Tree;
 
   TodoList = require("../models/todolist").TodoList;
+
+  TagListView = require("./taglist_view").TagListView;
 
   TodoListCollection = require("../collections/todolists").TodoListCollection;
 
@@ -1123,8 +1134,6 @@ window.require.define({"views/home_view": function(exports, require, module) {
     HomeView.prototype.initialize = function() {};
 
     function HomeView() {
-      this.onHaveDoneButtonClicked = __bind(this.onHaveDoneButtonClicked, this);
-
       this.onTodoListDropped = __bind(this.onTodoListDropped, this);
 
       this.onTreeLoaded = __bind(this.onTreeLoaded, this);
@@ -1137,21 +1146,16 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
       this.onTodoListCreated = __bind(this.onTodoListCreated, this);
       this.todolists = new TodoListCollection();
+      this.tagList = ["today", "week", "month"];
       HomeView.__super__.constructor.call(this);
     }
 
     HomeView.prototype.render = function() {
       $(this.el).html(require('./templates/home'));
       this.todolist = $("#todo-list");
-      this.setUpHaveDoneList();
+      this.tagListView = new TagListView(this.tagList);
+      this.tagListView.render();
       return this;
-    };
-
-    HomeView.prototype.setUpHaveDoneList = function() {
-      this.haveDoneList = new HaveDoneListModal();
-      this.haveDoneList.render();
-      this.haveDoneList.hide();
-      return $(this.el).append(this.haveDoneList.el);
     };
 
     HomeView.prototype.setLayout = function() {
@@ -1189,7 +1193,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
       this.$("#tree").spin();
       $.get("tree/", function(data) {
         window.tree = data;
-        _this.tree = new Tree(_this.$("#nav"), data, {
+        return _this.tree = new Tree(_this.$("#nav"), data, {
           onCreate: _this.onTodoListCreated,
           onRename: _this.onTodoListRenamed,
           onRemove: _this.onTodoListRemoved,
@@ -1197,9 +1201,6 @@ window.require.define({"views/home_view": function(exports, require, module) {
           onLoaded: _this.onTreeLoaded,
           onDrop: _this.onTodoListDropped
         });
-        _this.haveDoneButton = $("#have-done-list-button");
-        _this.haveDoneButton.click(_this.onHaveDoneButtonClicked);
-        return _this.haveDoneButton.hide();
       });
       return this.treeLoadedCallback = callback;
     };
@@ -1281,15 +1282,6 @@ window.require.define({"views/home_view": function(exports, require, module) {
       });
     };
 
-    HomeView.prototype.onHaveDoneButtonClicked = function() {
-      if (!this.haveDoneList.isVisible()) {
-        this.haveDoneList.show();
-        return this.haveDoneList.loadData();
-      } else {
-        return this.haveDoneList.hide();
-      }
-    };
-
     /*
         # Functions
     */
@@ -1299,7 +1291,19 @@ window.require.define({"views/home_view": function(exports, require, module) {
       if (id === "all") {
         id = 'tree-node-all';
       }
-      return this.tree.selectNode(id);
+      this.tree.selectNode(id);
+      return this.tagListView.deselectAll();
+    };
+
+    HomeView.prototype.selectTag = function(tag) {
+      var list;
+      this.tree.deselectAll();
+      this.tagListView.selectTag(tag);
+      list = new TodoList({
+        title: tag,
+        tag: tag
+      });
+      return this.renderTodolist(list);
     };
 
     HomeView.prototype.renderTodolist = function(todolist) {
@@ -1317,6 +1321,53 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     return HomeView;
+
+  })(Backbone.View);
+  
+}});
+
+window.require.define({"views/taglist_view": function(exports, require, module) {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  exports.TagListView = (function(_super) {
+
+    __extends(TagListView, _super);
+
+    TagListView.prototype.id = 'tags';
+
+    function TagListView(tagList) {
+      this.tagList = tagList;
+      TagListView.__super__.constructor.call(this);
+    }
+
+    TagListView.prototype.render = function() {
+      var tag, _i, _len, _ref, _results;
+      this.el = $("#" + this.id);
+      _ref = this.tagList;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        tag = _ref[_i];
+        _results.push(this.el.append("<a href=\"#tags/" + tag + ">tag</a>"));
+      }
+      return _results;
+    };
+
+    TagListView.prototype.selectTag = function(tag) {
+      return $("#tags a").each(function(index, el) {
+        if ($(el).html() === tag) {
+          return $(el).addClass("selected");
+        } else {
+          return $(el).removeClass("selected");
+        }
+      });
+    };
+
+    TagListView.prototype.deselectAll = function() {
+      return $("#tags a").removeClass("selected");
+    };
+
+    return TagListView;
 
   })(Backbone.View);
   
@@ -1812,7 +1863,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tags"><div class="tag">today</div><div class="tag">week</div><div class="tag">month</div></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tags"><div class="tag"> <a href="#tag/today">today</a></div><div class="tag"> <a href="#tag/week">week</a></div><div class="tag"> <a href="#tag/month">month</a></div></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };
@@ -1851,7 +1902,7 @@ window.require.define({"views/templates/todolist": function(exports, require, mo
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<header class="todo-list-title clearfix"><button id="new-task-button" class="btn btn-info"> \nnew task</button><button id="edit-button" class="btn hidden">show buttons</button><p class="breadcrumb"> </p><p class="description"> </p></header><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
+  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"> </p><p class="description"> </p></header><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
   }
   return buf.join("");
   };
@@ -1929,13 +1980,6 @@ window.require.define({"views/todolist_view": function(exports, require, module)
       this.tasks = this.taskList.tasks;
       this.archiveTasks = this.archiveList.tasks;
       this.refreshBreadcrump();
-      this.newButton = $("#new-task-button");
-      this.showButtonsButton = $("#edit-button");
-      this.newButton.hide();
-      this.newButton.unbind("click");
-      this.newButton.click(this.onAddClicked);
-      this.showButtonsButton.unbind("click");
-      this.showButtonsButton.click(this.onEditClicked);
       return this.el;
     };
 
@@ -1995,7 +2039,13 @@ window.require.define({"views/todolist_view": function(exports, require, module)
         this.tasks.url = "tasks/todo";
         this.archiveTasks.url = "tasks/archives";
       } else {
-        this.archiveTasks.url += "/archives";
+        console.log(this.model);
+        if (this.model.tag != null) {
+          this.tasks.url = "tasks/tags/" + this.model.tag + "/todo";
+          this.archiveTasks.url = "tasks/tags/" + this.model.tag + "/archives";
+        } else {
+          this.archiveTasks.url += "/archives";
+        }
       }
       $(this.archiveTasks.view.el).spin();
       $(this.tasks.view.el).spin();
@@ -2012,7 +2062,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           if ($(".task:not(.done)").length > 0) {
             $(".task:first .description").focus();
           } else {
-            if (_this.model != null) {
+            if ((_this.model != null) && (_this.model.id != null)) {
               _this.onAddClicked();
             }
           }
@@ -2033,8 +2083,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     };
 
     TodoListWidget.prototype.refreshBreadcrump = function() {
-      if (this.model != null) {
-        $(".breadcrumb a").unbind();
+      $(".breadcrumb a").unbind();
+      if ((this.model != null) && (this.model.id != null)) {
         this.breadcrumb.html(this.createBreadcrumb());
         $(".breadcrumb a").click(function(event) {
           var hash, id, path;
@@ -2358,6 +2408,10 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
       } else if (!this.jstreeEl.jstree("get_selected")[0]) {
         return this.jstreeEl.jstree("select_node", "#tree-node-all");
       }
+    };
+
+    Tree.prototype.deselectAll = function() {
+      return this.jstreeEl.jstree("deselect_all", null);
     };
 
     Tree.prototype.getSelectedNode = function() {

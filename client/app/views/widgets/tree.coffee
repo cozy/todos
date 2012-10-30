@@ -205,6 +205,10 @@ class exports.Tree
         else if not @jstreeEl.jstree("get_selected")[0]
             @jstreeEl.jstree("select_node", "#tree-node-all")
 
+    # Deselect currently selected node.
+    deselectAll: ->
+        @jstreeEl.jstree("deselect_all", null)
+
     # Return Currently selected node.
     getSelectedNode: ->
         @jstreeEl.jstree("get_selected")

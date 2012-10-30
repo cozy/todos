@@ -39,14 +39,6 @@ class exports.TodoListWidget extends Backbone.View
 
         @refreshBreadcrump()
 
-        @newButton = $("#new-task-button")
-        @showButtonsButton = $("#edit-button")
-        @newButton.hide()
-        @newButton.unbind "click"
-        @newButton.click @onAddClicked
-        @showButtonsButton.unbind "click"
-        @showButtonsButton.click @onEditClicked
-
         @el
 
     ###
@@ -98,8 +90,13 @@ class exports.TodoListWidget extends Backbone.View
             @tasks.url = "tasks/todo"
             @archiveTasks.url = "tasks/archives"
         else
-            @archiveTasks.url += "/archives"
-
+            console.log @model
+            
+            if @model.tag?
+                @tasks.url = "tasks/tags/#{@model.tag}/todo"
+                @archiveTasks.url = "tasks/tags/#{@model.tag}/archives"
+            else
+                @archiveTasks.url += "/archives"
 
         $(@archiveTasks.view.el).spin()
         $(@tasks.view.el).spin()
@@ -113,7 +110,7 @@ class exports.TodoListWidget extends Backbone.View
                 if $(".task:not(.done)").length > 0
                     $(".task:first .description").focus()
                 else
-                    @onAddClicked() if @model?
+                    @onAddClicked() if @model? and @model.id?
                 $(@tasks.view.el).spin()
             error: =>
                 $(@tasks.view.el).spin()
@@ -128,8 +125,8 @@ class exports.TodoListWidget extends Backbone.View
 
     # Refresh breadcrump with data from current model.
     refreshBreadcrump: ->
-        if @model?
-            $(".breadcrumb a").unbind()
+        $(".breadcrumb a").unbind()
+        if @model? and @model.id?
             @breadcrumb.html @createBreadcrumb()
             $(".breadcrumb a").click (event) ->
                 event.preventDefault()

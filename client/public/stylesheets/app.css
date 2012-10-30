@@ -5424,7 +5424,7 @@ ol {
 #nav {
   margin: 0;
   padding: 0;
-  background-color: #f1f1ef;
+  background-color: #f5f5f5;
 }
 #todo-list {
   -moz-box-shadow: 2px 2px 5px #668;
@@ -5443,7 +5443,7 @@ ol {
   padding: 3px 2%;
 }
 .task:hover {
-  background-color: #f6f9f0;
+  background-color: #e2f3ff;
 }
 .task button {
   float: left;
@@ -5456,10 +5456,10 @@ ol {
   box-shadow: none;
 }
 .task input:focus {
-  -moz-box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #87b52e;
-  -webkit-box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #87b52e;
-  -webkit-box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #87b52e;
-  box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #87b52e;
+  -moz-box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #5cacf1;
+  -webkit-box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #5cacf1;
+  -webkit-box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #5cacf1;
+  box-shadow: 0 1px 1px rgba(255,255,255,0.12) inset, 0px 0px 8px #5cacf1;
 }
 .task .description {
   margin-left: 1%;

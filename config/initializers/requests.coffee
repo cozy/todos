@@ -19,3 +19,11 @@ Task.defineRequest "archive", archive, requests.checkError
 Task.defineRequest "todos", todos, requests.checkError
 Task.defineRequest "archiveList", archiveList, requests.checkError
 Task.defineRequest "todosList", todosList, requests.checkError
+tags =
+    map: ->
+        for tag in doc.tags
+            emit tag, tag
+        return
+    reduce: (key, values) ->
+        return true
+Task.defineRequest "tags", tags, requests.checkError

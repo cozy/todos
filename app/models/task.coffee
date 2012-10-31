@@ -6,6 +6,9 @@ Task.destroyAll = (params, callback) ->
     
     Task.requestDestroy "all", params, callback
 
+Task.tags = (callback) ->
+    Task.rawRequest "tags", group: true, callback
+
 # Get all archived tasks for a given list
 Task.archives = (listId, callback) ->
     if not listId?
@@ -180,6 +183,8 @@ Task.insertTask = (task, callback) ->
 # Create a new task and add it to the todo task list if its state is not done.
 Task.createNew = (task, callback) ->
     task.nextTask = null
+    task.extractTags()
+    
     Task.create task, (err, task) ->
         return callback err if err
 
@@ -284,3 +289,11 @@ Task.move = (task, attributes, callback) ->
                 attributes.nextTask = task.nextTask
                 task.updateAttributes attributes, callback
 
+# Extract string prefixed with a # from the description and set them as tags
+Task::extractTags = () ->
+    if @description?
+        tags =  @description.match(/#(\w)*/g)
+        @tags = []
+        
+        if tags?
+            @tags.push tag.substring(1) for tag in tags

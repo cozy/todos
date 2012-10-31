@@ -3,7 +3,6 @@
 {TagListView} = require "./taglist_view"
 {TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
-{HaveDoneListModal} = require "./widgets/have_done_list"
 helpers = require "../helpers"
 
 # Main view that manages all widgets displayed inside application.

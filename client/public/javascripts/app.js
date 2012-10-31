@@ -483,6 +483,36 @@ window.require.define({"initialize": function(exports, require, module) {
   
 }});
 
+window.require.define({"lib/request": function(exports, require, module) {
+  
+  exports.request = function(type, url, data, callbacks) {
+    return $.ajax({
+      type: type,
+      url: url,
+      data: data,
+      success: callbacks.success,
+      error: callbacks.error
+    });
+  };
+
+  exports.get = function(url, callbacks) {
+    return exports.request("GET", url, null, callbacks);
+  };
+
+  exports.post = function(url, data, callbacks) {
+    return exports.request("POST", url, data, callbacks);
+  };
+
+  exports.put = function(url, data, callbacks) {
+    return exports.request("PUT", url, data, callbacks);
+  };
+
+  exports.del = function(url, callbacks) {
+    return exports.request("DELETE", url, null, callbacks);
+  };
+  
+}});
+
 window.require.define({"lib/slug": function(exports, require, module) {
   var char_map, removelist, slug, word;
 
@@ -1101,7 +1131,7 @@ window.require.define({"routers/main_router": function(exports, require, module)
 }});
 
 window.require.define({"views/home_view": function(exports, require, module) {
-  var HaveDoneListModal, TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, helpers,
+  var TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, helpers,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1115,8 +1145,6 @@ window.require.define({"views/home_view": function(exports, require, module) {
   TodoListCollection = require("../collections/todolists").TodoListCollection;
 
   TodoListWidget = require("./todolist_view").TodoListWidget;
-
-  HaveDoneListModal = require("./widgets/have_done_list").HaveDoneListModal;
 
   helpers = require("../helpers");
 
@@ -2127,62 +2155,6 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     };
 
     return TodoListWidget;
-
-  })(Backbone.View);
-  
-}});
-
-window.require.define({"views/widgets/have_done_list": function(exports, require, module) {
-  var TaskList,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  TaskList = require("../tasks_view").TaskList;
-
-  exports.HaveDoneListModal = (function(_super) {
-
-    __extends(HaveDoneListModal, _super);
-
-    HaveDoneListModal.prototype["class"] = "modal hide";
-
-    HaveDoneListModal.prototype.id = "have-done-list-modal";
-
-    HaveDoneListModal.prototype.initialize = function() {};
-
-    function HaveDoneListModal() {
-      this.hide = __bind(this.hide, this);
-      HaveDoneListModal.__super__.constructor.call(this);
-    }
-
-    HaveDoneListModal.prototype.render = function() {
-      $(this.el).html(require('../templates/have_done_list'));
-      $(this.el).addClass("modal");
-      this.taskList = new TaskList(null, this.$("#have-done-task-list"), {
-        grouping: true
-      });
-      this.taskList.tasks.url = "tasks/archives";
-      return this.$(".close").click(this.hide);
-    };
-
-    HaveDoneListModal.prototype.show = function() {
-      this.$("#have-done-task-list").html(null);
-      return $(this.el).show();
-    };
-
-    HaveDoneListModal.prototype.hide = function() {
-      return $(this.el).hide();
-    };
-
-    HaveDoneListModal.prototype.isVisible = function() {
-      return $(this.el).is(":visible");
-    };
-
-    HaveDoneListModal.prototype.loadData = function() {
-      return this.taskList.tasks.fetch();
-    };
-
-    return HaveDoneListModal;
 
   })(Backbone.View);
   

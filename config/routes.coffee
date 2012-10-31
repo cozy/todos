@@ -1,6 +1,6 @@
 exports.routes = (map) ->
-    #    map.get '/', 'tasks#index'
 
+    # routes for tasks interactions
     map.get '/tasks/', 'tasks#all'
     map.get '/tasks/todo', 'tasks#todo'
     map.get '/tasks/archives', 'tasks#all-archives'
@@ -12,13 +12,16 @@ exports.routes = (map) ->
     map.del '/todolists/:listId/tasks/:id', 'tasks#destroy'
 
     # routes for todolists interactions
-    map.get  '/todolists'     , 'todolists#all'
-    map.post '/todolists'     , 'todolists#create'
+    map.get  '/todolists', 'todolists#all'
+    map.post '/todolists', 'todolists#create'
     map.post '/todolists/path', 'todolists#allForPath'
-    map.get  '/todolists/:id' , 'todolists#show'
-    map.put  '/todolists/:id' , 'todolists#update'
+    map.get  '/todolists/:id', 'todolists#show'
+    map.put  '/todolists/:id', 'todolists#update'
     
-    map.del  '/todolists/:id' , 'todolists#destroy'
+    map.del  '/todolists/:id', 'todolists#destroy'
 
+    # routes for tag interactions
+    map.get '/tasks/tags/', 'tasks#tags'
+    
     # routes for tree interactions
-    map.get  '/tree'      , 'tree#tree'
+    map.get  '/tree', 'tree#tree'

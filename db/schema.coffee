@@ -7,13 +7,14 @@ Task = define 'Task', ->
     property 'previousTask', String
     property 'nextTask', String
     property 'list', String
+    property 'tags', String
 
 # Todo list contains tasks. Each tasks are linked inside todo list.
 TodoList = define 'TodoList', ->
     property 'title', String
-    property 'tags', [String]
+    property 'tags', String
     property 'path', String
-    property 'humanPath', [String]
+    property 'humanPath', String
 
 # Tree is needed to send efficiently list to ui.
 Tree = define 'Tree', ->

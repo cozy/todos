@@ -162,6 +162,18 @@ describe "Task Model", ->
                     Task.archives @listId1, (err, tasks) ->
                         tasks.length.should.equal 4
                         done()
+
+        describe "Extract tags", ->
+
+            it "Two tags are extracted.", ->
+                task = new Task description: "my first #task for #today"
+                task.extractTags()
+                
+                task.tags.length.should.eql 2
+                task.tags[0].should.eql "task"
+                task.tags[1].should.eql "today"
+
+            
             #it "Task is todo with no link set", (done) ->
                 #task = new Task
                     #list: @listId1

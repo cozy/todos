@@ -3,6 +3,7 @@ class exports.MainRouter extends Backbone.Router
         '': 'home'
         "todolist/:id/all/:path" : "list"
         "todolist/all" : "list"
+        "tag/:tag" : "tag"
 
     initialize: ->
         @route(/^todolist\/(.*?)\/(.*?)$/, 'list')
@@ -17,12 +18,21 @@ class exports.MainRouter extends Backbone.Router
     # rendered, list is directly selected else it loads tree then it selects
     # given list.
     list: (id) ->
-        selectList = ->
+        @generateHomeView ->
             app.homeView.selectList id
 
+    # Select given tag (represented by its slug), if tree is already
+    # rendered, list is directly selected else it loads tree then it selects
+    # given list.
+    tag: (tag) ->
+        @generateHomeView ->
+            app.homeView.selectTag tag
+
+    # Generate Home View if it's first loading.
+    generateHomeView: (callback) ->
         if $("#tree-create").length > 0
-            selectList()
+            callback()
         else
             @home ->
                 setTimeout((->
-                    selectList()), 100)
+                    callback()), 100)

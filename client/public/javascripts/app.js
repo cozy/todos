@@ -1271,7 +1271,11 @@ window.require.define({"views/home_view": function(exports, require, module) {
     };
 
     HomeView.prototype.onTodoListSelected = function(path, id, data) {
-      var _this = this;
+      var _ref,
+        _this = this;
+      if ((_ref = this.tagListView) != null) {
+        _ref.deselectAll();
+      }
       if ((id != null) && id !== "tree-node-all") {
         return TodoList.getTodoList(id, function(list) {
           app.router.navigate("todolist" + path, {
@@ -1337,12 +1341,10 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
 
     HomeView.prototype.selectList = function(id) {
-      var _ref;
       if (id === "all") {
         id = 'tree-node-all';
       }
-      this.tree.selectNode(id);
-      return (_ref = this.tagListView) != null ? _ref.deselectAll() : void 0;
+      return this.tree.selectNode(id);
     };
 
     HomeView.prototype.selectTag = function(tag) {

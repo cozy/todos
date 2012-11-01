@@ -108,6 +108,7 @@ class exports.HomeView extends Backbone.View
     # with todolist data.
     # Route is updated with selected todo list path.
     onTodoListSelected: (path, id, data) =>
+        @tagListView?.deselectAll()
         if id? and id != "tree-node-all"
             TodoList.getTodoList id, (list) =>
                 app.router.navigate "todolist#{path}", trigger: false
@@ -154,7 +155,6 @@ class exports.HomeView extends Backbone.View
     selectList: (id) ->
         id = 'tree-node-all' if id == "all"
         @tree.selectNode id
-        @tagListView?.deselectAll()
 
     selectTag: (tag) ->
         @tree.deselectAll()

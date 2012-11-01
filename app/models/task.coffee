@@ -314,4 +314,8 @@ Task::extractTags = () ->
         @tags = []
         
         if tags?
-            @tags.push tag.substring(1) for tag in tags
+            for tag in tags
+                tag = "#today" if tag is "#t"
+                tag = "#week" if tag is "#w"
+                tag = "#month" if tag is "#m"
+                @tags.push tag.substring(1)

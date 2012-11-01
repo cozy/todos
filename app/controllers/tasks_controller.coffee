@@ -130,8 +130,6 @@ action 'show', ->
 
 action 'tags', ->
     Task.tags (err, tags) ->
-        console.log tags
-        
         if err
             railway.logger.write(err)
             send error: "Server error", 500
@@ -140,3 +138,17 @@ action 'tags', ->
             for tag in tags
                 results.push tag.key
             send results
+
+action 'tagTodo', ->
+    tag = params.tag
+    if tag?
+        Task.tagTodos tag, returnTasks
+    else
+        send error: "No tag given", 400
+
+action 'tagArchives', ->
+    tag = params.tag
+    if tag?
+        Task.tagArchives tag, returnTasks
+    else
+        send error: "No tag given", 400

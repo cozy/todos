@@ -139,7 +139,7 @@ class exports.TodoListWidget extends Backbone.View
         else
             @breadcrumb.html ""
 
-            if @model.tag?
+            if @model?.tag?
                 @title.html @model.tag
             else
                 @title.html "All tasks"

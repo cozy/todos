@@ -6,8 +6,26 @@ Task.destroyAll = (params, callback) ->
     
     Task.requestDestroy "all", params, callback
 
+# Retrieve all tags
 Task.tags = (callback) ->
     Task.rawRequest "tags", group: true, callback
+
+# Retrieve all todo task for a given tag
+Task.tagTodos = (tag, callback) ->
+    params =
+        startkey: [tag]
+        endkey: [tag + "z0"]
+    Task.request "todosTag", params, callback
+
+# Retrieve all archives for a given tag
+Task.tagArchives = (tag, callback) ->
+    params =
+        startkey: [tag + "0"]
+        endkey: [tag]
+        limit: 30
+        descending: true
+    Task.request "archiveTag", params, callback
+
 
 # Get all archived tasks for a given list
 Task.archives = (listId, callback) ->

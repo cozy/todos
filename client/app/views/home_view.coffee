@@ -4,6 +4,7 @@
 {TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
 helpers = require "../helpers"
+client = require "../lib/request"
 
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
@@ -17,7 +18,6 @@ class exports.HomeView extends Backbone.View
 
     constructor: ->
         @todolists = new TodoListCollection()
-        @tagList = ["today", "week", "month"]
         super()
 
     # Build widgets (task lists) then load data.
@@ -25,8 +25,6 @@ class exports.HomeView extends Backbone.View
         $(@el).html require('./templates/home')
 
         @todolist = $("#todo-list")
-        @tagListView = new TagListView @tagList
-        @tagListView.render()
         @
 
     # Use jquery layout so set main layout of current window.
@@ -123,9 +121,22 @@ class exports.HomeView extends Backbone.View
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
     onTreeLoaded: =>
-        @todolists.fetch()
+        loadLists = =>
+            @todolists.fetch
+                success: =>
+                    @treeLoadedCallback() if @treeLoadedCallback?
+                error: =>
+                    @treeLoadedCallback() if @treeLoadedCallback?
+
         @$("#tree").spin()
-        @treeLoadedCallback() if @treeLoadedCallback?
+        client.get "tasks/tags",
+            success: (data) =>
+                @tagListView = new TagListView data
+                @tagListView.render()
+                loadLists()
+            error: =>
+                loadLists()
+
 
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.
@@ -143,7 +154,7 @@ class exports.HomeView extends Backbone.View
     selectList: (id) ->
         id = 'tree-node-all' if id == "all"
         @tree.selectNode id
-        @tagListView.deselectAll()
+        @tagListView?.deselectAll()
 
     selectTag: (tag) ->
         @tree.deselectAll()

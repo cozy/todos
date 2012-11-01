@@ -6,8 +6,10 @@ class exports.TagListView extends Backbone.View
         super()
 
     render: ->
-        @el = $("##{@id}")
-        @el.append "<a href=\"#tags/#{tag}>tag</a>" for tag in @tagList
+        @el = $("#tags")
+        @el.html null
+        for tag in @tagList
+            @el.append("<div><a href=\"#tag/#{tag}\">#{tag}</a></div>")
 
     # Mark visually selected tag
     selectTag: (tag) ->

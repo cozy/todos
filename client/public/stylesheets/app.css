@@ -5577,6 +5577,24 @@ ol {
   border-bottom: 1px solid #eee;
   margin-bottom: 5px;
 }
+/* tags */
+#tags {
+  margin-left: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid #999;
+}
+#tags a {
+  line-height: 14px;
+  color: #333;
+  cursor: pointer;
+}
+#tags a:hover {
+  font-weight: normal;
+}
+#tags a.selected {
+  background: #c5ebf9;
+}
+/* responsive */
 @media (max-width: 700px) {
   .modal {
     position: absolute;

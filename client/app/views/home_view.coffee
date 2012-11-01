@@ -1,9 +1,10 @@
 {Tree} = require "./widgets/tree"
 {TodoList} = require "../models/todolist"
+{TagListView} = require "./taglist_view"
 {TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
-{HaveDoneListModal} = require "./widgets/have_done_list"
 helpers = require "../helpers"
+client = require "../lib/request"
 
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
@@ -24,15 +25,7 @@ class exports.HomeView extends Backbone.View
         $(@el).html require('./templates/home')
 
         @todolist = $("#todo-list")
-        @setUpHaveDoneList()
         @
-
-    # Create have done list modal
-    setUpHaveDoneList: ->
-        @haveDoneList = new HaveDoneListModal()
-        @haveDoneList.render()
-        @haveDoneList.hide()
-        $(@el).append(@haveDoneList.el)
 
     # Use jquery layout so set main layout of current window.
     setLayout: ->
@@ -77,10 +70,6 @@ class exports.HomeView extends Backbone.View
                 onLoaded: @onTreeLoaded
                 onDrop: @onTodoListDropped
 
-           @haveDoneButton = $("#have-done-list-button")
-           @haveDoneButton.click @onHaveDoneButtonClicked
-           @haveDoneButton.hide()
-
         @treeLoadedCallback = callback
 
 
@@ -119,6 +108,7 @@ class exports.HomeView extends Backbone.View
     # with todolist data.
     # Route is updated with selected todo list path.
     onTodoListSelected: (path, id, data) =>
+        @tagListView?.deselectAll()
         if id? and id != "tree-node-all"
             TodoList.getTodoList id, (list) =>
                 app.router.navigate "todolist#{path}", trigger: false
@@ -132,9 +122,22 @@ class exports.HomeView extends Backbone.View
     # When tree is loaded, callback given in parameter when fetchData
     # function was called is run.
     onTreeLoaded: =>
-        @todolists.fetch()
+        loadLists = =>
+            @todolists.fetch
+                success: =>
+                    @treeLoadedCallback() if @treeLoadedCallback?
+                error: =>
+                    @treeLoadedCallback() if @treeLoadedCallback?
+
         @$("#tree").spin()
-        @treeLoadedCallback() if @treeLoadedCallback?
+        client.get "tasks/tags",
+            success: (data) =>
+                @tagListView = new TagListView data
+                @tagListView.render()
+                loadLists()
+            error: =>
+                loadLists()
+
 
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.
@@ -143,16 +146,6 @@ class exports.HomeView extends Backbone.View
             TodoList.getTodoList nodeId, (body) =>
                 @currentTodolist.set "path", body.path
                 @currentTodolist.view.refreshBreadcrump()
-
-    # When have done button is clicked, have done list is displayed or hidden
-    # depending of its current state. When have done list is show, its data
-    # are loaded too.
-    onHaveDoneButtonClicked: =>
-        if not @haveDoneList.isVisible()
-            @haveDoneList.show()
-            @haveDoneList.loadData()
-        else
-            @haveDoneList.hide()
 
     ###
     # Functions
@@ -163,6 +156,12 @@ class exports.HomeView extends Backbone.View
         id = 'tree-node-all' if id == "all"
         @tree.selectNode id
 
+    selectTag: (tag) ->
+        @tree.deselectAll()
+        @tagListView.selectTag tag
+        list = new TodoList title: tag, tag: tag
+        @renderTodolist list
+
     # Fill todolist widget with todolist data. Then load todo task list 
     # and archives for this todolist.
     renderTodolist: (todolist) ->
@@ -172,4 +171,3 @@ class exports.HomeView extends Backbone.View
         todolistWidget = new TodoListWidget @currentTodolist
         todolistWidget.render()
         todolistWidget.loadData()
-

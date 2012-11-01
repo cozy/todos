@@ -53,7 +53,7 @@ describe "/tasks", ->
                 @body = body
                 done()
 
-        it "Then a success is returned with a note with an id", ->
+        it "Then a success is returned with a task with an id", ->
             should.exist @body
             should.exist @body.id
             @response.statusCode.should.equal 201

@@ -109,6 +109,10 @@ action 'update', ->
         Task.move @task, body, answer
 
     else
+        @task.description = body.description
+        @task.extractTags()
+        body.tags = @task.tags
+        
         @task.updateAttributes body, answer
 
 # Destroy given task and remove it from todo linked list.
@@ -124,3 +128,27 @@ action 'destroy', ->
 action 'show', ->
     returnTasks null, [@task]
 
+action 'tags', ->
+    Task.tags (err, tags) ->
+        if err
+            railway.logger.write(err)
+            send error: "Server error", 500
+        else
+            results = []
+            for tag in tags
+                results.push tag.key
+            send results
+
+action 'tagTodo', ->
+    tag = params.tag
+    if tag?
+        Task.tagTodos tag, returnTasks
+    else
+        send error: "No tag given", 400
+
+action 'tagArchives', ->
+    tag = params.tag
+    if tag?
+        Task.tagArchives tag, returnTasks
+    else
+        send error: "No tag given", 400

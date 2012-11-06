@@ -7,7 +7,7 @@ DataTree = require("./common/data-tree").DataTree
 
 todolist = new TodoList
     title: "Tutorial"
-    path: ["Tutorial"]
+    path: '["Tutorial"]'
 
 
 tasks = [
@@ -42,6 +42,9 @@ to done."
     new Task
         description: "+ button lets you create a new todo list as child of \
 currenlty selected list"
+    new Task
+        description: "Write an # at the begginning of a word and it will \
+create a shortcut for all the task that share this tag."
     ]
 
 saveFunc = (obj) ->

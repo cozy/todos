@@ -12,8 +12,6 @@ async = require "async"
 # { length: number of todoList, rows: todoList list }
 ###
 returnTodoLists = (err, todoLists) ->
-    console.log todoLists
-    
     if err
         console.log err
         send error: "Retrieve todoLists failed.", 500

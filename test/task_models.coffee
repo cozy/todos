@@ -76,13 +76,15 @@ describe "Task Model", ->
                 description: "Task 09"
                 done: false
 
-            Task.create task, ->
-                Task.setFirstTask task, ->
+            Task.create task, (err, newTask) ->
+                Task.setFirstTask newTask, ->
                     done()
 
         it "Then the task links are properly set", (done) ->
             Task.allTodo @listId1, (err, tasks) ->
                 tasks[0].description.should.equal "Task 09"
+                console.log task.description for task in tasks
+                
                 tasks[0].nextTask.should.equal tasks[1].id
                 tasks[1].previousTask.should.equal tasks[0].id
                 done()
@@ -137,7 +139,7 @@ describe "Task Model", ->
                         previousTask: @tasks[1].id
                     Task.create task, (err, newTask) =>
                         @task = newTask
-                        Task.insertTask task, ->
+                        Task.insertTask newTask, ->
                             done()
 
             it "Then all tasks has proper links", (done) ->
@@ -153,6 +155,7 @@ describe "Task Model", ->
 
 
         describe "createNew", ->
+
             it "Task is done", (done) ->
                 task = new Task
                     list: @listId1
@@ -162,6 +165,31 @@ describe "Task Model", ->
                     Task.archives @listId1, (err, tasks) ->
                         tasks.length.should.equal 4
                         done()
+ 
+            it "Task is todo with no link set", (done) ->
+                task = new Task
+                    list: @listId1
+                    description: "Task 12"
+                    done: false
+                Task.createNew task, (err, newTask) =>
+                    Task.allTodo @listId1, (err, tasks) =>
+                        @tasks = tasks
+                        tasks.length.should.equal 6
+                        tasks[0].id.should.equal newTask.id
+                        done()
+            
+            it "Task is todo with link set", (done) ->
+                task = new Task
+                    list: @listId1
+                    description: "Task 13"
+                    done: false
+                    previousTask: @tasks[1].id
+                Task.createNew task, (err, newTask) =>
+                    Task.allTodo @listId1, (err, tasks) ->
+                        tasks.length.should.equal 7
+                        tasks[2].id.should.equal newTask.id
+                        done()
+            
 
         describe "Extract tags", ->
 
@@ -173,22 +201,6 @@ describe "Task Model", ->
                 task.tags[0].should.eql "task"
                 task.tags[1].should.eql "today"
 
-            
-            #it "Task is todo with no link set", (done) ->
-                #task = new Task
-                    #list: @listId1
-                    #description: "Task 12"
-                    #done: false
-                #Task.createNew task, (err, newTask) ->
-                    #Task.allTodo @listId1, (err, tasks) ->
-                        #tasks.length.should.equal 8
-                        #console.log task.id for task in tasks
-                        #console.log task.description for task in tasks
-                        
-                        #tasks[0].id.should.equal newTask.id
-                        #done()
-            
-            #it "Task is todo with link set", (done) ->
                 
 ### Create a new task and add it to the todo task list if its state is not done.
 ##Task.createNew = (task, callback) ->

@@ -124,6 +124,9 @@ Task.setFirstTask = (task, callback) ->
         else
             firstTask = getFirstTask(tasks)
             
+            if firstTask.id == task.id
+                firstTask = tasks[1]
+
             firstTask.previousTask = task.id
             task.nextTask = firstTask.id
             task.previousTask = null
@@ -203,17 +206,17 @@ Task.createNew = (task, callback) ->
     task.nextTask = null
     task.extractTags()
     
-    Task.create task, (err, task) ->
+    Task.create task, (err, newTask) ->
         return callback err if err
 
         if not task.done
-            if not task.previousTask?
-                Task.setFirstTask task, callback
+            if not newTask.previousTask?
+                Task.setFirstTask newTask, callback
             else
-                Task.insertTask task, (err) ->
-                    callback err, task
+                Task.insertTask newTask, (err) ->
+                    callback err, newTask
         else
-            callback err, task
+            callback err, newTask
 
 # Change next task ID of previous task with next task ID of current task.
 Task.removePreviousLink = (task, callback) ->

@@ -16,8 +16,9 @@ testLength = (body, length) ->
 
 initDb = (callback) ->
     async.series [
-        helpers.createTodoListFunction "My Tasks", ["My Tasks"]
-        helpers.createTodoListFunction "", ["Recipes", "Dessert"]
+        helpers.createTodoListFunction "Recipes", ["Recipes"].stringify()
+        helpers.createTodoListFunction
+            "Dessert", ["Recipes", "Dessert"].stringify()
     ], ->
         callback()
 
@@ -37,6 +38,8 @@ describe "/tasks", ->
     describe "GET /todolists ", ->
         it "Retrieve working todo-list", (done) ->
             client.get "todolists/", (error, response, body) =>
+                console.log body
+                
                 testLength body, 2
                 @listId = body.rows[0].id
                 done()

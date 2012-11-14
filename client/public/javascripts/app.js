@@ -452,7 +452,7 @@ window.require.define({"helpers": function(exports, require, module) {
     var hashTags, tag, tags, _i, _len;
     hashTags = description.match(/#(\w)*/g);
     tags = [];
-    if ((hashTags != null) != null) {
+    if (hashTags != null) {
       for (_i = 0, _len = hashTags.length; _i < _len; _i++) {
         tag = hashTags[_i];
         if (tag === "#t") {

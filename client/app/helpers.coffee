@@ -75,7 +75,7 @@ exports.extractTags = (description) ->
     hashTags =  description.match(/#(\w)*/g)
     tags = []
         
-    if hashTags??
+    if hashTags?
         for tag in hashTags
             tag = "#today" if tag is "#t"
             tag = "#week" if tag is "#w"

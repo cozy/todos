@@ -1,7 +1,14 @@
 exports.config =
+  coffeelint:
+    pattern: /^app\/.*\.coffee$/
+    options:
+      indentation:
+        level: "error"
+        value: 4
+
   # Edit the next line to change default build path.
   paths:
-      public: 'public'
+    public: 'public'
 
   files:
     javascripts:

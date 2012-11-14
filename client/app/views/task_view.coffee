@@ -13,8 +13,8 @@ class exports.TaskLine extends Backbone.View
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
 
-    ### 
-    # Initializers 
+    ###
+    # Initializers
     ###
 
     constructor: (@model, @list) ->
@@ -77,7 +77,7 @@ class exports.TaskLine extends Backbone.View
     # Listeners
     ###
 
-    # On todo button clicked, update task state and send modifications to 
+    # On todo button clicked, update task state and send modifications to
     # backend.
     onTodoButtonClicked: (event) =>
         @showLoading()

@@ -17,7 +17,7 @@ class exports.TaskList extends Backbone.View
 
     # Add a line at the bottom of the list.
     # If grouping option is activated, date is displayed every time it changes
-    # in listing. 
+    # in listing.
     addTaskLine: (task) ->
         taskLine = new TaskLine task, @
         $(@el).append taskLine.render()

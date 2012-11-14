@@ -34,7 +34,7 @@ class exports.TaskCollection extends Backbone.Collection
             previousTask = task
         @lastTask = null
 
-    # Prepend a task to the task list and update previousTask field of 
+    # Prepend a task to the task list and update previousTask field of
     # previous first task.
     onTaskAdded: (task) =>
         task.url = "#{@url}/#{task.id}/" if task.id?

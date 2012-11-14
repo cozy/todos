@@ -422,7 +422,7 @@ window.require.define({"helpers": function(exports, require, module) {
             }
           });
         } else {
-          throw "Spinner class not available.";
+          console.log("Spinner class not available.");
           return null;
         }
       };
@@ -1207,8 +1207,11 @@ window.require.define({"views/home_view": function(exports, require, module) {
       }
       this.previousSize = size;
       return $(window).resize(function() {
+        var isBig, isSmall;
         size = $(window).width();
-        if ((size < 700 && _this.previousSize > 700) || (size > 700 && _this.previousSize < 700)) {
+        isSmall = size < 700 && _this.previousSize > 700;
+        isBig = size > 700 && _this.previousSize < 700;
+        if (isSmall || isBig) {
           _this.layout.toggle("west");
         }
         return _this.previousSize = size;
@@ -1453,8 +1456,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
       "click .down-task-button": "onDownButtonClicked"
     };
 
-    /* 
-    # Initializers
+    /*
+        # Initializers
     */
 
 
@@ -2171,7 +2174,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           path = "#todolist/" + parent[0].id + "/";
           currentPath = paths.join("/");
           listName = paths.pop();
-          breadcrumb = "<a href='" + path + currentPath + "'> " + listName + "</a> >" + breadcrumb;
+          breadcrumb = "<a href='" + path + currentPath + "'>";
+          breadcrumb += "" + listName + "</a> >" + breadcrumb;
         } else {
           listName = paths.pop();
         }
@@ -2250,7 +2254,7 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
 
   /* Widget to easily manipulate data tree (navigation for cozy apps)
   Properties :
-      currentPath      = ex : /all/coutries/great_britain 
+      currentPath      = ex : /all/coutries/great_britain
       currentData      = data : jstree data obj sent by the select
       currentNote_uuid : uuid of the currently selected note
       widget           = @jstreeEl.jstree

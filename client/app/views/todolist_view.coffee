@@ -115,7 +115,7 @@ class exports.TodoListWidget extends Backbone.View
             error: =>
                 $(@tasks.view.el).spin()
 
-    # Add task to todo task list. 
+    # Add task to todo task list.
     moveToTaskList: (task) ->
         @tasks.onTaskAdded task
 
@@ -144,7 +144,7 @@ class exports.TodoListWidget extends Backbone.View
             else
                 @title.html "All tasks"
 
-    # breadcrumb will contain the path of the selected list in a link format(<a>)
+    # breadcrumb will contain the path of the selected list in a link format
     # the code below generates the breadcrumb corresponding
     # to the current list path
     createBreadcrumb: ->
@@ -160,7 +160,8 @@ class exports.TodoListWidget extends Backbone.View
                 path = "#todolist/#{parent[0].id}/"
                 currentPath = paths.join("/")
                 listName = paths.pop()
-                breadcrumb = "<a href='#{path}#{currentPath}'> #{listName}</a> >#{breadcrumb}"
+                breadcrumb = "<a href='#{path}#{currentPath}'>"
+                breadcrumb += "#{listName}</a> >#{breadcrumb}"
             else
                 listName = paths.pop()
 

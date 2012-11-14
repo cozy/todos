@@ -2,7 +2,7 @@
 removelist = ['sign', 'cross', 'of', 'symbol', 'staff']
 removelist = (new RegExp(word, 'gi') for word in removelist)
 
-# https://code.djangoproject.com/browser/django/trunk/django/contrib/admin/media/js/urlify.js
+# django/trunk/django/contrib/admin/media/js/urlify.js
 char_map = {
     # latin
     'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A', 'Å': 'A', 'Æ': 'AE',

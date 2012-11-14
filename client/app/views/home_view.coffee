@@ -18,6 +18,8 @@ class exports.HomeView extends Backbone.View
 
     constructor: ->
         @todolists = new TodoListCollection()
+        Backbone.Mediator.subscribe 'task:changed', @onTaskChanged
+
         super()
 
     # Build widgets (task lists) then load data.
@@ -147,6 +149,10 @@ class exports.HomeView extends Backbone.View
             TodoList.getTodoList nodeId, (body) =>
                 @currentTodolist.set "path", body.path
                 @currentTodolist.view.refreshBreadcrump()
+
+    # Check for new tag if a task changed.
+    onTaskChanged: (tags) =>
+        @tagListView?.addTags tags
 
     ###
     # Functions

@@ -148,6 +148,9 @@ class exports.TaskLine extends Backbone.View
             @showLoading()
             @model.save { description: @model.description },
                 success: =>
+                    tags = helpers.extractTags(@model.description)
+                    Backbone.Mediator.publish 'task:changed', tags
+                    @model.set 'tags', tags
                     @hideLoading()
                     @saving = false
                 error: =>

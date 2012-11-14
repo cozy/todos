@@ -447,6 +447,28 @@ window.require.define({"helpers": function(exports, require, module) {
     slashReg = new RegExp("/", "g");
     return "^" + (path.replace(slashReg, "\/"));
   };
+
+  exports.extractTags = function(description) {
+    var hashTags, tag, tags, _i, _len;
+    hashTags = description.match(/#(\w)*/g);
+    tags = [];
+    if ((hashTags != null) != null) {
+      for (_i = 0, _len = hashTags.length; _i < _len; _i++) {
+        tag = hashTags[_i];
+        if (tag === "#t") {
+          tag = "#today";
+        }
+        if (tag === "#w") {
+          tag = "#week";
+        }
+        if (tag === "#m") {
+          tag = "#month";
+        }
+        tags.push(tag.substring(1));
+      }
+    }
+    return tags;
+  };
   
 }});
 
@@ -1164,6 +1186,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
     HomeView.prototype.initialize = function() {};
 
     function HomeView() {
+      this.onTaskChanged = __bind(this.onTaskChanged, this);
+
       this.onTodoListDropped = __bind(this.onTodoListDropped, this);
 
       this.onTreeLoaded = __bind(this.onTreeLoaded, this);
@@ -1176,6 +1200,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
       this.onTodoListCreated = __bind(this.onTodoListCreated, this);
       this.todolists = new TodoListCollection();
+      Backbone.Mediator.subscribe('task:changed', this.onTaskChanged);
       HomeView.__super__.constructor.call(this);
     }
 
@@ -1338,6 +1363,11 @@ window.require.define({"views/home_view": function(exports, require, module) {
       });
     };
 
+    HomeView.prototype.onTaskChanged = function(tags) {
+      var _ref;
+      return (_ref = this.tagListView) != null ? _ref.addTags(tags) : void 0;
+    };
+
     /*
         # Functions
     */
@@ -1404,9 +1434,13 @@ window.require.define({"views/taglist_view": function(exports, require, module) 
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         tag = _ref[_i];
-        _results.push(this.el.append("<div><a href=\"#tag/" + tag + "\">" + tag + "</a></div>"));
+        _results.push(this.addTagLine(tag));
       }
       return _results;
+    };
+
+    TagListView.prototype.addTagLine = function(tag) {
+      return this.el.append("<div><a href=\"#tag/" + tag + "\">" + tag + "</a></div>");
     };
 
     TagListView.prototype.selectTag = function(tag) {
@@ -1421,6 +1455,23 @@ window.require.define({"views/taglist_view": function(exports, require, module) 
 
     TagListView.prototype.deselectAll = function() {
       return $("#tags a").removeClass("selected");
+    };
+
+    TagListView.prototype.addTags = function(tags) {
+      var tag, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = tags.length; _i < _len; _i++) {
+        tag = tags[_i];
+        if (_.find(tags, function(ctag) {
+          return tag === ctag;
+        }) != null) {
+          this.tagList.push(tag);
+          _results.push(this.addTagLine(tag));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
     };
 
     return TagListView;
@@ -1651,6 +1702,10 @@ window.require.define({"views/task_view": function(exports, require, module) {
           description: this.model.description
         }, {
           success: function() {
+            var tags;
+            tags = helpers.extractTags(_this.model.description);
+            Backbone.Mediator.publish('task:changed', tags);
+            _this.model.set('tags', tags);
             _this.hideLoading();
             return _this.saving = false;
           },

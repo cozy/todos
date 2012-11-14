@@ -68,3 +68,18 @@ exports.slugify = require "./lib/slug"
 exports.getPathRegExp = (path) ->
     slashReg = new RegExp "/", "g"
     "^#{path.replace(slashReg, "\/")}"
+
+# Extract tags from a string a tag is a word with an # at the beginning.
+# t is converted to today, w to week, and m to month
+exports.extractTags = (description) ->
+    hashTags =  description.match(/#(\w)*/g)
+    tags = []
+        
+    if hashTags??
+        for tag in hashTags
+            tag = "#today" if tag is "#t"
+            tag = "#week" if tag is "#w"
+            tag = "#month" if tag is "#m"
+            tags.push tag.substring(1)
+
+    tags

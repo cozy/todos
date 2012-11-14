@@ -9,7 +9,11 @@ class exports.TagListView extends Backbone.View
         @el = $("#tags")
         @el.html null
         for tag in @tagList
-            @el.append("<div><a href=\"#tag/#{tag}\">#{tag}</a></div>")
+            @addTagLine tag
+
+    # Add tag to the DOM tag list.
+    addTagLine: (tag) ->
+        @el.append("<div><a href=\"#tag/#{tag}\">#{tag}</a></div>")
 
     # Mark visually selected tag
     selectTag: (tag) ->
@@ -22,3 +26,10 @@ class exports.TagListView extends Backbone.View
     # Remove selected style from all tags
     deselectAll: ->
         $("#tags a").removeClass "selected"
+
+    # Add given tags if it does not appear in the list
+    addTags: (tags) ->
+        for tag in tags
+            if _.find(tags, (ctag) -> tag is ctag)?
+                @tagList.push tag
+                @addTagLine tag

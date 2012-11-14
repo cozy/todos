@@ -97,52 +97,63 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        condition = @model.collection.listId?
-        condition = condition and not @model.done
-        condition = condition and @model.collection.up @model
-
-        if condition
+        persistUp = =>
             @focusDescription()
             @showLoading()
             @model.save null,
                 success: =>
                     @todoButton = @$(".todo-button")
                     @hideLoading()
+                    @saving = false
                 error: =>
                     @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+                    @saving = false
+
+        if not @saving
+            @saving = true
+            isUp = @model.collection.up @model
+            if @model.collection.listId? and not @model.done and isUp
+                persistUp()
+
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        condition = @model.collection.listId?
-        condition = condition and not @model.done
-        condition = condition and @model.collection.down @model
-
-        if condition
+        persistDown = =>
             @showLoading()
             @model.save null,
                 success: =>
                     @todoButton = @$(".todo-button")
                     @hideLoading()
+                    @saving = false
                 error: =>
                     @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+                    @saving = false
                 
+        if not @saving
+            @saving = true
+            isDown = @model.collection.down @model
+            if @model.collection.listId? and not @model.done and isDown
+                persistDown()
+
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>
         unless keyCode == 8 or @descriptionField.val().length == 0
-            @saving = false
+            @saving = true
             @model.description = @descriptionField.val()
             @showLoading()
             @model.save { description: @model.description },
                 success: =>
                     @hideLoading()
+                    @saving = false
                 error: =>
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+                    @saving = false
 
     # Change focus to next task.
     onUpKeyup: ->

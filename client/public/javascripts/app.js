@@ -1585,65 +1585,79 @@ window.require.define({"views/task_view": function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
-      var condition,
+      var isUp, persistUp,
         _this = this;
-      condition = this.model.collection.listId != null;
-      condition = condition && !this.model.done;
-      condition = condition && this.model.collection.up(this.model);
-      if (condition) {
-        this.focusDescription();
-        this.showLoading();
-        return this.model.save(null, {
+      persistUp = function() {
+        _this.focusDescription();
+        _this.showLoading();
+        return _this.model.save(null, {
           success: function() {
             _this.todoButton = _this.$(".todo-button");
-            return _this.hideLoading();
+            _this.hideLoading();
+            return _this.saving = false;
           },
           error: function() {
             _this.todoButton = _this.$(".todo-button");
             alert("An error occured, modifications were not saved.");
-            return _this.hideLoading();
+            _this.hideLoading();
+            return _this.saving = false;
           }
         });
+      };
+      if (!this.saving) {
+        this.saving = true;
+        isUp = this.model.collection.up(this.model);
+        if ((this.model.collection.listId != null) && !this.model.done && isUp) {
+          return persistUp();
+        }
       }
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      var condition,
+      var isDown, persistDown,
         _this = this;
-      condition = this.model.collection.listId != null;
-      condition = condition && !this.model.done;
-      condition = condition && this.model.collection.down(this.model);
-      if (condition) {
-        this.showLoading();
-        return this.model.save(null, {
+      persistDown = function() {
+        _this.showLoading();
+        return _this.model.save(null, {
           success: function() {
             _this.todoButton = _this.$(".todo-button");
-            return _this.hideLoading();
+            _this.hideLoading();
+            return _this.saving = false;
           },
           error: function() {
             _this.todoButton = _this.$(".todo-button");
             alert("An error occured, modifications were not saved.");
-            return _this.hideLoading();
+            _this.hideLoading();
+            return _this.saving = false;
           }
         });
+      };
+      if (!this.saving) {
+        this.saving = true;
+        isDown = this.model.collection.down(this.model);
+        if ((this.model.collection.listId != null) && !this.model.done && isDown) {
+          return persistDown();
+        }
       }
     };
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
       var _this = this;
       if (!(keyCode === 8 || this.descriptionField.val().length === 0)) {
-        this.saving = false;
+        this.saving = true;
         this.model.description = this.descriptionField.val();
         this.showLoading();
         return this.model.save({
           description: this.model.description
         }, {
           success: function() {
-            return _this.hideLoading();
+            _this.hideLoading();
+            return _this.saving = false;
           },
           error: function() {
             alert("An error occured, modifications were not saved.");
-            return _this.hideLoading();
+            _this.hideLoading();
+            return _this.saving = false;
           }
         });
       }

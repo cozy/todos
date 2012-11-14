@@ -45,7 +45,7 @@ task 'tests:file', 'run test through mocha for a given file', (options) ->
       console.log "Running mocha caught exception: \n" + err
     console.log stdout
 
-task "xunit", "", ->
+task "xunit", "Run tests and save result in a file called xunit.xml", ->
   process.env.TZ = "Europe/Paris"
   command = "mocha "
   command += " --require should --compilers coffee:coffee-script -R xunit > xunit.xml"
@@ -59,3 +59,10 @@ task "xunit:client", "", ->
   exec command, (err, stdout, stderr) ->
     console.log stdout
 
+task "lint", "Run coffeelint on backend files", ->
+    process.env.TZ = "Europe/Paris"
+    command = "coffeelint "
+    command += "  -f coffeelint.json -r app/ config/ test/"
+    exec command, (err, stdout, stderr) ->
+        console.log err
+        console.log stdout

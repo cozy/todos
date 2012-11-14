@@ -266,7 +266,7 @@ Task.done = (task, attributes, callback) ->
 
 
 # When task go back to todo, it is added as first task to the todo list.
-# If task previous task is specified, it is inserted after this task. 
+# If task previous task is specified, it is inserted after this task.
 Task.todo = (task, attributes, callback) ->
     if attributes.previousTask?
         task.previousTask = attributes.previousTask

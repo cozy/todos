@@ -148,7 +148,7 @@ describe "/tasks", ->
                 done()
 
         it "Then I got a 404 response", ->
-             @response.statusCode.should.equal 404
+            @response.statusCode.should.equal 404
 
 
     describe "POST /todolists/:listId/tasks/ Create linked tasks", ->

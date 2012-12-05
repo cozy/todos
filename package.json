@@ -13,7 +13,6 @@
   , "jugglingdb":       "= 0.1.24-pre2"
   , "jugglingdb-cozy-adapter": ">= 0"
   , "redis":            "= 0.7.2"
-  , "unicode":          "= 0.4.2"
   , "async":            "= 0.1.22"
   , "restler":          "= 2.0.1"
   }

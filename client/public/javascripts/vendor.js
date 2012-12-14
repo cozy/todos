@@ -5006,6 +5006,798 @@ exports.rethrow = function rethrow(err, filename, lineno){
 ;
 
 /*
+ * Flip! jQuery Plugin (http://lab.smashup.it/flip/)
+ * @author Luca Manno (luca@smashup.it) [http://i.smashup.it]
+ *              [Original idea by Nicola Rizzo (thanks!)]
+ *
+ * @version 0.9.9 [Nov. 2009]
+ *
+ * @changelog
+ * v 0.9.9      ->      Fix transparency over non-colored background. Added dontChangeColor option.
+ *                      Added $clone and $this parameters to on.. callback functions.
+ *                      Force hexadecimal color values. Made safe for noConflict use.
+ *                      Some refactoring. [Henrik Hjelte, Jul. 10, 2009]
+ * 						Added revert options, fixes and improvements on color management.
+ * 						Released in Nov 2009
+ * v 0.5        ->      Added patch to make it work with Opera (thanks to Peter Siewert), Added callbacks [Feb. 1, 2008]
+ * v 0.4.1      ->      Fixed a regression in Chrome and Safari caused by getTransparent [Oct. 1, 2008]
+ * v 0.4        ->      Fixed some bugs with transparent color. Now Flip! works on non-white backgrounds | Update: jquery.color.js plugin or jqueryUI still needed :( [Sept. 29, 2008]
+ * v 0.3        ->      Now is possibile to define the content after the animation.
+ *                              (jQuery object or text/html is allowed) [Sept. 25, 2008]
+ * v 0.2        ->      Fixed chainability and buggy innertext rendering (xNephilimx thanks!)
+ * v 0.1        ->      Starting release [Sept. 11, 2008]
+ *
+ */
+(function($) {
+
+function int_prop(fx){
+    fx.elem.style[ fx.prop ] = parseInt(fx.now,10) + fx.unit;
+}
+
+var throwError=function(message) {
+    throw({name:"jquery.flip.js plugin error",message:message});
+};
+
+var isIE6orOlder=function() {
+    // User agent sniffing is clearly out of fashion and $.browser will be be deprectad.
+    // Now, I can't think of a way to feature detect that IE6 doesn't show transparent
+    // borders in the correct way.
+    // Until then, this function will do, and be partly political correct, allowing
+    // 0.01 percent of the internet users to tweak with their UserAgent string.
+    //
+    // Not leadingWhiteSpace is to separate IE family from, well who knows?
+    // Maybe some version of Opera?
+    // The second guess behind this is that IE7+  will keep supporting maxHeight in the future.
+	
+	// First guess changed to dean edwards ie sniffing http://dean.edwards.name/weblog/2007/03/sniff/
+    return (/*@cc_on!@*/false && (typeof document.body.style.maxHeight === "undefined"));
+};
+
+
+// Some named colors to work with
+// From Interface by Stefan Petre
+// http://interface.eyecon.ro/
+
+var colors = {
+	aqua:[0,255,255],
+	azure:[240,255,255],
+	beige:[245,245,220],
+	black:[0,0,0],
+	blue:[0,0,255],
+	brown:[165,42,42],
+	cyan:[0,255,255],
+	darkblue:[0,0,139],
+	darkcyan:[0,139,139],
+	darkgrey:[169,169,169],
+	darkgreen:[0,100,0],
+	darkkhaki:[189,183,107],
+	darkmagenta:[139,0,139],
+	darkolivegreen:[85,107,47],
+	darkorange:[255,140,0],
+	darkorchid:[153,50,204],
+	darkred:[139,0,0],
+	darksalmon:[233,150,122],
+	darkviolet:[148,0,211],
+	fuchsia:[255,0,255],
+	gold:[255,215,0],
+	green:[0,128,0],
+	indigo:[75,0,130],
+	khaki:[240,230,140],
+	lightblue:[173,216,230],
+	lightcyan:[224,255,255],
+	lightgreen:[144,238,144],
+	lightgrey:[211,211,211],
+	lightpink:[255,182,193],
+	lightyellow:[255,255,224],
+	lime:[0,255,0],
+	magenta:[255,0,255],
+	maroon:[128,0,0],
+	navy:[0,0,128],
+	olive:[128,128,0],
+	orange:[255,165,0],
+	pink:[255,192,203],
+	purple:[128,0,128],
+	violet:[128,0,128],
+	red:[255,0,0],
+	silver:[192,192,192],
+	white:[255,255,255],
+	yellow:[255,255,0],
+	transparent: [255,255,255]
+};
+
+var acceptHexColor=function(color) {
+	if(color && color.indexOf("#")==-1 && color.indexOf("(")==-1){
+		return "rgb("+colors[color].toString()+")";
+	} else {
+		return color;
+	}
+};
+
+$.extend( $.fx.step, {
+    borderTopWidth : int_prop,
+    borderBottomWidth : int_prop,
+    borderLeftWidth: int_prop,
+    borderRightWidth: int_prop
+});
+
+$.fn.revertFlip = function(){
+	return this.each( function(){
+		var $this = $(this);
+		$this.flip($this.data('flipRevertedSettings'));		
+	});
+};
+
+$.fn.flip = function(settings){
+    return this.each( function() {
+        var $this=$(this), flipObj, $clone, dirOption, dirOptions, newContent, ie6=isIE6orOlder();
+
+        if($this.data('flipLock')){
+            return false;
+        }
+		
+		var revertedSettings = {
+			direction: (function(direction){
+				switch(direction)
+				{
+				case "tb":
+				  return "bt";
+				case "bt":
+				  return "tb";
+				case "lr":
+				  return "rl";
+				case "rl":
+				  return "lr";		  
+				default:
+				  return "bt";
+				}
+			})(settings.direction),
+			bgColor: acceptHexColor(settings.color) || "#999",
+			color: acceptHexColor(settings.bgColor) || $this.css("background-color"),
+			content: $this.html(),
+			speed: settings.speed || 500,
+            onBefore: settings.onBefore || function(){},
+            onEnd: settings.onEnd || function(){},
+            onAnimation: settings.onAnimation || function(){}
+		};
+		
+		$this
+			.data('flipRevertedSettings',revertedSettings)
+			.data('flipLock',1)
+			.data('flipSettings',revertedSettings);
+
+        flipObj = {
+            width: $this.width(),
+            height: $this.height(),
+            bgColor: acceptHexColor(settings.bgColor) || $this.css("background-color"),
+            fontSize: $this.css("font-size") || "12px",
+            direction: settings.direction || "tb",
+            toColor: acceptHexColor(settings.color) || "#999",
+            speed: settings.speed || 500,
+            top: $this.offset().top,
+            left: $this.offset().left,
+            target: settings.content || null,
+            transparent: "transparent",
+            dontChangeColor: settings.dontChangeColor || false,
+            onBefore: settings.onBefore || function(){},
+            onEnd: settings.onEnd || function(){},
+            onAnimation: settings.onAnimation || function(){}
+        };
+
+        // This is the first part of a trick to support
+        // transparent borders using chroma filter for IE6
+        // The color below is arbitrary, lets just hope it is not used in the animation
+        ie6 && (flipObj.transparent="#123456");
+
+        $clone= $this.css("visibility","hidden")
+            .clone(true)
+			.data('flipLock',1)
+            .appendTo("body")
+            .html("")
+            .css({visibility:"visible",position:"absolute",left:flipObj.left,top:flipObj.top,margin:0,zIndex:9999,"-webkit-box-shadow":"0px 0px 0px #000","-moz-box-shadow":"0px 0px 0px #000"});
+
+        var defaultStart=function() {
+            return {
+                backgroundColor: flipObj.transparent,
+                fontSize:0,
+                lineHeight:0,
+                borderTopWidth:0,
+                borderLeftWidth:0,
+                borderRightWidth:0,
+                borderBottomWidth:0,
+                borderTopColor:flipObj.transparent,
+                borderBottomColor:flipObj.transparent,
+                borderLeftColor:flipObj.transparent,
+                borderRightColor:flipObj.transparent,
+				background: "none",
+                borderStyle:'solid',
+                height:0,
+                width:0
+            };
+        };
+        var defaultHorizontal=function() {
+            var waist=(flipObj.height/100)*25;
+            var start=defaultStart();
+            start.width=flipObj.width;
+            return {
+                "start": start,
+                "first": {
+                    borderTopWidth: 0,
+                    borderLeftWidth: waist,
+                    borderRightWidth: waist,
+                    borderBottomWidth: 0,
+                    borderTopColor: '#999',
+                    borderBottomColor: '#999',
+                    top: (flipObj.top+(flipObj.height/2)),
+                    left: (flipObj.left-waist)},
+                "second": {
+                    borderBottomWidth: 0,
+                    borderTopWidth: 0,
+                    borderLeftWidth: 0,
+                    borderRightWidth: 0,
+                    borderTopColor: flipObj.transparent,
+                    borderBottomColor: flipObj.transparent,
+                    top: flipObj.top,
+                    left: flipObj.left}
+            };
+        };
+        var defaultVertical=function() {
+            var waist=(flipObj.height/100)*25;
+            var start=defaultStart();
+            start.height=flipObj.height;
+            return {
+                "start": start,
+                "first": {
+                    borderTopWidth: waist,
+                    borderLeftWidth: 0,
+                    borderRightWidth: 0,
+                    borderBottomWidth: waist,
+                    borderLeftColor: '#999',
+                    borderRightColor: '#999',
+                    top: flipObj.top-waist,
+                    left: flipObj.left+(flipObj.width/2)},
+                "second": {
+                    borderTopWidth: 0,
+                    borderLeftWidth: 0,
+                    borderRightWidth: 0,
+                    borderBottomWidth: 0,
+                    borderLeftColor: flipObj.transparent,
+                    borderRightColor: flipObj.transparent,
+                    top: flipObj.top,
+                    left: flipObj.left}
+            };
+        };
+
+        dirOptions = {
+            "tb": function () {
+                var d=defaultHorizontal();
+                d.start.borderTopWidth=flipObj.height;
+                d.start.borderTopColor=flipObj.bgColor;
+                d.second.borderBottomWidth= flipObj.height;
+                d.second.borderBottomColor= flipObj.toColor;
+                return d;
+            },
+            "bt": function () {
+                var d=defaultHorizontal();
+                d.start.borderBottomWidth=flipObj.height;
+                d.start.borderBottomColor= flipObj.bgColor;
+                d.second.borderTopWidth= flipObj.height;
+                d.second.borderTopColor= flipObj.toColor;
+                return d;
+            },
+            "lr": function () {
+                var d=defaultVertical();
+                d.start.borderLeftWidth=flipObj.width;
+                d.start.borderLeftColor=flipObj.bgColor;
+                d.second.borderRightWidth= flipObj.width;
+                d.second.borderRightColor= flipObj.toColor;
+                return d;
+            },
+            "rl": function () {
+                var d=defaultVertical();
+                d.start.borderRightWidth=flipObj.width;
+                d.start.borderRightColor=flipObj.bgColor;
+                d.second.borderLeftWidth= flipObj.width;
+                d.second.borderLeftColor= flipObj.toColor;
+                return d;
+            }
+        };
+
+        dirOption=dirOptions[flipObj.direction]();
+
+        // Second part of IE6 transparency trick.
+        ie6 && (dirOption.start.filter="chroma(color="+flipObj.transparent+")");
+
+        newContent = function(){
+            var target = flipObj.target;
+            return target && target.jquery ? target.html() : target;
+        };
+
+        $clone.queue(function(){
+            flipObj.onBefore($clone,$this);
+            $clone.html('').css(dirOption.start);
+            $clone.dequeue();
+        });
+
+        $clone.animate(dirOption.first,flipObj.speed);
+
+        $clone.queue(function(){
+            flipObj.onAnimation($clone,$this);
+            $clone.dequeue();
+        });
+        $clone.animate(dirOption.second,flipObj.speed);
+
+        $clone.queue(function(){
+            if (!flipObj.dontChangeColor) {
+                $this.css({backgroundColor: flipObj.toColor});
+            }
+            $this.css({visibility: "visible"});
+
+            var nC = newContent();
+            if(nC){$this.html(nC);}
+            $clone.remove();
+            flipObj.onEnd($clone,$this);
+            $this.removeData('flipLock');
+            $clone.dequeue();
+        });
+    });
+};
+})(jQuery);
+;
+
+/*
+
+FLIPPY jQuery plugin (http://guilhemmarty.com/flippy)
+
+@author : Guilhem MARTY (bonjour@guilhemmarty.com)
+
+@version: 1.0
+
+@changelog:
+
+Feb 11 2012 - v1.0 : First release
+
+*/
+
+
+(function($){
+	var _Ang , _Step_ang , _Refresh_rate , _Depth , _W , _H , _nW , _nH , _cv_W, _cv_H, _CenterX , _CenterY , _Color , _Color_target , _Light , _Content , _Direction , _Midway , $this , _After, _Active;
+	
+	var _ColorsRef = {
+		'aliceblue':'#f0f8ff',
+		'antiquewhite':'#faebd7',
+		'aqua':'#00ffff',
+		'aquamarine':'#7fffd4',
+		'azure':'#f0ffff',
+		'beige':'#f5f5dc',
+		'bisque':'#ffe4c4',
+		'black':'#000000',
+		'blanchedalmond':'#ffebcd',
+		'blue':'#0000ff',
+		'blueviolet':'#8a2be2',
+		'brown':'#a52a2a',
+		'burlywood':'#deb887',
+		'cadetblue':'#5f9ea0',
+		'chartreuse':'#7fff00',
+		'chocolate':'#d2691e',
+		'coral':'#ff7f50',
+		'cornflowerblue':'#6495ed',
+		'cornsilk':'#fff8dc',
+		'crimson':'#dc143c',
+		'cyan':'#00ffff',
+		'darkblue':'#00008b',
+		'darkcyan':'#008b8b',
+		'darkgoldenrod':'#b8860b',
+		'darkgray':'#a9a9a9',
+		'darkgrey':'#a9a9a9',
+		'darkgreen':'#006400',
+		'darkkhaki':'#bdb76b',
+		'darkmagenta':'#8b008b',
+		'darkolivegreen':'#556b2f',
+		'darkorange':'#ff8c00',
+		'darkorchid':'#9932cc',
+		'darkred':'#8b0000',
+		'darksalmon':'#e9967a',
+		'darkseagreen':'#8fbc8f',
+		'darkslateblue':'#483d8b',
+		'darkslategray':'#2f4f4f',
+		'darkslategrey':'#2f4f4f',
+		'darkturquoise':'#00ced1',
+		'darkviolet':'#9400d3',
+		'deeppink':'#ff1493',
+		'deepskyblue':'#00bfff',
+		'dimgray':'#696969',
+		'dimgrey':'#696969',
+		'dodgerblue':'#1e90ff',
+		'firebrick':'#b22222',
+		'floralwhite':'#fffaf0',
+		'forestgreen':'#228b22',
+		'fuchsia':'#ff00ff',
+		'gainsboro':'#dcdcdc',
+		'ghostwhite':'#f8f8ff',
+		'gold':'#ffd700',
+		'goldenrod':'#daa520',
+		'gray':'#808080',
+		'grey':'#808080',
+		'green':'#008000',
+		'greenyellow':'#adff2f',
+		'honeydew':'#f0fff0',
+		'hotpink':'#ff69b4',
+		'indianred ':'#cd5c5c',
+		'indigo  ':'#4b0082',
+		'ivory':'#fffff0',
+		'khaki':'#f0e68c',
+		'lavender':'#e6e6fa',
+		'lavenderblush':'#fff0f5',
+		'lawngreen':'#7cfc00',
+		'lemonchiffon':'#fffacd',
+		'lightblue':'#add8e6',
+		'lightcoral':'#f08080',
+		'lightcyan':'#e0ffff',
+		'lightgoldenrodyellow':'#fafad2',
+		'lightgray':'#d3d3d3',
+		'lightgrey':'#d3d3d3',
+		'lightgreen':'#90ee90',
+		'lightpink':'#ffb6c1',
+		'lightsalmon':'#ffa07a',
+		'lightseagreen':'#20b2aa',
+		'lightskyblue':'#87cefa',
+		'lightslategray':'#778899',
+		'lightslategrey':'#778899',
+		'lightsteelblue':'#b0c4de',
+		'lightyellow':'#ffffe0',
+		'lime':'#00ff00',
+		'limegreen':'#32cd32',
+		'linen':'#faf0e6',
+		'magenta':'#ff00ff',
+		'maroon':'#800000',
+		'mediumaquamarine':'#66cdaa',
+		'mediumblue':'#0000cd',
+		'mediumorchid':'#ba55d3',
+		'mediumpurple':'#9370d8',
+		'mediumseagreen':'#3cb371',
+		'mediumslateblue':'#7b68ee',
+		'mediumspringgreen':'#00fa9a',
+		'mediumturquoise':'#48d1cc',
+		'mediumvioletred':'#c71585',
+		'midnightblue':'#191970',
+		'mintcream':'#f5fffa',
+		'mistyrose':'#ffe4e1',
+		'moccasin':'#ffe4b5',
+		'navajowhite':'#ffdead',
+		'navy':'#000080',
+		'oldlace':'#fdf5e6',
+		'olive':'#808000',
+		'olivedrab':'#6b8e23',
+		'orange':'#ffa500',
+		'orangered':'#ff4500',
+		'orchid':'#da70d6',
+		'palegoldenrod':'#eee8aa',
+		'palegreen':'#98fb98',
+		'paleturquoise':'#afeeee',
+		'palevioletred':'#d87093',
+		'papayawhip':'#ffefd5',
+		'peachpuff':'#ffdab9',
+		'peru':'#cd853f',
+		'pink':'#ffc0cb',
+		'plum':'#dda0dd',
+		'powderblue':'#b0e0e6',
+		'purple':'#800080',
+		'red':'#ff0000',
+		'rosybrown':'#bc8f8f',
+		'royalblue':'#4169e1',
+		'saddlebrown':'#8b4513',
+		'salmon':'#fa8072',
+		'sandybrown':'#f4a460',
+		'seagreen':'#2e8b57',
+		'seashell':'#fff5ee',
+		'sienna':'#a0522d',
+		'silver':'#c0c0c0',
+		'skyblue':'#87ceeb',
+		'slateblue':'#6a5acd',
+		'slategray':'#708090',
+		'slategrey':'#708090',
+		'snow':'#fffafa',
+		'springgreen':'#00ff7f',
+		'steelblue':'#4682b4',
+		'tan':'#d2b48c',
+		'teal':'#008080',
+		'thistle':'#d8bfd8',
+		'tomato':'#ff6347',
+		'turquoise':'#40e0d0',
+		'violet':'#ee82ee',
+		'wheat':'#f5deb3',
+		'white':'#ffffff',
+		'whitesmoke':'#f5f5f5',
+		'yellow':'#ffff00',
+		'yellowgreen':'#9acd32'
+	};
+	
+	$.fn.flippy = function(opts){
+		if(!_Active){
+			opts = $.extend({
+				active_class:"flippy-active",
+				step_ang:10,
+				refresh_rate:15,
+				duration:300,
+				depth:0.12,
+				color_target:"white",
+				light:60,
+				content:"",
+				direction:"LEFT",
+				onStart:function(){},
+				onMidway:function(){},
+				onFinish:function(){}
+			}, opts);
+			_Active_class="flippy-active";
+			_Active = (_Active)? _Active : '';
+			_Ang = 0;
+			_Step_ang = (opts.refresh_rate/opts.duration)*200;
+			_Refresh_rate = opts.refresh_rate;
+			_Depth = opts.depth;
+			_W = '';
+			_H = '';
+			_nW = '';
+			_nH = '';
+			_CenterX = (_CenterX != '')? _CenterX : '';
+			_CenterY = (_CenterY != '')? _CenterY : '';
+			_Color = (_Color != '')? _Color : '';
+			_Color_target = convertColor(opts.color_target);
+			_Direction = opts.direction;
+			_Light = opts.light;
+			_Content = opts.content;
+			_Before = opts.onStart;
+			_Midway = opts.onMidway;
+			_After = opts.onFinish;
+
+			var _i = 1;
+			return this.each(function(){
+				$this = $(this);
+				_nW = $this.width();
+				_nH = $this.height();
+				_W = $this.outerWidth();
+				_H = $this.outerHeight();
+				_Active = true;
+				_Before();
+				
+				_Content = (typeof _Content == "object") ? _Content.html() : _Content;
+				_Color = convertColor($this.css("background-color"));
+				$this
+					.empty()
+					.data("color",$this.css("background-color"))
+					.css({
+						 "background":"none",
+						 "position":"relative",
+						 "overflow":"visible"
+					});
+					
+					switch(_Direction){
+						case "TOP":
+							_CenterX = (Math.sin(Math.PI/2)*_nW*_Depth);
+							_CenterY = _H/2;
+							var cv_pattern = '<canvas id="flippy" width="'+(_W+(2*_CenterX))+'" height="'+_H+'"></canvas>';
+							new_flippy(cv_pattern);
+							$this.find("#flippy")
+								.css({
+									 "position":"absolute",
+									 "top":"0",
+									 "left":"-"+_CenterX+"px"
+								});
+						break;
+						case "BOTTOM":
+							_CenterX = (Math.sin(Math.PI/2)*_nW*_Depth);
+							_CenterY = _H/2;
+							var cv_pattern = '<canvas id="flippy" width="'+(_W+(2*_CenterX))+'" height="'+_H+'"></canvas>';
+							new_flippy(cv_pattern);
+							$this.find("#flippy")
+								.css({
+									 "position":"absolute",
+									 "top":"0",
+									 "left":"-"+_CenterX+"px"
+								});
+						break;
+						case "LEFT":
+							_CenterY = (Math.sin(Math.PI/2)*_nH*_Depth);
+							_CenterX = _W/2;
+							var cv_pattern = '<canvas id="flippy" width="'+_W+'" height="'+(_H+(2*_CenterY))+'"></canvas>';
+							new_flippy(cv_pattern);
+							$this.find("#flippy")
+								.css({
+									 "position":"absolute",
+									 "top":"-"+_CenterY+"px",
+									 "left":"0"
+								});
+						break;
+						case "RIGHT":
+							_CenterY = (Math.sin(Math.PI/2)*_nH*_Depth);
+							_CenterX = _W/2;
+							var cv_pattern = '<canvas id="flippy" width="'+_W+'" height="'+(_H+(2*_CenterY))+'"></canvas>';
+							new_flippy(cv_pattern);
+							$this.find("#flippy")
+								.css({
+									 "position":"absolute",
+									 "top":"-"+_CenterY+"px",
+									 "left":"0"
+								});
+						break;
+					}
+				drawFlippy();
+			});
+		}
+	}
+	
+	function new_flippy(cv_pattern){
+		$this.append(cv_pattern);
+	}
+	
+	function drawFlippy(){
+		_Ang += _Step_ang;
+		
+		if(_Ang > 90 && _Ang <= (90+_Step_ang)){
+			_Midway();
+		}
+		
+		_Ang = (_Ang > (180+_Step_ang)) ? _Ang-(180+_Step_ang) : _Ang;
+		var PI = Math.PI
+		var rad = (_Ang/180)*PI;
+		
+		var canvas = document.getElementById("flippy");
+		if($.browser.msie){G_vmlCanvasManager.initElement(canvas);}
+		var ctx = canvas.getContext("2d");
+		ctx.clearRect(0, 0, _W+(2*_CenterX), _H+(2*_CenterY));
+		ctx.beginPath();
+		var deltaH = Math.sin(rad)*_H*_Depth;
+		var deltaW = Math.sin(rad)*_W*_Depth;
+		
+		switch(_Direction){
+			case "LEFT" :
+				var X = Math.cos(rad)*(_W/2);
+				ctx.fillStyle = (_Ang > 90) ? changeColor(_Color_target,Math.floor(Math.sin(rad)*_Light)) : changeColor(_Color,-Math.floor(Math.sin(rad)*_Light));
+				ctx.moveTo(_CenterX-X,_CenterY+deltaH);//TL
+				ctx.lineTo(_CenterX+X,_CenterY-deltaH);//TR
+				ctx.lineTo(_CenterX+X,_CenterY+_H+deltaH);//BR
+				ctx.lineTo(_CenterX-X,_CenterY+_H-deltaH);//BL
+				ctx.lineTo(_CenterX-X,_CenterY);//loop
+				ctx.fill();
+			break;
+			case "RIGHT" :
+				var X = Math.cos(rad)*(_W/2);
+				ctx.fillStyle = (_Ang > 90) ? changeColor(_Color_target,-Math.floor(Math.sin(rad)*_Light)) : changeColor(_Color,Math.floor(Math.sin(rad)*_Light));
+				ctx.moveTo(_CenterX+X,_CenterY+deltaH);//TL
+				ctx.lineTo(_CenterX-X,_CenterY-deltaH);//TR
+				ctx.lineTo(_CenterX-X,_CenterY+_H+deltaH);//BR
+				ctx.lineTo(_CenterX+X,_CenterY+_H-deltaH);//BL
+				ctx.lineTo(_CenterX+X,_CenterY);//loop
+				ctx.fill();
+			break;
+			case "TOP" :
+				var Y = Math.cos(rad)*(_H/2);
+				ctx.fillStyle = (_Ang > 90) ? changeColor(_Color_target,-Math.floor(Math.sin(rad)*_Light)) : changeColor(_Color,Math.floor(Math.sin(rad)*_Light));
+				ctx.moveTo(_CenterX+deltaW,_CenterY-Y);//TL
+				ctx.lineTo(_CenterX-deltaW,_CenterY+Y);//TR
+				ctx.lineTo(_CenterX+_W+deltaW,_CenterY+Y);//BR
+				ctx.lineTo(_CenterX+_W-deltaW,_CenterY-Y);//BL
+				ctx.lineTo(_CenterX,_CenterY-Y);//loop
+				ctx.fill();
+			break;
+			case "BOTTOM" :
+				var Y = Math.cos(rad)*(_H/2);
+				ctx.fillStyle = (_Ang > 90) ? changeColor(_Color_target,Math.floor(Math.sin(rad)*_Light)) : changeColor(_Color,-Math.floor(Math.sin(rad)*_Light));
+				ctx.moveTo(_CenterX+deltaW,_CenterY+Y);//TL
+				ctx.lineTo(_CenterX-deltaW,_CenterY-Y);//TR
+				ctx.lineTo(_CenterX+_W+deltaW,_CenterY-Y);//BR
+				ctx.lineTo(_CenterX+_W-deltaW,_CenterY+Y);//BL
+				ctx.lineTo(_CenterX,_CenterY+Y);//loop
+				ctx.fill();
+			break;
+		}
+		
+		if(_Ang < 180){
+			setTimeout(drawFlippy,_Refresh_rate);
+		}else{
+			_Active = null;
+			$this
+				.css({
+					 "background":_Color_target
+				})
+				.append(_Content)
+				.find("#flippy")
+					.remove();
+				if($this.attr("id") == "flippy_container"){
+					$this.attr("id","");
+				}
+			_After();
+		}
+	}
+	
+	function convertColor(thecolor){
+		try{
+			thecolor = (eval('_ColorsRef.'+thecolor) != null)? eval('_ColorsRef.'+thecolor) : thecolor;
+		}catch(err){
+		
+		}
+	
+		if(thecolor.substr(0,4) == "rgb("){
+			thecolor = "#"
+				+toHex(eval(thecolor.substr(4,thecolor.length).split(',')[0]))
+				+toHex(eval(thecolor.substr(3,thecolor.length).split(',')[1]))
+				+toHex(eval(thecolor.substr(3,thecolor.length-4).split(',')[2]))
+		};
+		return thecolor;
+	}
+	
+	function toDec(hex){
+		var hexL = hex.length;
+		var dec = 0;
+		for(i=0;i<hexL;i++){
+			var hexPow = Math.pow(16,hexL-i-1);
+			var daHex = hex.substr(i,1)
+			switch(daHex.toUpperCase()){
+				case "A" : dec += 10*hexPow;break;
+				case "B" : dec += 11*hexPow;break;
+				case "C" : dec += 12*hexPow;break;
+				case "D" : dec += 13*hexPow;break;
+				case "E" : dec += 14*hexPow;break;
+				case "F" : dec += 15*hexPow;break;
+				default : dec += eval(daHex)*hexPow;break;
+			};
+		}
+		return dec;
+	}
+	
+	function toHex(dec){
+		var modulos = new Array();
+		while(Math.floor(dec)>16){
+			modulos.push(dec%16);
+			dec = Math.floor(dec/16);
+		}
+		
+		var Hex;
+		switch(dec){
+			case 10 : Hex = "A"; break;
+			case 11 : Hex = "B"; break;
+			case 12 : Hex = "C"; break;
+			case 13 : Hex = "D"; break;
+			case 14 : Hex = "E"; break;
+			case 15 : Hex = "F"; break;
+			default : Hex = ""+dec; break;
+		}
+		for(i=modulos.length-1;i>=0;i--){
+			switch(modulos[i]){
+				case 10 : Hex += "A"; break;
+				case 11 : Hex += "B"; break;
+				case 12 : Hex += "C"; break;
+				case 13 : Hex += "D"; break;
+				case 14 : Hex += "E"; break;
+				case 15 : Hex += "F"; break;
+				default : Hex += ""+modulos[i]; break;
+			}
+		}
+		if(Hex.length == 1 ){
+			return "0"+Hex;
+		}else{
+			return Hex;
+		}
+	}
+	
+	function changeColor(colorHex,step){
+		var redHex = colorHex.substr(1,2);
+		var greenHex = colorHex.substr(3,2);
+		var blueHex = colorHex.substr(5,2);
+		
+		var redDec = (toDec(redHex)+step > 255) ? 255 : toDec(redHex)+step;
+		var greenDec = (toDec(greenHex)+step > 255) ? 255 : toDec(greenHex)+step;
+		var blueDec = (toDec(blueHex)+step > 255) ? 255 : toDec(blueHex)+step;
+		
+		redHex = (redDec <= 0) ? "00" : toHex(redDec);
+		greenHex = (greenDec <= 0) ? "00" : toHex(greenDec);
+		blueHex = (blueDec <= 0) ? "00" : toHex(blueDec);
+		
+		return "#"+redHex+greenHex+blueHex;
+	}
+	
+})(jQuery);
+
+/*
  * jQuery Hotkeys Plugin
  * Copyright 2010, John Resig
  * Dual licensed under the MIT or GPL Version 2 licenses.
@@ -5105,6 +5897,1444 @@ exports.rethrow = function rethrow(err, filename, lineno){
 
 })( jQuery );;
 
+/*!
+ * jScrollPane - v2.0.0beta12 - 2012-09-27
+ * http://jscrollpane.kelvinluck.com/
+ *
+ * Copyright (c) 2010 Kelvin Luck
+ * Dual licensed under the MIT or GPL licenses.
+ */
+
+// Script: jScrollPane - cross browser customisable scrollbars
+//
+// *Version: 2.0.0beta12, Last updated: 2012-09-27*
+//
+// Project Home - http://jscrollpane.kelvinluck.com/
+// GitHub       - http://github.com/vitch/jScrollPane
+// Source       - http://github.com/vitch/jScrollPane/raw/master/script/jquery.jscrollpane.js
+// (Minified)   - http://github.com/vitch/jScrollPane/raw/master/script/jquery.jscrollpane.min.js
+//
+// About: License
+//
+// Copyright (c) 2012 Kelvin Luck
+// Dual licensed under the MIT or GPL Version 2 licenses.
+// http://jscrollpane.kelvinluck.com/MIT-LICENSE.txt
+// http://jscrollpane.kelvinluck.com/GPL-LICENSE.txt
+//
+// About: Examples
+//
+// All examples and demos are available through the jScrollPane example site at:
+// http://jscrollpane.kelvinluck.com/
+//
+// About: Support and Testing
+//
+// This plugin is tested on the browsers below and has been found to work reliably on them. If you run
+// into a problem on one of the supported browsers then please visit the support section on the jScrollPane
+// website (http://jscrollpane.kelvinluck.com/) for more information on getting support. You are also
+// welcome to fork the project on GitHub if you can contribute a fix for a given issue. 
+//
+// jQuery Versions - tested in 1.4.2+ - reported to work in 1.3.x
+// Browsers Tested - Firefox 3.6.8, Safari 5, Opera 10.6, Chrome 5.0, IE 6, 7, 8
+//
+// About: Release History
+//
+// 2.0.0beta12 - (2012-09-27) fix for jQuery 1.8+
+// 2.0.0beta11 - (2012-05-14)
+// 2.0.0beta10 - (2011-04-17) cleaner required size calculation, improved keyboard support, stickToBottom/Left, other small fixes
+// 2.0.0beta9 - (2011-01-31) new API methods, bug fixes and correct keyboard support for FF/OSX
+// 2.0.0beta8 - (2011-01-29) touchscreen support, improved keyboard support
+// 2.0.0beta7 - (2011-01-23) scroll speed consistent (thanks Aivo Paas)
+// 2.0.0beta6 - (2010-12-07) scrollToElement horizontal support
+// 2.0.0beta5 - (2010-10-18) jQuery 1.4.3 support, various bug fixes
+// 2.0.0beta4 - (2010-09-17) clickOnTrack support, bug fixes
+// 2.0.0beta3 - (2010-08-27) Horizontal mousewheel, mwheelIntent, keyboard support, bug fixes
+// 2.0.0beta2 - (2010-08-21) Bug fixes
+// 2.0.0beta1 - (2010-08-17) Rewrite to follow modern best practices and enable horizontal scrolling, initially hidden
+//							 elements and dynamically sized elements.
+// 1.x - (2006-12-31 - 2010-07-31) Initial version, hosted at googlecode, deprecated
+
+(function($,window,undefined){
+
+	$.fn.jScrollPane = function(settings)
+	{
+		// JScrollPane "class" - public methods are available through $('selector').data('jsp')
+		function JScrollPane(elem, s)
+		{
+			var settings, jsp = this, pane, paneWidth, paneHeight, container, contentWidth, contentHeight,
+				percentInViewH, percentInViewV, isScrollableV, isScrollableH, verticalDrag, dragMaxY,
+				verticalDragPosition, horizontalDrag, dragMaxX, horizontalDragPosition,
+				verticalBar, verticalTrack, scrollbarWidth, verticalTrackHeight, verticalDragHeight, arrowUp, arrowDown,
+				horizontalBar, horizontalTrack, horizontalTrackWidth, horizontalDragWidth, arrowLeft, arrowRight,
+				reinitialiseInterval, originalPadding, originalPaddingTotalWidth, previousContentWidth,
+				wasAtTop = true, wasAtLeft = true, wasAtBottom = false, wasAtRight = false,
+				originalElement = elem.clone(false, false).empty(),
+				mwEvent = $.fn.mwheelIntent ? 'mwheelIntent.jsp' : 'mousewheel.jsp';
+
+			originalPadding = elem.css('paddingTop') + ' ' +
+								elem.css('paddingRight') + ' ' +
+								elem.css('paddingBottom') + ' ' +
+								elem.css('paddingLeft');
+			originalPaddingTotalWidth = (parseInt(elem.css('paddingLeft'), 10) || 0) +
+										(parseInt(elem.css('paddingRight'), 10) || 0);
+
+			function initialise(s)
+			{
+
+				var /*firstChild, lastChild, */isMaintainingPositon, lastContentX, lastContentY,
+						hasContainingSpaceChanged, originalScrollTop, originalScrollLeft,
+						maintainAtBottom = false, maintainAtRight = false;
+
+				settings = s;
+
+				if (pane === undefined) {
+					originalScrollTop = elem.scrollTop();
+					originalScrollLeft = elem.scrollLeft();
+
+					elem.css(
+						{
+							overflow: 'hidden',
+							padding: 0
+						}
+					);
+					// TODO: Deal with where width/ height is 0 as it probably means the element is hidden and we should
+					// come back to it later and check once it is unhidden...
+					paneWidth = elem.innerWidth() + originalPaddingTotalWidth;
+					paneHeight = elem.innerHeight();
+
+					elem.width(paneWidth);
+					
+					pane = $('<div class="jspPane" />').css('padding', originalPadding).append(elem.children());
+					container = $('<div class="jspContainer" />')
+						.css({
+							'width': paneWidth + 'px',
+							'height': paneHeight + 'px'
+						}
+					).append(pane).appendTo(elem);
+
+					/*
+					// Move any margins from the first and last children up to the container so they can still
+					// collapse with neighbouring elements as they would before jScrollPane 
+					firstChild = pane.find(':first-child');
+					lastChild = pane.find(':last-child');
+					elem.css(
+						{
+							'margin-top': firstChild.css('margin-top'),
+							'margin-bottom': lastChild.css('margin-bottom')
+						}
+					);
+					firstChild.css('margin-top', 0);
+					lastChild.css('margin-bottom', 0);
+					*/
+				} else {
+					elem.css('width', '');
+
+					maintainAtBottom = settings.stickToBottom && isCloseToBottom();
+					maintainAtRight  = settings.stickToRight  && isCloseToRight();
+
+					hasContainingSpaceChanged = elem.innerWidth() + originalPaddingTotalWidth != paneWidth || elem.outerHeight() != paneHeight;
+
+					if (hasContainingSpaceChanged) {
+						paneWidth = elem.innerWidth() + originalPaddingTotalWidth;
+						paneHeight = elem.innerHeight();
+						container.css({
+							width: paneWidth + 'px',
+							height: paneHeight + 'px'
+						});
+					}
+
+					// If nothing changed since last check...
+					if (!hasContainingSpaceChanged && previousContentWidth == contentWidth && pane.outerHeight() == contentHeight) {
+						elem.width(paneWidth);
+						return;
+					}
+					previousContentWidth = contentWidth;
+					
+					pane.css('width', '');
+					elem.width(paneWidth);
+
+					container.find('>.jspVerticalBar,>.jspHorizontalBar').remove().end();
+				}
+
+				pane.css('overflow', 'auto');
+				if (s.contentWidth) {
+					contentWidth = s.contentWidth;
+				} else {
+					contentWidth = pane[0].scrollWidth;
+				}
+				contentHeight = pane[0].scrollHeight;
+				pane.css('overflow', '');
+
+				percentInViewH = contentWidth / paneWidth;
+				percentInViewV = contentHeight / paneHeight;
+				isScrollableV = percentInViewV > 1;
+
+				isScrollableH = percentInViewH > 1;
+
+				//console.log(paneWidth, paneHeight, contentWidth, contentHeight, percentInViewH, percentInViewV, isScrollableH, isScrollableV);
+
+				if (!(isScrollableH || isScrollableV)) {
+					elem.removeClass('jspScrollable');
+					pane.css({
+						top: 0,
+						width: container.width() - originalPaddingTotalWidth
+					});
+					removeMousewheel();
+					removeFocusHandler();
+					removeKeyboardNav();
+					removeClickOnTrack();
+				} else {
+					elem.addClass('jspScrollable');
+
+					isMaintainingPositon = settings.maintainPosition && (verticalDragPosition || horizontalDragPosition);
+					if (isMaintainingPositon) {
+						lastContentX = contentPositionX();
+						lastContentY = contentPositionY();
+					}
+
+					initialiseVerticalScroll();
+					initialiseHorizontalScroll();
+					resizeScrollbars();
+
+					if (isMaintainingPositon) {
+						scrollToX(maintainAtRight  ? (contentWidth  - paneWidth ) : lastContentX, false);
+						scrollToY(maintainAtBottom ? (contentHeight - paneHeight) : lastContentY, false);
+					}
+
+					initFocusHandler();
+					initMousewheel();
+					initTouch();
+					
+					if (settings.enableKeyboardNavigation) {
+						initKeyboardNav();
+					}
+					if (settings.clickOnTrack) {
+						initClickOnTrack();
+					}
+					
+					observeHash();
+					if (settings.hijackInternalLinks) {
+						hijackInternalLinks();
+					}
+				}
+
+				if (settings.autoReinitialise && !reinitialiseInterval) {
+					reinitialiseInterval = setInterval(
+						function()
+						{
+							initialise(settings);
+						},
+						settings.autoReinitialiseDelay
+					);
+				} else if (!settings.autoReinitialise && reinitialiseInterval) {
+					clearInterval(reinitialiseInterval);
+				}
+
+				originalScrollTop && elem.scrollTop(0) && scrollToY(originalScrollTop, false);
+				originalScrollLeft && elem.scrollLeft(0) && scrollToX(originalScrollLeft, false);
+
+				elem.trigger('jsp-initialised', [isScrollableH || isScrollableV]);
+			}
+
+			function initialiseVerticalScroll()
+			{
+				if (isScrollableV) {
+
+					container.append(
+						$('<div class="jspVerticalBar" />').append(
+							$('<div class="jspCap jspCapTop" />'),
+							$('<div class="jspTrack" />').append(
+								$('<div class="jspDrag" />').append(
+									$('<div class="jspDragTop" />'),
+									$('<div class="jspDragBottom" />')
+								)
+							),
+							$('<div class="jspCap jspCapBottom" />')
+						)
+					);
+
+					verticalBar = container.find('>.jspVerticalBar');
+					verticalTrack = verticalBar.find('>.jspTrack');
+					verticalDrag = verticalTrack.find('>.jspDrag');
+
+					if (settings.showArrows) {
+						arrowUp = $('<a class="jspArrow jspArrowUp" />').bind(
+							'mousedown.jsp', getArrowScroll(0, -1)
+						).bind('click.jsp', nil);
+						arrowDown = $('<a class="jspArrow jspArrowDown" />').bind(
+							'mousedown.jsp', getArrowScroll(0, 1)
+						).bind('click.jsp', nil);
+						if (settings.arrowScrollOnHover) {
+							arrowUp.bind('mouseover.jsp', getArrowScroll(0, -1, arrowUp));
+							arrowDown.bind('mouseover.jsp', getArrowScroll(0, 1, arrowDown));
+						}
+
+						appendArrows(verticalTrack, settings.verticalArrowPositions, arrowUp, arrowDown);
+					}
+
+					verticalTrackHeight = paneHeight;
+					container.find('>.jspVerticalBar>.jspCap:visible,>.jspVerticalBar>.jspArrow').each(
+						function()
+						{
+							verticalTrackHeight -= $(this).outerHeight();
+						}
+					);
+
+
+					verticalDrag.hover(
+						function()
+						{
+							verticalDrag.addClass('jspHover');
+						},
+						function()
+						{
+							verticalDrag.removeClass('jspHover');
+						}
+					).bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							// Stop IE from allowing text selection
+							$('html').bind('dragstart.jsp selectstart.jsp', nil);
+
+							verticalDrag.addClass('jspActive');
+
+							var startY = e.pageY - verticalDrag.position().top;
+
+							$('html').bind(
+								'mousemove.jsp',
+								function(e)
+								{
+									positionDragY(e.pageY - startY, false);
+								}
+							).bind('mouseup.jsp mouseleave.jsp', cancelDrag);
+							return false;
+						}
+					);
+					sizeVerticalScrollbar();
+				}
+			}
+
+			function sizeVerticalScrollbar()
+			{
+				verticalTrack.height(verticalTrackHeight + 'px');
+				verticalDragPosition = 0;
+				scrollbarWidth = settings.verticalGutter + verticalTrack.outerWidth();
+
+				// Make the pane thinner to allow for the vertical scrollbar
+				pane.width(paneWidth - scrollbarWidth - originalPaddingTotalWidth);
+
+				// Add margin to the left of the pane if scrollbars are on that side (to position
+				// the scrollbar on the left or right set it's left or right property in CSS)
+				try {
+					if (verticalBar.position().left === 0) {
+						pane.css('margin-left', scrollbarWidth + 'px');
+					}
+				} catch (err) {
+				}
+			}
+
+			function initialiseHorizontalScroll()
+			{
+				if (isScrollableH) {
+
+					container.append(
+						$('<div class="jspHorizontalBar" />').append(
+							$('<div class="jspCap jspCapLeft" />'),
+							$('<div class="jspTrack" />').append(
+								$('<div class="jspDrag" />').append(
+									$('<div class="jspDragLeft" />'),
+									$('<div class="jspDragRight" />')
+								)
+							),
+							$('<div class="jspCap jspCapRight" />')
+						)
+					);
+
+					horizontalBar = container.find('>.jspHorizontalBar');
+					horizontalTrack = horizontalBar.find('>.jspTrack');
+					horizontalDrag = horizontalTrack.find('>.jspDrag');
+
+					if (settings.showArrows) {
+						arrowLeft = $('<a class="jspArrow jspArrowLeft" />').bind(
+							'mousedown.jsp', getArrowScroll(-1, 0)
+						).bind('click.jsp', nil);
+						arrowRight = $('<a class="jspArrow jspArrowRight" />').bind(
+							'mousedown.jsp', getArrowScroll(1, 0)
+						).bind('click.jsp', nil);
+						if (settings.arrowScrollOnHover) {
+							arrowLeft.bind('mouseover.jsp', getArrowScroll(-1, 0, arrowLeft));
+							arrowRight.bind('mouseover.jsp', getArrowScroll(1, 0, arrowRight));
+						}
+						appendArrows(horizontalTrack, settings.horizontalArrowPositions, arrowLeft, arrowRight);
+					}
+
+					horizontalDrag.hover(
+						function()
+						{
+							horizontalDrag.addClass('jspHover');
+						},
+						function()
+						{
+							horizontalDrag.removeClass('jspHover');
+						}
+					).bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							// Stop IE from allowing text selection
+							$('html').bind('dragstart.jsp selectstart.jsp', nil);
+
+							horizontalDrag.addClass('jspActive');
+
+							var startX = e.pageX - horizontalDrag.position().left;
+
+							$('html').bind(
+								'mousemove.jsp',
+								function(e)
+								{
+									positionDragX(e.pageX - startX, false);
+								}
+							).bind('mouseup.jsp mouseleave.jsp', cancelDrag);
+							return false;
+						}
+					);
+					horizontalTrackWidth = container.innerWidth();
+					sizeHorizontalScrollbar();
+				}
+			}
+
+			function sizeHorizontalScrollbar()
+			{
+				container.find('>.jspHorizontalBar>.jspCap:visible,>.jspHorizontalBar>.jspArrow').each(
+					function()
+					{
+						horizontalTrackWidth -= $(this).outerWidth();
+					}
+				);
+
+				horizontalTrack.width(horizontalTrackWidth + 'px');
+				horizontalDragPosition = 0;
+			}
+
+			function resizeScrollbars()
+			{
+				if (isScrollableH && isScrollableV) {
+					var horizontalTrackHeight = horizontalTrack.outerHeight(),
+						verticalTrackWidth = verticalTrack.outerWidth();
+					verticalTrackHeight -= horizontalTrackHeight;
+					$(horizontalBar).find('>.jspCap:visible,>.jspArrow').each(
+						function()
+						{
+							horizontalTrackWidth += $(this).outerWidth();
+						}
+					);
+					horizontalTrackWidth -= verticalTrackWidth;
+					paneHeight -= verticalTrackWidth;
+					paneWidth -= horizontalTrackHeight;
+					horizontalTrack.parent().append(
+						$('<div class="jspCorner" />').css('width', horizontalTrackHeight + 'px')
+					);
+					sizeVerticalScrollbar();
+					sizeHorizontalScrollbar();
+				}
+				// reflow content
+				if (isScrollableH) {
+					pane.width((container.outerWidth() - originalPaddingTotalWidth) + 'px');
+				}
+				contentHeight = pane.outerHeight();
+				percentInViewV = contentHeight / paneHeight;
+
+				if (isScrollableH) {
+					horizontalDragWidth = Math.ceil(1 / percentInViewH * horizontalTrackWidth);
+					if (horizontalDragWidth > settings.horizontalDragMaxWidth) {
+						horizontalDragWidth = settings.horizontalDragMaxWidth;
+					} else if (horizontalDragWidth < settings.horizontalDragMinWidth) {
+						horizontalDragWidth = settings.horizontalDragMinWidth;
+					}
+					horizontalDrag.width(horizontalDragWidth + 'px');
+					dragMaxX = horizontalTrackWidth - horizontalDragWidth;
+					_positionDragX(horizontalDragPosition); // To update the state for the arrow buttons
+				}
+				if (isScrollableV) {
+					verticalDragHeight = Math.ceil(1 / percentInViewV * verticalTrackHeight);
+					if (verticalDragHeight > settings.verticalDragMaxHeight) {
+						verticalDragHeight = settings.verticalDragMaxHeight;
+					} else if (verticalDragHeight < settings.verticalDragMinHeight) {
+						verticalDragHeight = settings.verticalDragMinHeight;
+					}
+					verticalDrag.height(verticalDragHeight + 'px');
+					dragMaxY = verticalTrackHeight - verticalDragHeight;
+					_positionDragY(verticalDragPosition); // To update the state for the arrow buttons
+				}
+			}
+
+			function appendArrows(ele, p, a1, a2)
+			{
+				var p1 = "before", p2 = "after", aTemp;
+				
+				// Sniff for mac... Is there a better way to determine whether the arrows would naturally appear
+				// at the top or the bottom of the bar?
+				if (p == "os") {
+					p = /Mac/.test(navigator.platform) ? "after" : "split";
+				}
+				if (p == p1) {
+					p2 = p;
+				} else if (p == p2) {
+					p1 = p;
+					aTemp = a1;
+					a1 = a2;
+					a2 = aTemp;
+				}
+
+				ele[p1](a1)[p2](a2);
+			}
+
+			function getArrowScroll(dirX, dirY, ele)
+			{
+				return function()
+				{
+					arrowScroll(dirX, dirY, this, ele);
+					this.blur();
+					return false;
+				};
+			}
+
+			function arrowScroll(dirX, dirY, arrow, ele)
+			{
+				arrow = $(arrow).addClass('jspActive');
+
+				var eve,
+					scrollTimeout,
+					isFirst = true,
+					doScroll = function()
+					{
+						if (dirX !== 0) {
+							jsp.scrollByX(dirX * settings.arrowButtonSpeed);
+						}
+						if (dirY !== 0) {
+							jsp.scrollByY(dirY * settings.arrowButtonSpeed);
+						}
+						scrollTimeout = setTimeout(doScroll, isFirst ? settings.initialDelay : settings.arrowRepeatFreq);
+						isFirst = false;
+					};
+
+				doScroll();
+
+				eve = ele ? 'mouseout.jsp' : 'mouseup.jsp';
+				ele = ele || $('html');
+				ele.bind(
+					eve,
+					function()
+					{
+						arrow.removeClass('jspActive');
+						scrollTimeout && clearTimeout(scrollTimeout);
+						scrollTimeout = null;
+						ele.unbind(eve);
+					}
+				);
+			}
+
+			function initClickOnTrack()
+			{
+				removeClickOnTrack();
+				if (isScrollableV) {
+					verticalTrack.bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							if (e.originalTarget === undefined || e.originalTarget == e.currentTarget) {
+								var clickedTrack = $(this),
+									offset = clickedTrack.offset(),
+									direction = e.pageY - offset.top - verticalDragPosition,
+									scrollTimeout,
+									isFirst = true,
+									doScroll = function()
+									{
+										var offset = clickedTrack.offset(),
+											pos = e.pageY - offset.top - verticalDragHeight / 2,
+											contentDragY = paneHeight * settings.scrollPagePercent,
+											dragY = dragMaxY * contentDragY / (contentHeight - paneHeight);
+										if (direction < 0) {
+											if (verticalDragPosition - dragY > pos) {
+												jsp.scrollByY(-contentDragY);
+											} else {
+												positionDragY(pos);
+											}
+										} else if (direction > 0) {
+											if (verticalDragPosition + dragY < pos) {
+												jsp.scrollByY(contentDragY);
+											} else {
+												positionDragY(pos);
+											}
+										} else {
+											cancelClick();
+											return;
+										}
+										scrollTimeout = setTimeout(doScroll, isFirst ? settings.initialDelay : settings.trackClickRepeatFreq);
+										isFirst = false;
+									},
+									cancelClick = function()
+									{
+										scrollTimeout && clearTimeout(scrollTimeout);
+										scrollTimeout = null;
+										$(document).unbind('mouseup.jsp', cancelClick);
+									};
+								doScroll();
+								$(document).bind('mouseup.jsp', cancelClick);
+								return false;
+							}
+						}
+					);
+				}
+				
+				if (isScrollableH) {
+					horizontalTrack.bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							if (e.originalTarget === undefined || e.originalTarget == e.currentTarget) {
+								var clickedTrack = $(this),
+									offset = clickedTrack.offset(),
+									direction = e.pageX - offset.left - horizontalDragPosition,
+									scrollTimeout,
+									isFirst = true,
+									doScroll = function()
+									{
+										var offset = clickedTrack.offset(),
+											pos = e.pageX - offset.left - horizontalDragWidth / 2,
+											contentDragX = paneWidth * settings.scrollPagePercent,
+											dragX = dragMaxX * contentDragX / (contentWidth - paneWidth);
+										if (direction < 0) {
+											if (horizontalDragPosition - dragX > pos) {
+												jsp.scrollByX(-contentDragX);
+											} else {
+												positionDragX(pos);
+											}
+										} else if (direction > 0) {
+											if (horizontalDragPosition + dragX < pos) {
+												jsp.scrollByX(contentDragX);
+											} else {
+												positionDragX(pos);
+											}
+										} else {
+											cancelClick();
+											return;
+										}
+										scrollTimeout = setTimeout(doScroll, isFirst ? settings.initialDelay : settings.trackClickRepeatFreq);
+										isFirst = false;
+									},
+									cancelClick = function()
+									{
+										scrollTimeout && clearTimeout(scrollTimeout);
+										scrollTimeout = null;
+										$(document).unbind('mouseup.jsp', cancelClick);
+									};
+								doScroll();
+								$(document).bind('mouseup.jsp', cancelClick);
+								return false;
+							}
+						}
+					);
+				}
+			}
+
+			function removeClickOnTrack()
+			{
+				if (horizontalTrack) {
+					horizontalTrack.unbind('mousedown.jsp');
+				}
+				if (verticalTrack) {
+					verticalTrack.unbind('mousedown.jsp');
+				}
+			}
+
+			function cancelDrag()
+			{
+				$('html').unbind('dragstart.jsp selectstart.jsp mousemove.jsp mouseup.jsp mouseleave.jsp');
+
+				if (verticalDrag) {
+					verticalDrag.removeClass('jspActive');
+				}
+				if (horizontalDrag) {
+					horizontalDrag.removeClass('jspActive');
+				}
+			}
+
+			function positionDragY(destY, animate)
+			{
+				if (!isScrollableV) {
+					return;
+				}
+				if (destY < 0) {
+					destY = 0;
+				} else if (destY > dragMaxY) {
+					destY = dragMaxY;
+				}
+
+				// can't just check if(animate) because false is a valid value that could be passed in...
+				if (animate === undefined) {
+					animate = settings.animateScroll;
+				}
+				if (animate) {
+					jsp.animate(verticalDrag, 'top', destY,	_positionDragY);
+				} else {
+					verticalDrag.css('top', destY);
+					_positionDragY(destY);
+				}
+
+			}
+
+			function _positionDragY(destY)
+			{
+				if (destY === undefined) {
+					destY = verticalDrag.position().top;
+				}
+
+				container.scrollTop(0);
+				verticalDragPosition = destY;
+
+				var isAtTop = verticalDragPosition === 0,
+					isAtBottom = verticalDragPosition == dragMaxY,
+					percentScrolled = destY/ dragMaxY,
+					destTop = -percentScrolled * (contentHeight - paneHeight);
+
+				if (wasAtTop != isAtTop || wasAtBottom != isAtBottom) {
+					wasAtTop = isAtTop;
+					wasAtBottom = isAtBottom;
+					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
+				}
+				
+				updateVerticalArrows(isAtTop, isAtBottom);
+				pane.css('top', destTop);
+				elem.trigger('jsp-scroll-y', [-destTop, isAtTop, isAtBottom]).trigger('scroll');
+			}
+
+			function positionDragX(destX, animate)
+			{
+				if (!isScrollableH) {
+					return;
+				}
+				if (destX < 0) {
+					destX = 0;
+				} else if (destX > dragMaxX) {
+					destX = dragMaxX;
+				}
+
+				if (animate === undefined) {
+					animate = settings.animateScroll;
+				}
+				if (animate) {
+					jsp.animate(horizontalDrag, 'left', destX,	_positionDragX);
+				} else {
+					horizontalDrag.css('left', destX);
+					_positionDragX(destX);
+				}
+			}
+
+			function _positionDragX(destX)
+			{
+				if (destX === undefined) {
+					destX = horizontalDrag.position().left;
+				}
+
+				container.scrollTop(0);
+				horizontalDragPosition = destX;
+
+				var isAtLeft = horizontalDragPosition === 0,
+					isAtRight = horizontalDragPosition == dragMaxX,
+					percentScrolled = destX / dragMaxX,
+					destLeft = -percentScrolled * (contentWidth - paneWidth);
+
+				if (wasAtLeft != isAtLeft || wasAtRight != isAtRight) {
+					wasAtLeft = isAtLeft;
+					wasAtRight = isAtRight;
+					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
+				}
+				
+				updateHorizontalArrows(isAtLeft, isAtRight);
+				pane.css('left', destLeft);
+				elem.trigger('jsp-scroll-x', [-destLeft, isAtLeft, isAtRight]).trigger('scroll');
+			}
+
+			function updateVerticalArrows(isAtTop, isAtBottom)
+			{
+				if (settings.showArrows) {
+					arrowUp[isAtTop ? 'addClass' : 'removeClass']('jspDisabled');
+					arrowDown[isAtBottom ? 'addClass' : 'removeClass']('jspDisabled');
+				}
+			}
+
+			function updateHorizontalArrows(isAtLeft, isAtRight)
+			{
+				if (settings.showArrows) {
+					arrowLeft[isAtLeft ? 'addClass' : 'removeClass']('jspDisabled');
+					arrowRight[isAtRight ? 'addClass' : 'removeClass']('jspDisabled');
+				}
+			}
+
+			function scrollToY(destY, animate)
+			{
+				var percentScrolled = destY / (contentHeight - paneHeight);
+				positionDragY(percentScrolled * dragMaxY, animate);
+			}
+
+			function scrollToX(destX, animate)
+			{
+				var percentScrolled = destX / (contentWidth - paneWidth);
+				positionDragX(percentScrolled * dragMaxX, animate);
+			}
+
+			function scrollToElement(ele, stickToTop, animate)
+			{
+				var e, eleHeight, eleWidth, eleTop = 0, eleLeft = 0, viewportTop, viewportLeft, maxVisibleEleTop, maxVisibleEleLeft, destY, destX;
+
+				// Legal hash values aren't necessarily legal jQuery selectors so we need to catch any
+				// errors from the lookup...
+				try {
+					e = $(ele);
+				} catch (err) {
+					return;
+				}
+				eleHeight = e.outerHeight();
+				eleWidth= e.outerWidth();
+
+				container.scrollTop(0);
+				container.scrollLeft(0);
+				
+				// loop through parents adding the offset top of any elements that are relatively positioned between
+				// the focused element and the jspPane so we can get the true distance from the top
+				// of the focused element to the top of the scrollpane...
+				while (!e.is('.jspPane')) {
+					eleTop += e.position().top;
+					eleLeft += e.position().left;
+					e = e.offsetParent();
+					if (/^body|html$/i.test(e[0].nodeName)) {
+						// we ended up too high in the document structure. Quit!
+						return;
+					}
+				}
+
+				viewportTop = contentPositionY();
+				maxVisibleEleTop = viewportTop + paneHeight;
+				if (eleTop < viewportTop || stickToTop) { // element is above viewport
+					destY = eleTop - settings.verticalGutter;
+				} else if (eleTop + eleHeight > maxVisibleEleTop) { // element is below viewport
+					destY = eleTop - paneHeight + eleHeight + settings.verticalGutter;
+				}
+				if (destY) {
+					scrollToY(destY, animate);
+				}
+				
+				viewportLeft = contentPositionX();
+	            maxVisibleEleLeft = viewportLeft + paneWidth;
+	            if (eleLeft < viewportLeft || stickToTop) { // element is to the left of viewport
+	                destX = eleLeft - settings.horizontalGutter;
+	            } else if (eleLeft + eleWidth > maxVisibleEleLeft) { // element is to the right viewport
+	                destX = eleLeft - paneWidth + eleWidth + settings.horizontalGutter;
+	            }
+	            if (destX) {
+	                scrollToX(destX, animate);
+	            }
+
+			}
+
+			function contentPositionX()
+			{
+				return -pane.position().left;
+			}
+
+			function contentPositionY()
+			{
+				return -pane.position().top;
+			}
+
+			function isCloseToBottom()
+			{
+				var scrollableHeight = contentHeight - paneHeight;
+				return (scrollableHeight > 20) && (scrollableHeight - contentPositionY() < 10);
+			}
+
+			function isCloseToRight()
+			{
+				var scrollableWidth = contentWidth - paneWidth;
+				return (scrollableWidth > 20) && (scrollableWidth - contentPositionX() < 10);
+			}
+
+			function initMousewheel()
+			{
+				container.unbind(mwEvent).bind(
+					mwEvent,
+					function (event, delta, deltaX, deltaY) {
+						var dX = horizontalDragPosition, dY = verticalDragPosition;
+						jsp.scrollBy(deltaX * settings.mouseWheelSpeed, -deltaY * settings.mouseWheelSpeed, false);
+						// return true if there was no movement so rest of screen can scroll
+						return dX == horizontalDragPosition && dY == verticalDragPosition;
+					}
+				);
+			}
+
+			function removeMousewheel()
+			{
+				container.unbind(mwEvent);
+			}
+
+			function nil()
+			{
+				return false;
+			}
+
+			function initFocusHandler()
+			{
+				pane.find(':input,a').unbind('focus.jsp').bind(
+					'focus.jsp',
+					function(e)
+					{
+						scrollToElement(e.target, false);
+					}
+				);
+			}
+
+			function removeFocusHandler()
+			{
+				pane.find(':input,a').unbind('focus.jsp');
+			}
+			
+			function initKeyboardNav()
+			{
+				var keyDown, elementHasScrolled, validParents = [];
+				isScrollableH && validParents.push(horizontalBar[0]);
+				isScrollableV && validParents.push(verticalBar[0]);
+				
+				// IE also focuses elements that don't have tabindex set.
+				pane.focus(
+					function()
+					{
+						elem.focus();
+					}
+				);
+				
+				elem.attr('tabindex', 0)
+					.unbind('keydown.jsp keypress.jsp')
+					.bind(
+						'keydown.jsp',
+						function(e)
+						{
+							if (e.target !== this && !(validParents.length && $(e.target).closest(validParents).length)){
+								return;
+							}
+							var dX = horizontalDragPosition, dY = verticalDragPosition;
+							switch(e.keyCode) {
+								case 40: // down
+								case 38: // up
+								case 34: // page down
+								case 32: // space
+								case 33: // page up
+								case 39: // right
+								case 37: // left
+									keyDown = e.keyCode;
+									keyDownHandler();
+									break;
+								case 35: // end
+									scrollToY(contentHeight - paneHeight);
+									keyDown = null;
+									break;
+								case 36: // home
+									scrollToY(0);
+									keyDown = null;
+									break;
+							}
+
+							elementHasScrolled = e.keyCode == keyDown && dX != horizontalDragPosition || dY != verticalDragPosition;
+							return !elementHasScrolled;
+						}
+					).bind(
+						'keypress.jsp', // For FF/ OSX so that we can cancel the repeat key presses if the JSP scrolls...
+						function(e)
+						{
+							if (e.keyCode == keyDown) {
+								keyDownHandler();
+							}
+							return !elementHasScrolled;
+						}
+					);
+				
+				if (settings.hideFocus) {
+					elem.css('outline', 'none');
+					if ('hideFocus' in container[0]){
+						elem.attr('hideFocus', true);
+					}
+				} else {
+					elem.css('outline', '');
+					if ('hideFocus' in container[0]){
+						elem.attr('hideFocus', false);
+					}
+				}
+				
+				function keyDownHandler()
+				{
+					var dX = horizontalDragPosition, dY = verticalDragPosition;
+					switch(keyDown) {
+						case 40: // down
+							jsp.scrollByY(settings.keyboardSpeed, false);
+							break;
+						case 38: // up
+							jsp.scrollByY(-settings.keyboardSpeed, false);
+							break;
+						case 34: // page down
+						case 32: // space
+							jsp.scrollByY(paneHeight * settings.scrollPagePercent, false);
+							break;
+						case 33: // page up
+							jsp.scrollByY(-paneHeight * settings.scrollPagePercent, false);
+							break;
+						case 39: // right
+							jsp.scrollByX(settings.keyboardSpeed, false);
+							break;
+						case 37: // left
+							jsp.scrollByX(-settings.keyboardSpeed, false);
+							break;
+					}
+
+					elementHasScrolled = dX != horizontalDragPosition || dY != verticalDragPosition;
+					return elementHasScrolled;
+				}
+			}
+			
+			function removeKeyboardNav()
+			{
+				elem.attr('tabindex', '-1')
+					.removeAttr('tabindex')
+					.unbind('keydown.jsp keypress.jsp');
+			}
+
+			function observeHash()
+			{
+				if (location.hash && location.hash.length > 1) {
+					var e,
+						retryInt,
+						hash = escape(location.hash.substr(1)) // hash must be escaped to prevent XSS
+						;
+					try {
+						e = $('#' + hash + ', a[name="' + hash + '"]');
+					} catch (err) {
+						return;
+					}
+
+					if (e.length && pane.find(hash)) {
+						// nasty workaround but it appears to take a little while before the hash has done its thing
+						// to the rendered page so we just wait until the container's scrollTop has been messed up.
+						if (container.scrollTop() === 0) {
+							retryInt = setInterval(
+								function()
+								{
+									if (container.scrollTop() > 0) {
+										scrollToElement(e, true);
+										$(document).scrollTop(container.position().top);
+										clearInterval(retryInt);
+									}
+								},
+								50
+							);
+						} else {
+							scrollToElement(e, true);
+							$(document).scrollTop(container.position().top);
+						}
+					}
+				}
+			}
+
+			function hijackInternalLinks()
+			{
+				// only register the link handler once
+				if ($(document.body).data('jspHijack')) {
+					return;
+				}
+
+				// remember that the handler was bound
+				$(document.body).data('jspHijack', true);
+
+				// use live handler to also capture newly created links
+				$(document.body).delegate('a[href*=#]', 'click', function(event) {
+					// does the link point to the same page?
+					// this also takes care of cases with a <base>-Tag or Links not starting with the hash #
+					// e.g. <a href="index.html#test"> when the current url already is index.html
+					var href = this.href.substr(0, this.href.indexOf('#')),
+						locationHref = location.href,
+						hash,
+						element,
+						container,
+						jsp,
+						scrollTop,
+						elementTop;
+					if (location.href.indexOf('#') !== -1) {
+						locationHref = location.href.substr(0, location.href.indexOf('#'));
+					}
+					if (href !== locationHref) {
+						// the link points to another page
+						return;
+					}
+
+					// check if jScrollPane should handle this click event
+					hash = escape(this.href.substr(this.href.indexOf('#') + 1));
+
+					// find the element on the page
+					element;
+					try {
+						element = $('#' + hash + ', a[name="' + hash + '"]');
+					} catch (e) {
+						// hash is not a valid jQuery identifier
+						return;
+					}
+
+					if (!element.length) {
+						// this link does not point to an element on this page
+						return;
+					}
+
+					container = element.closest('.jspScrollable');
+					jsp = container.data('jsp');
+
+					// jsp might be another jsp instance than the one, that bound this event
+					// remember: this event is only bound once for all instances.
+					jsp.scrollToElement(element, true);
+
+					if (container[0].scrollIntoView) {
+						// also scroll to the top of the container (if it is not visible)
+						scrollTop = $(window).scrollTop();
+						elementTop = element.offset().top;
+						if (elementTop < scrollTop || elementTop > scrollTop + $(window).height()) {
+							container[0].scrollIntoView();
+						}
+					}
+
+					// jsp handled this event, prevent the browser default (scrolling :P)
+					event.preventDefault();
+				});
+			}
+			
+			// Init touch on iPad, iPhone, iPod, Android
+			function initTouch()
+			{
+				var startX,
+					startY,
+					touchStartX,
+					touchStartY,
+					moved,
+					moving = false;
+  
+				container.unbind('touchstart.jsp touchmove.jsp touchend.jsp click.jsp-touchclick').bind(
+					'touchstart.jsp',
+					function(e)
+					{
+						var touch = e.originalEvent.touches[0];
+						startX = contentPositionX();
+						startY = contentPositionY();
+						touchStartX = touch.pageX;
+						touchStartY = touch.pageY;
+						moved = false;
+						moving = true;
+					}
+				).bind(
+					'touchmove.jsp',
+					function(ev)
+					{
+						if(!moving) {
+							return;
+						}
+						
+						var touchPos = ev.originalEvent.touches[0],
+							dX = horizontalDragPosition, dY = verticalDragPosition;
+						
+						jsp.scrollTo(startX + touchStartX - touchPos.pageX, startY + touchStartY - touchPos.pageY);
+						
+						moved = moved || Math.abs(touchStartX - touchPos.pageX) > 5 || Math.abs(touchStartY - touchPos.pageY) > 5;
+						
+						// return true if there was no movement so rest of screen can scroll
+						return dX == horizontalDragPosition && dY == verticalDragPosition;
+					}
+				).bind(
+					'touchend.jsp',
+					function(e)
+					{
+						moving = false;
+						/*if(moved) {
+							return false;
+						}*/
+					}
+				).bind(
+					'click.jsp-touchclick',
+					function(e)
+					{
+						if(moved) {
+							moved = false;
+							return false;
+						}
+					}
+				);
+			}
+			
+			function destroy(){
+				var currentY = contentPositionY(),
+					currentX = contentPositionX();
+				elem.removeClass('jspScrollable').unbind('.jsp');
+				elem.replaceWith(originalElement.append(pane.children()));
+				originalElement.scrollTop(currentY);
+				originalElement.scrollLeft(currentX);
+
+				// clear reinitialize timer if active
+				if (reinitialiseInterval) {
+					clearInterval(reinitialiseInterval);
+				}
+			}
+
+			// Public API
+			$.extend(
+				jsp,
+				{
+					// Reinitialises the scroll pane (if it's internal dimensions have changed since the last time it
+					// was initialised). The settings object which is passed in will override any settings from the
+					// previous time it was initialised - if you don't pass any settings then the ones from the previous
+					// initialisation will be used.
+					reinitialise: function(s)
+					{
+						s = $.extend({}, settings, s);
+						initialise(s);
+					},
+					// Scrolls the specified element (a jQuery object, DOM node or jQuery selector string) into view so
+					// that it can be seen within the viewport. If stickToTop is true then the element will appear at
+					// the top of the viewport, if it is false then the viewport will scroll as little as possible to
+					// show the element. You can also specify if you want animation to occur. If you don't provide this
+					// argument then the animateScroll value from the settings object is used instead.
+					scrollToElement: function(ele, stickToTop, animate)
+					{
+						scrollToElement(ele, stickToTop, animate);
+					},
+					// Scrolls the pane so that the specified co-ordinates within the content are at the top left
+					// of the viewport. animate is optional and if not passed then the value of animateScroll from
+					// the settings object this jScrollPane was initialised with is used.
+					scrollTo: function(destX, destY, animate)
+					{
+						scrollToX(destX, animate);
+						scrollToY(destY, animate);
+					},
+					// Scrolls the pane so that the specified co-ordinate within the content is at the left of the
+					// viewport. animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					scrollToX: function(destX, animate)
+					{
+						scrollToX(destX, animate);
+					},
+					// Scrolls the pane so that the specified co-ordinate within the content is at the top of the
+					// viewport. animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					scrollToY: function(destY, animate)
+					{
+						scrollToY(destY, animate);
+					},
+					// Scrolls the pane to the specified percentage of its maximum horizontal scroll position. animate
+					// is optional and if not passed then the value of animateScroll from the settings object this
+					// jScrollPane was initialised with is used.
+					scrollToPercentX: function(destPercentX, animate)
+					{
+						scrollToX(destPercentX * (contentWidth - paneWidth), animate);
+					},
+					// Scrolls the pane to the specified percentage of its maximum vertical scroll position. animate
+					// is optional and if not passed then the value of animateScroll from the settings object this
+					// jScrollPane was initialised with is used.
+					scrollToPercentY: function(destPercentY, animate)
+					{
+						scrollToY(destPercentY * (contentHeight - paneHeight), animate);
+					},
+					// Scrolls the pane by the specified amount of pixels. animate is optional and if not passed then
+					// the value of animateScroll from the settings object this jScrollPane was initialised with is used.
+					scrollBy: function(deltaX, deltaY, animate)
+					{
+						jsp.scrollByX(deltaX, animate);
+						jsp.scrollByY(deltaY, animate);
+					},
+					// Scrolls the pane by the specified amount of pixels. animate is optional and if not passed then
+					// the value of animateScroll from the settings object this jScrollPane was initialised with is used.
+					scrollByX: function(deltaX, animate)
+					{
+						var destX = contentPositionX() + Math[deltaX<0 ? 'floor' : 'ceil'](deltaX),
+							percentScrolled = destX / (contentWidth - paneWidth);
+						positionDragX(percentScrolled * dragMaxX, animate);
+					},
+					// Scrolls the pane by the specified amount of pixels. animate is optional and if not passed then
+					// the value of animateScroll from the settings object this jScrollPane was initialised with is used.
+					scrollByY: function(deltaY, animate)
+					{
+						var destY = contentPositionY() + Math[deltaY<0 ? 'floor' : 'ceil'](deltaY),
+							percentScrolled = destY / (contentHeight - paneHeight);
+						positionDragY(percentScrolled * dragMaxY, animate);
+					},
+					// Positions the horizontal drag at the specified x position (and updates the viewport to reflect
+					// this). animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					positionDragX: function(x, animate)
+					{
+						positionDragX(x, animate);
+					},
+					// Positions the vertical drag at the specified y position (and updates the viewport to reflect
+					// this). animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					positionDragY: function(y, animate)
+					{
+						positionDragY(y, animate);
+					},
+					// This method is called when jScrollPane is trying to animate to a new position. You can override
+					// it if you want to provide advanced animation functionality. It is passed the following arguments:
+					//  * ele          - the element whose position is being animated
+					//  * prop         - the property that is being animated
+					//  * value        - the value it's being animated to
+					//  * stepCallback - a function that you must execute each time you update the value of the property
+					// You can use the default implementation (below) as a starting point for your own implementation.
+					animate: function(ele, prop, value, stepCallback)
+					{
+						var params = {};
+						params[prop] = value;
+						ele.animate(
+							params,
+							{
+								'duration'	: settings.animateDuration,
+								'easing'	: settings.animateEase,
+								'queue'		: false,
+								'step'		: stepCallback
+							}
+						);
+					},
+					// Returns the current x position of the viewport with regards to the content pane.
+					getContentPositionX: function()
+					{
+						return contentPositionX();
+					},
+					// Returns the current y position of the viewport with regards to the content pane.
+					getContentPositionY: function()
+					{
+						return contentPositionY();
+					},
+					// Returns the width of the content within the scroll pane.
+					getContentWidth: function()
+					{
+						return contentWidth;
+					},
+					// Returns the height of the content within the scroll pane.
+					getContentHeight: function()
+					{
+						return contentHeight;
+					},
+					// Returns the horizontal position of the viewport within the pane content.
+					getPercentScrolledX: function()
+					{
+						return contentPositionX() / (contentWidth - paneWidth);
+					},
+					// Returns the vertical position of the viewport within the pane content.
+					getPercentScrolledY: function()
+					{
+						return contentPositionY() / (contentHeight - paneHeight);
+					},
+					// Returns whether or not this scrollpane has a horizontal scrollbar.
+					getIsScrollableH: function()
+					{
+						return isScrollableH;
+					},
+					// Returns whether or not this scrollpane has a vertical scrollbar.
+					getIsScrollableV: function()
+					{
+						return isScrollableV;
+					},
+					// Gets a reference to the content pane. It is important that you use this method if you want to
+					// edit the content of your jScrollPane as if you access the element directly then you may have some
+					// problems (as your original element has had additional elements for the scrollbars etc added into
+					// it).
+					getContentPane: function()
+					{
+						return pane;
+					},
+					// Scrolls this jScrollPane down as far as it can currently scroll. If animate isn't passed then the
+					// animateScroll value from settings is used instead.
+					scrollToBottom: function(animate)
+					{
+						positionDragY(dragMaxY, animate);
+					},
+					// Hijacks the links on the page which link to content inside the scrollpane. If you have changed
+					// the content of your page (e.g. via AJAX) and want to make sure any new anchor links to the
+					// contents of your scroll pane will work then call this function.
+					hijackInternalLinks: $.noop,
+					// Removes the jScrollPane and returns the page to the state it was in before jScrollPane was
+					// initialised.
+					destroy: function()
+					{
+							destroy();
+					}
+				}
+			);
+			
+			initialise(s);
+		}
+
+		// Pluginifying code...
+		settings = $.extend({}, $.fn.jScrollPane.defaults, settings);
+		
+		// Apply default speed
+		$.each(['mouseWheelSpeed', 'arrowButtonSpeed', 'trackClickSpeed', 'keyboardSpeed'], function() {
+			settings[this] = settings[this] || settings.speed;
+		});
+
+		return this.each(
+			function()
+			{
+				var elem = $(this), jspApi = elem.data('jsp');
+				if (jspApi) {
+					jspApi.reinitialise(settings);
+				} else {
+					$("script",elem).filter('[type="text/javascript"],:not([type])').remove();
+					jspApi = new JScrollPane(elem, settings);
+					elem.data('jsp', jspApi);
+				}
+			}
+		);
+	};
+
+	$.fn.jScrollPane.defaults = {
+		showArrows					: false,
+		maintainPosition			: true,
+		stickToBottom				: false,
+		stickToRight				: false,
+		clickOnTrack				: true,
+		autoReinitialise			: false,
+		autoReinitialiseDelay		: 500,
+		verticalDragMinHeight		: 0,
+		verticalDragMaxHeight		: 99999,
+		horizontalDragMinWidth		: 0,
+		horizontalDragMaxWidth		: 99999,
+		contentWidth				: undefined,
+		animateScroll				: false,
+		animateDuration				: 300,
+		animateEase					: 'linear',
+		hijackInternalLinks			: false,
+		verticalGutter				: 4,
+		horizontalGutter			: 4,
+		mouseWheelSpeed				: 0,
+		arrowButtonSpeed			: 0,
+		arrowRepeatFreq				: 50,
+		arrowScrollOnHover			: false,
+		trackClickSpeed				: 0,
+		trackClickRepeatFreq		: 70,
+		verticalArrowPositions		: 'split',
+		horizontalArrowPositions	: 'split',
+		enableKeyboardNavigation	: true,
+		hideFocus					: false,
+		keyboardSpeed				: 0,
+		initialDelay                : 300,        // Delay before starting repeating
+		speed						: 30,		// Default speed when others falsey
+		scrollPagePercent			: .8		// Percent of visible area scrolled when pageUp/Down or track area pressed
+	};
+
+})(jQuery,this);
+
+;
+
 /*
  * jsTree 1.0-rc3
  * http://jstree.com/
@@ -5137,6 +7367,92 @@ a,this.__callback({obj:a})},paste:function(a){a=this._get_node(a);if(!a||!a.leng
  * 
  * NOTE: For best code readability, view this with a fixed-space font and tabs equal to 4-chars
  */(function($){$.fn.layout=function(opts){function keyDown(a){if(!a)return!0;var b=a.keyCode;if(b<33)return!0;var d={38:"north",40:"south",37:"west",39:"east"},e=b>=37&&b<=40,f=a.altKey,g=a.shiftKey,h=a.ctrlKey,i=!1,j,k,l,m,n;return!h&&!g?!0:(e&&options[d[b]].enableCursorHotkey?i=d[b]:$.each(c.borderPanes.split(","),function(a,c){k=options[c],l=k.customHotkey,m=k.customHotkeyModifier;if(g&&m=="SHIFT"||h&&m=="CTRL"||h&&g)if(l&&b==(isNaN(l)||l<=9?l.toUpperCase().charCodeAt(0):l))return i=c,!1}),i?(k=options[i],j=state[i],!k.enableCursorHotkey||j.isHidden||!$Ps[i]?!0:(n=a.target||a.srcElement,n&&g&&e&&(n.tagName=="TEXTAREA"||n.tagName=="INPUT"&&(b==37||b==39))?!0:(toggle(i),a.stopPropagation(),a.returnValue=!1,!1))):!0)}function allowOverflow(a){this&&this.tagName&&(a=this);var b;typeof a=="string"?b=$Ps[a]:$(a).attr("pane")?b=$(a):b=$(a).parents("div[pane]:first");if(!b.length)return;var d=b.attr("pane"),e=state[d];e.cssSaved&&resetOverflow(d);if(e.isSliding||e.isResizing||e.isClosed){e.cssSaved=!1;return}var f={zIndex:c.zIndex.pane_normal+1},g={},h=b.css("overflow"),i=b.css("overflowX"),j=b.css("overflowY");h!="visible"&&(g.overflow=h,f.overflow="visible"),i&&i!="visible"&&i!="auto"&&(g.overflowX=i,f.overflowX="visible"),j&&j!="visible"&&j!="auto"&&(g.overflowY=i,f.overflowY="visible"),e.cssSaved=g,b.css(f),$.each(c.allPanes.split(","),function(a,b){b!=d&&resetOverflow(b)})}function resetOverflow(a){this&&this.tagName&&(a=this);var b;typeof a=="string"?b=$Ps[a]:$(a).hasClass("ui-layout-pane")?b=$(a):b=$(a).parents("div[pane]:first");if(!b.length)return;var d=b.attr("pane"),e=state[d],f=e.cssSaved||{};!e.isSliding&&!e.isResizing&&b.css("zIndex",c.zIndex.pane_normal),b.css(f),e.cssSaved=!1}function getBtn(a,b,d){var e=$(a),f="Error Adding Button \n\nInvalid ";if(!e.length)alert(f+"selector: "+a);else if(c.borderPanes.indexOf(b)==-1)alert(f+"pane: "+b);else{var g=options[b].buttonClass+"-"+d;return e.addClass(g+" "+g+"-"+b),e}return!1}function addToggleBtn(a,b){var c=getBtn(a,b,"toggle");c&&c.attr("title",state[b].isClosed?"Open":"Close").click(function(a){toggle(b),a.stopPropagation()})}function addOpenBtn(a,b){var c=getBtn(a,b,"open");c&&c.attr("title","Open").click(function(a){open(b),a.stopPropagation()})}function addCloseBtn(a,b){var c=getBtn(a,b,"close");c&&c.attr("title","Close").click(function(a){close(b),a.stopPropagation()})}function addPinBtn(a,b){var d=getBtn(a,b,"pin");if(d){var e=state[b];d.click(function(a){setPinState($(this),b,e.isSliding||e.isClosed),e.isSliding||e.isClosed?open(b):close(b),a.stopPropagation()}),setPinState(d,b,!e.isClosed&&!e.isSliding),c[b].pins.push(a)}}function syncPinBtns(a,b){$.each(c[a].pins,function(c,d){setPinState($(d),a,b)})}function setPinState(a,b,c){var d=a.attr("pin");if(d&&c==(d=="down"))return;var e=options[b].buttonClass,f=e+"-pin",g=f+"-"+b,h=f+"-up",i=g+"-up",j=f+"-down",k=g+"-down";a.attr("pin",c?"down":"up").attr("title",c?"Un-Pin":"Pin").removeClass(c?h:j).removeClass(c?i:k).addClass(c?j:h).addClass(c?k:i)}var prefix="ui-layout-",defaults={paneClass:prefix+"pane",resizerClass:prefix+"resizer",togglerClass:prefix+"toggler",togglerInnerClass:prefix+"",buttonClass:prefix+"button",contentSelector:"."+prefix+"content",contentIgnoreSelector:"."+prefix+"ignore"},options={name:"",scrollToBookmarkOnLoad:!0,defaults:{applyDefaultStyles:!1,closable:!0,resizable:!0,slidable:!0,contentSelector:defaults.contentSelector,contentIgnoreSelector:defaults.contentIgnoreSelector,paneClass:defaults.paneClass,resizerClass:defaults.resizerClass,togglerClass:defaults.togglerClass,buttonClass:defaults.buttonClass,resizerDragOpacity:1,maskIframesOnResize:!0,minSize:0,maxSize:0,spacing_open:4,spacing_closed:6,togglerLength_open:50,togglerLength_closed:50,togglerAlign_open:"center",togglerAlign_closed:"center",togglerTip_open:"Close",togglerTip_closed:"Open",resizerTip:"Resize",sliderTip:"Slide Open",sliderCursor:"pointer",slideTrigger_open:"click",slideTrigger_close:"mouseout",hideTogglerOnSlide:!1,togglerContent_open:"",togglerContent_closed:"",showOverflowOnHover:!1,enableCursorHotkey:!0,customHotkeyModifier:"SHIFT",fxName:"slide",fxSpeed:null,fxSettings:{},initClosed:!1,initHidden:!1},north:{paneSelector:"."+prefix+"north",size:"auto",resizerCursor:"n-resize"},south:{paneSelector:"."+prefix+"south",size:"auto",resizerCursor:"s-resize"},east:{paneSelector:"."+prefix+"east",size:200,resizerCursor:"e-resize"},west:{paneSelector:"."+prefix+"west",size:200,resizerCursor:"e-resize"},center:{paneSelector:"."+prefix+"center"}},effects={slide:{all:{duration:"fast"},north:{direction:"up"},south:{direction:"down"},east:{direction:"right"},west:{direction:"left"}},drop:{all:{duration:"slow"},north:{direction:"up"},south:{direction:"down"},east:{direction:"right"},west:{direction:"left"}},scale:{all:{duration:"fast"}}},config={allPanes:"north,south,east,west,center",borderPanes:"north,south,east,west",zIndex:{resizer_normal:1,pane_normal:2,mask:4,sliding:100,resizing:1e4,animation:1e4},resizers:{cssReq:{position:"absolute",padding:0,margin:0,fontSize:"1px",textAlign:"left",overflow:"hidden",zIndex:1},cssDef:{background:"#DDD",border:"none"}},togglers:{cssReq:{position:"absolute",display:"block",padding:0,margin:0,overflow:"hidden",textAlign:"center",fontSize:"1px",cursor:"pointer",zIndex:1},cssDef:{background:"#AAA"}},content:{cssReq:{overflow:"auto"},cssDef:{}},defaults:{cssReq:{position:"absolute",margin:0,zIndex:2},cssDef:{padding:"10px",background:"#FFF",border:"1px solid #BBB",overflow:"auto"}},north:{edge:"top",sizeType:"height",dir:"horz",cssReq:{top:0,bottom:"auto",left:0,right:0,width:"auto"}},south:{edge:"bottom",sizeType:"height",dir:"horz",cssReq:{top:"auto",bottom:0,left:0,right:0,width:"auto"}},east:{edge:"right",sizeType:"width",dir:"vert",cssReq:{left:"auto",right:0,top:"auto",bottom:"auto",height:"auto"}},west:{edge:"left",sizeType:"width",dir:"vert",cssReq:{left:0,right:"auto",top:"auto",bottom:"auto",height:"auto"}},center:{dir:"center",cssReq:{left:"auto",right:"auto",top:"auto",bottom:"auto",height:"auto",width:"auto"}}},state={id:Math.floor(Math.random()*1e4),container:{},north:{},south:{},east:{},west:{},center:{}},altEdge={top:"bottom",bottom:"top",left:"right",right:"left"},altSide={north:"south",south:"north",east:"west",west:"east"},isStr=function(a){if(typeof a=="string")return!0;if(typeof a=="object")try{var b=a.constructor.toString().match(/string/i);return b!==null}catch(c){}return!1},str=function(a){return typeof a=="string"||isStr(a)?$.trim(a):a},min=function(a,b){return Math.min(a,b)},max=function(a,b){return Math.max(a,b)},transformData=function(b){var c={defaults:{fxSettings:{}},north:{fxSettings:{}},south:{fxSettings:{}},east:{fxSettings:{}},west:{fxSettings:{}},center:{fxSettings:{}}};return b=b||{},b.effects||b.defaults||b.north||b.south||b.west||b.east||b.center?c=$.extend(c,b):$.each(b,function(b,d){a=b.split("__"),c[a[1]?a[0]:"defaults"][a[1]?a[1]:a[0]]=d}),c},setFlowCallback=function(a,b,d){function h(a,d){f=c[a],f.doCallback?(cpPane=f.callback.split(",")[1],cpPane!=a&&cpPane!=b&&h(cpPane,!0)):(f.doCallback=!0,f.callback=e)}var e=a+","+b+","+(d?1:0),f,g;$.each(c.borderPanes.split(","),function(a,b){if(c[b].isMoving)return h(b),!1})},execFlowCallback=function(a){var b=c[a];c.isLayoutBusy=!1,delete b.isMoving;if(!b.doCallback||!b.callback)return;b.doCallback=!1;var d=b.callback.split(","),e=d[2]>0?!0:!1;d[0]=="open"?open(d[1],e):d[0]=="close"&&close(d[1],e),b.doCallback||(b.callback=null)},execUserCallback=function(pane,v_fn){if(!v_fn)return;var fn;try{if(typeof v_fn=="function")fn=v_fn;else{if(typeof v_fn!="string")return;if(v_fn.indexOf(",")>0){var args=v_fn.split(","),fn=eval(args[0]);if(typeof fn=="function"&&args.length>1)return fn(args[1])}else fn=eval(v_fn)}if(typeof fn=="function")return fn(pane,$Ps[pane],$.extend({},state[pane]),$.extend({},options[pane]),options.name)}catch(ex){}},cssNum=function(a,b){var c=0,d=!1,e="";return $.browser.msie||$.curCSS(a[0],"display",true)=="none"&&(d=!0,e=$.curCSS(a[0],"visibility",!0),a.css({display:"block",visibility:"hidden"})),c=parseInt($.curCSS(a[0],b,!0),10)||0,d&&(a.css({display:"none"}),e&&e!="hidden"&&a.css({visibility:e})),c},cssW=function(a,b){var c;return isStr(a)?(a=str(a),c=$Ps[a]):c=$(a),b<=0?0:(b>0||(b=isStr(a)?getPaneSize(a):c.outerWidth()),$.boxModel?b-cssNum(c,"paddingLeft")-cssNum(c,"paddingRight")-($.curCSS(c[0],"borderLeftStyle",true)=="none"?0:cssNum(c,"borderLeftWidth"))-($.curCSS(c[0],"borderRightStyle",true)=="none"?0:cssNum(c,"borderRightWidth")):b)},cssH=function(a,b){var c;return isStr(a)?(a=str(a),c=$Ps[a]):c=$(a),b<=0?0:(b>0||(b=isStr(a)?getPaneSize(a):c.outerHeight()),$.boxModel?b-cssNum(c,"paddingTop")-cssNum(c,"paddingBottom")-($.curCSS(c[0],"borderTopStyle",true)=="none"?0:cssNum(c,"borderTopWidth"))-($.curCSS(c[0],"borderBottomStyle",true)=="none"?0:cssNum(c,"borderBottomWidth")):b)},cssSize=function(a,b){return c[a].dir=="horz"?cssH(a,b):cssW(a,b)},getPaneSize=function(a,b){var d=$Ps[a],e=options[a],f=state[a],g=b?e.spacing_open:0,h=b?e.spacing_closed:0;return!d||f.isHidden?0:f.isClosed||f.isSliding&&b?h:c[a].dir=="horz"?d.outerHeight()+g:d.outerWidth()+g},setPaneMinMaxSizes=function(a){var b=cDims,d=c[a].edge,e=c[a].dir,f=options[a],g=state[a],h=$Ps[a],i=$Ps[altSide[a]],j=f.spacing_open,k=options[altSide[a]].spacing_open,l=i?e=="horz"?i.outerHeight():i.outerWidth():0,m=e=="horz"?b.innerHeight:b.innerWidth,n=m-j-l-k,o=g.minSize||0,p=Math.min(g.maxSize||9999,n),q,r;switch(a){case"north":q=b.offsetTop+o,r=b.offsetTop+p;break;case"west":q=b.offsetLeft+o,r=b.offsetLeft+p;break;case"south":q=b.offsetTop+b.innerHeight-p,r=b.offsetTop+b.innerHeight-o;break;case"east":q=b.offsetLeft+b.innerWidth-p,r=b.offsetLeft+b.innerWidth-o}$.extend(g,{minSize:o,maxSize:p,minPosition:q,maxPosition:r})},getPaneDims=function(){var d={top:getPaneSize("north",!0),bottom:getPaneSize("south",!0),left:getPaneSize("west",!0),right:getPaneSize("east",!0),width:0,height:0};with(d)width=cDims.innerWidth-left-right,height=cDims.innerHeight-bottom-top,top+=cDims.top,bottom+=cDims.bottom,left+=cDims.left,right+=cDims.right;return d},getElemDims=function(a){var b={},c,d,e;return $.each("Left,Right,Top,Bottom".split(","),function(){c=str(this),d=b["border"+c]=cssNum(a,"border"+c+"Width"),e=b["padding"+c]=cssNum(a,"padding"+c),b["offset"+c]=d+e,a==$Container&&(b[c.toLowerCase()]=$.boxModel?e:0)}),b.innerWidth=b.outerWidth=a.outerWidth(),b.innerHeight=b.outerHeight=a.outerHeight(),$.boxModel&&(b.innerWidth-=b.offsetLeft+b.offsetRight,b.innerHeight-=b.offsetTop+b.offsetBottom),b},setTimer=function(a,b,c,d){var e=window.layout=window.layout||{},f=e.timers=e.timers||{},g="layout_"+state.id+"_"+a+"_"+b;if(f[g])return;f[g]=setTimeout(c,d)},clearTimer=function(a,b){var c=window.layout=window.layout||{},d=c.timers=c.timers||{},e="layout_"+state.id+"_"+a+"_"+b;return d[e]?(clearTimeout(d[e]),delete d[e],!0):!1},create=function(){initOptions(),initContainer(),initPanes(),initHandles(),initResizable(),sizeContent("all");if(options.scrollToBookmarkOnLoad)with(self.location)hash&&replace(hash);initHotkeys(),$(window).resize(function(){var a="timerLayout_"+state.id;window[a]&&clearTimeout(window[a]),window[a]=null,window[a]=setTimeout(resizeAll,100)})},initContainer=function(){try{if($Container[0].tagName=="BODY")$("html").css({height:"100%",overflow:"hidden"}),$("body").css({position:"relative",height:"100%",overflow:"hidden",margin:0,padding:0,border:"none"});else{var a={overflow:"hidden"},b=$Container.css("position"),c=$Container.css("height");if(!$Container.hasClass("ui-layout-pane")){if(!b||"fixed,absolute,relative".indexOf(b)<0)a.position="relative";if(!c||c=="auto")a.height="100%"}$Container.css(a)}}catch(d){}cDims=state.container=getElemDims($Container)},initHotkeys=function(){$.each(c.borderPanes.split(","),function(a,b){var c=options[b];if(c.enableCursorHotkey||c.customHotkey)return $(document).keydown(keyDown),!1})},initOptions=function(){opts=transformData(opts),opts.effects&&($.extend(effects,opts.effects),delete opts.effects),$.each("name,scrollToBookmarkOnLoad".split(","),function(a,b){opts[b]!==undefined?options[b]=opts[b]:opts.defaults[b]!==undefined&&(options[b]=opts.defaults[b],delete opts.defaults[b])}),$.each("paneSelector,resizerCursor,customHotkey".split(","),function(a,b){delete opts.defaults[b]}),$.extend(options.defaults,opts.defaults),c.center=$.extend(!0,{},c.defaults,c.center),$.extend(options.center,opts.center);var a=$.extend(!0,{},options.defaults,opts.defaults,options.center);$.each("paneClass,contentSelector,contentIgnoreSelector,applyDefaultStyles,showOverflowOnHover".split(","),function(b,c){options.center[c]=a[c]});var b=options.defaults;$.each(c.borderPanes.split(","),function(a,d){c[d]=$.extend(!0,{},c.defaults,c[d]),o=options[d]=$.extend(!0,{},options.defaults,options[d],opts.defaults,opts[d]),o.paneClass||(o.paneClass=defaults.paneClass),o.resizerClass||(o.resizerClass=defaults.resizerClass),o.togglerClass||(o.togglerClass=defaults.togglerClass),$.each(["_open","_close",""],function(a,c){var e="fxName"+c,f="fxSpeed"+c,g="fxSettings"+c;o[e]=opts[d][e]||opts[d].fxName||opts.defaults[e]||opts.defaults.fxName||o[e]||o.fxName||b[e]||b.fxName||"none";var h=o[e];if(h=="none"||!$.effects||!$.effects[h]||!effects[h]&&!o[g]&&!o.fxSettings)h=o[e]="none";var i=effects[h]||{},j=i.all||{},k=i[d]||{};o[g]=$.extend({},j,k,b.fxSettings||{},b[g]||{},o.fxSettings,o[g],opts.defaults.fxSettings,opts.defaults[g]||{},opts[d].fxSettings,opts[d][g]||{}),o[f]=opts[d][f]||opts[d].fxSpeed||opts.defaults[f]||opts.defaults.fxSpeed||o[f]||o[g].duration||o.fxSpeed||o.fxSettings.duration||b.fxSpeed||b.fxSettings.duration||k.duration||j.duration||"normal"})})},initPanes=function(){$.each(c.allPanes.split(","),function(){var a=str(this),b=options[a],d=state[a],e=d.fx,f=c[a].dir,g=b.size=="auto"||isNaN(b.size)?0:b.size,h=b.minSize||1,i=b.maxSize||9999,j=b.spacing_open||0,k=b.paneSelector,l=$.browser.msie&&$.browser.version<7,m={},n,o;$Cs[a]=!1,k.substr(0,1)==="#"?n=$Ps[a]=$Container.find(k+":first"):(n=$Ps[a]=$Container.children(k+":first"),n.length||(n=$Ps[a]=$Container.children("form:first").children(k+":first")));if(!n.length)return $Ps[a]=!1,!0;n.attr("pane",a).addClass(b.paneClass+" "+b.paneClass+"-"+a),a!="center"&&(d.isClosed=!1,d.isSliding=!1,d.isResizing=!1,d.isHidden=!1,d.noRoom=!1,c[a].pins=[]),m=$.extend({visibility:"visible",display:"block"},c.defaults.cssReq,c[a].cssReq),b.applyDefaultStyles&&$.extend(m,c.defaults.cssDef,c[a].cssDef),n.css(m),m={};switch(a){case"north":m.top=cDims.top,m.left=cDims.left,m.right=cDims.right;break;case"south":m.bottom=cDims.bottom,m.left=cDims.left,m.right=cDims.right;break;case"west":m.left=cDims.left;break;case"east":m.right=cDims.right;break;case"center":}if(f=="horz"){if(g===0||g=="auto")n.css({height:"auto"}),g=n.outerHeight();g=max(g,h),g=min(g,i),g=min(g,cDims.innerHeight-j),m.height=max(1,cssH(a,g)),d.size=g,d.maxSize=i,d.minSize=max(h,g-m.height+1),n.css(m)}else if(f=="vert"){if(g===0||g=="auto")n.css({width:"auto","float":"left"}),g=n.outerWidth(),n.css({"float":"none"});g=max(g,h),g=min(g,i),g=min(g,cDims.innerWidth-j),m.width=max(1,cssW(a,g)),d.size=g,d.maxSize=i,d.minSize=max(h,g-m.width+1),n.css(m),sizeMidPanes(a,null,!0)}else a=="center"&&(n.css(m),sizeMidPanes("center",null,!0));b.initClosed&&b.closable?(n.hide().addClass("closed"),d.isClosed=!0):b.initHidden||b.initClosed?(hide(a,!0),d.isHidden=!0):n.addClass("open"),b.showOverflowOnHover&&n.hover(allowOverflow,resetOverflow);if(b.contentSelector){o=$Cs[a]=n.children(b.contentSelector+":first");if(!o.length)return $Cs[a]=!1,!0;o.css(c.content.cssReq),b.applyDefaultStyles&&o.css(c.content.cssDef),n.css({overflow:"hidden"})}})},initHandles=function(){$.each(c.borderPanes.split(","),function(){var a=str(this),b=options[a],d=state[a],e=b.resizerClass,f=b.togglerClass,g=$Ps[a];$Rs[a]=!1,$Ts[a]=!1;if(!g||!b.closable&&!b.resizable)return;var h=c[a].edge,i=g.is(":visible"),j=i?b.spacing_open:b.spacing_closed,k="-"+a,l=i?"-open":"-closed",m,n;m=$Rs[a]=$("<span></span>"),(!i||!b.resizable)&&!i&&b.slidable&&m.attr("title",b.sliderTip).css("cursor",b.sliderCursor),m.attr("id",b.paneSelector.substr(0,1)=="#"?b.paneSelector.substr(1)+"-resizer":"").attr("resizer",a).css(c.resizers.cssReq).css(h,cDims[h]+getPaneSize(a)).addClass(e+" "+e+k+" "+e+l+" "+e+k+l).appendTo($Container),b.applyDefaultStyles&&m.css(c.resizers.cssDef),b.closable&&(n=$Ts[a]=$("<div></div>"),n.attr("id",b.paneSelector.substr(0,1)=="#"?b.paneSelector.substr(1)+"-toggler":"").css(c.togglers.cssReq).attr("title",i?b.togglerTip_open:b.togglerTip_closed).click(function(b){toggle(a),b.stopPropagation()}).mouseover(function(a){a.stopPropagation()}).addClass(f+" "+f+k+" "+f+l+" "+f+k+l).appendTo(m),b.togglerContent_open&&$("<span>"+b.togglerContent_open+"</span>").addClass("content content-open").css("display",d.isClosed?"none":"block").appendTo(n),b.togglerContent_closed&&$("<span>"+b.togglerContent_closed+"</span>").addClass("content content-closed").css("display",d.isClosed?"block":"none").appendTo(n),b.applyDefaultStyles&&n.css(c.togglers.cssDef),i||bindStartSlidingEvent(a,!0))}),sizeHandles("all",!0)},initResizable=function(){var a=typeof $.fn.draggable=="function",b,d,e;$.each(c.borderPanes.split(","),function(){var b=str(this),d=options[b],f=state[b];if(!a||!$Ps[b]||!d.resizable)return d.resizable=!1,!0;var g=d.resizerClass,h=g+"-drag",i=g+"-"+b+"-drag",j=g+"-dragging",k=g+"-"+b+"-dragging",l=!1,m=$Ps[b],n=$Rs[b];f.isClosed||n.attr("title",d.resizerTip).css("cursor",d.resizerCursor),n.draggable({containment:$Container[0],axis:c[b].dir=="horz"?"y":"x",delay:200,distance:1,helper:"clone",opacity:d.resizerDragOpacity,zIndex:c.zIndex.resizing,start:function(a,g){if(!1===execUserCallback(b,d.onresize_start))return!1;f.isResizing=!0,clearTimer(b,"closeSlider"),n.addClass(h+" "+i),l=!1;var j=b=="east"||b=="south"?d.spacing_open:0;setPaneMinMaxSizes(b),f.minPosition-=j,f.maxPosition-=j,e=c[b].dir=="horz"?"top":"left",$(d.maskIframesOnResize===!0?"iframe":d.maskIframesOnResize).each(function(){$('<div class="ui-layout-mask"/>').css({background:"#fff",opacity:"0.001",zIndex:9,position:"absolute",width:this.offsetWidth+"px",height:this.offsetHeight+"px"}).css($(this).offset()).appendTo(this.parentNode)})},drag:function(a,d){l||($(".ui-draggable-dragging").addClass(j+" "+k).children().css("visibility","hidden"),l=!0,f.isSliding&&$Ps[b].css("zIndex",c.zIndex.sliding)),d.position[e]<f.minPosition?d.position[e]=f.minPosition:d.position[e]>f.maxPosition&&(d.position[e]=f.maxPosition)},stop:function(a,d){var e=d.position,g,j;n.removeClass(h+" "+i);switch(b){case"north":g=e.top;break;case"west":g=e.left;break;case"south":g=cDims.outerHeight-e.top-n.outerHeight();break;case"east":g=cDims.outerWidth-e.left-n.outerWidth()}j=g-cDims[c[b].edge],sizePane(b,j),$("div.ui-layout-mask").remove(),f.isResizing=!1}})})},hide=function(a,b){var d=options[a],e=state[a],f=$Ps[a],g=$Rs[a];if(!f||e.isHidden)return;if(!1===execUserCallback(a,d.onhide_start))return;e.isSliding=!1,g&&g.hide(),b||e.isClosed?(e.isClosed=!0,e.isHidden=!0,f.hide(),sizeMidPanes(c[a].dir=="horz"?"all":"center"),execUserCallback(a,d.onhide_end||d.onhide)):(e.isHiding=!0,close(a,!1))},show=function(a,b){var c=options[a],d=state[a],e=$Ps[a],f=$Rs[a];if(!e||!d.isHidden)return;if(!1===execUserCallback(a,c.onshow_start))return;d.isSliding=!1,d.isShowing=!0,f&&c.spacing_open>0&&f.show(),b===!1?close(a,!0):open(a)},toggle=function(a){var b=state[a];b.isHidden?show(a):b.isClosed?open(a):close(a)},close=function(a,b,d){function t(){bindStartSlidingEvent(a,!0),r||execUserCallback(a,h.onclose_end||h.onclose),r&&execUserCallback(a,h.onshow_end||h.onshow),s&&execUserCallback(a,h.onhide_end||h.onhide),execFlowCallback(a)}var e=$Ps[a],f=$Rs[a],g=$Ts[a],h=options[a],i=state[a],j=!d&&!i.isClosed&&h.fxName_close!="none",k=c[a].edge,l=h.resizerClass,m=h.togglerClass,n="-"+a,o="-open",p="-sliding",q="-closed",r=i.isShowing,s=i.isHiding;delete i.isShowing,delete i.isHiding;if(!e||!h.resizable&&!h.closable)return;if(!b&&i.isClosed&&!r)return;if(c.isLayoutBusy){setFlowCallback("close",a,b);return}if(!r&&!1===execUserCallback(a,h.onclose_start))return;c[a].isMoving=!0,c.isLayoutBusy=!0,i.isClosed=!0,s?i.isHidden=!0:r&&(i.isHidden=!1),syncPinBtns(a,!1),i.isSliding||sizeMidPanes(c[a].dir=="horz"?"all":"center"),f&&(f.css(k,cDims[k]).removeClass(l+o+" "+l+n+o).removeClass(l+p+" "+l+n+p).addClass(l+q+" "+l+n+q),h.resizable&&f.draggable("disable").css("cursor","default").attr("title",""),g&&g.removeClass(m+o+" "+m+n+o).addClass(m+q+" "+m+n+q).attr("title",h.togglerTip_closed),sizeHandles()),j?(lockPaneForFX(a,!0),e.hide(h.fxName_close,h.fxSettings_close,h.fxSpeed_close,function(){lockPaneForFX(a,!1);if(!i.isClosed)return;t()})):(e.hide(),t())},open=function(a,b,d){function s(){i.isSliding||sizeMidPanes(c[a].dir=="vert"?"center":"all"),f&&(f.css(k,cDims[k]+getPaneSize(a)).removeClass(l+p+" "+l+n+p).addClass(l+o+" "+l+n+o).addClass(i.isSliding?l+q+" "+l+n+q:""),h.resizable?f.draggable("enable").css("cursor",h.resizerCursor).attr("title",h.resizerTip):f.css("cursor","default"),g&&g.removeClass(m+p+" "+m+n+p).addClass(m+o+" "+m+n+o).attr("title",h.togglerTip_open),sizeHandles("all")),sizeContent(a),syncPinBtns(a,!i.isSliding),execUserCallback(a,h.onopen_end||h.onopen),r&&execUserCallback(a,h.onshow_end||h.onshow),execFlowCallback(a)}var e=$Ps[a],f=$Rs[a],g=$Ts[a],h=options[a],i=state[a],j=!d&&i.isClosed&&h.fxName_open!="none",k=c[a].edge,l=h.resizerClass,m=h.togglerClass,n="-"+a,o="-open",p="-closed",q="-sliding",r=i.isShowing;delete i.isShowing;if(!e||!h.resizable&&!h.closable)return;if(!i.isClosed&&!i.isSliding)return;if(i.isHidden&&!r){show(a,!0);return}if(c.isLayoutBusy){setFlowCallback("open",a,b);return}if(!1===execUserCallback(a,h.onopen_start))return;c[a].isMoving=!0,c.isLayoutBusy=!0,i.isSliding&&!b&&bindStopSlidingEvents(a,!1),i.isClosed=!1,r&&(i.isHidden=!1),setPaneMinMaxSizes(a),i.size>i.maxSize&&e.css(c[a].sizeType,max(1,cssSize(a,i.maxSize))),bindStartSlidingEvent(a,!1),j?(lockPaneForFX(a,!0),e.show(h.fxName_open,h.fxSettings_open,h.fxSpeed_open,function(){lockPaneForFX(a,!1);if(i.isClosed)return;s()})):(e.show(),s())},lockPaneForFX=function(a,b){var d=$Ps[a];b?(d.css({zIndex:c.zIndex.animation}),a=="south"?d.css({top:cDims.top+cDims.innerHeight-d.outerHeight()}):a=="east"&&d.css({left:cDims.left+cDims.innerWidth-d.outerWidth()})):(state[a].isSliding||d.css({zIndex:c.zIndex.pane_normal}),a=="south"?d.css({top:"auto"}):a=="east"&&d.css({left:"auto"}))},bindStartSlidingEvent=function(a,b){var c=options[a],d=$Rs[a],e=c.slideTrigger_open;if(!d||!c.slidable)return;e!="click"&&e!="dblclick"&&e!="mouseover"&&(e="click"),d[b?"bind":"unbind"](e,slideOpen).css("cursor",b?c.sliderCursor:"default").attr("title",b?c.sliderTip:"")},bindStopSlidingEvents=function(a,b){function j(b){clearTimer(a,"closeSlider"),b.stopPropagation()}var d=options[a],e=state[a],f=d.slideTrigger_close,g=b?"bind":"unbind",h=$Ps[a],i=$Rs[a];e.isSliding=b,clearTimer(a,"closeSlider"),h.css({zIndex:b?c.zIndex.sliding:c.zIndex.pane_normal}),i.css({zIndex:b?c.zIndex.sliding:c.zIndex.resizer_normal}),f!="click"&&f!="mouseout"&&(f="mouseout");if(b){h.bind(f,slideClosed),i.bind(f,slideClosed);if(f="mouseout")h.bind("mouseover",j),i.bind("mouseover",j)}else{h.unbind(f),i.unbind(f);if(f="mouseout")h.unbind("mouseover"),i.unbind("mouseover"),clearTimer(a,"closeSlider")}},slideOpen=function(){var a=$(this).attr("resizer");state[a].isClosed&&(bindStopSlidingEvents(a,!0),open(a,!0))},slideClosed=function(){function e(){bindStopSlidingEvents(b,!1),d.isClosed||close(b)}var a=$(this),b=a.attr("pane")||a.attr("resizer"),c=options[b],d=state[b];if(d.isClosed||d.isResizing)return;c.slideTrigger_close=="click"?e():setTimer(b,"closeSlider",e,300)},sizePane=function(a,b){var d=c[a].edge,e=c[a].dir,f=options[a],g=state[a],h=$Ps[a],i=$Rs[a];setPaneMinMaxSizes(a),g.minSize=max(g.minSize,f.minSize),f.maxSize>0&&(g.maxSize=min(g.maxSize,f.maxSize)),b=max(b,g.minSize),b=min(b,g.maxSize),g.size=b,i.css(d,b+cDims[d]),h.css(c[a].sizeType,max(1,cssSize(a,b))),g.isSliding||sizeMidPanes(e=="horz"?"all":"center"),sizeHandles(),sizeContent(a),execUserCallback(a,f.onresize_end||f.onresize)},sizeMidPanes=function(a,b,c){if(!a||a=="all")a="east,west,center";var d=getPaneDims();b&&$.extend(d,b),$.each(a.split(","),function(){if(!$Ps[this])return;var a=str(this),b=options[a],e=state[a],f=$Ps[a],g=$Rs[a],h=!0,i={};a=="center"?(d=getPaneDims(),i=$.extend({},d),i.width=max(1,cssW(a,i.width)),i.height=max(1,cssH(a,i.height)),h=i.width>1&&i.height>1,$.browser.msie&&(!$.boxModel||$.browser.version<7)&&($Ps.north&&$Ps.north.css({width:cssW($Ps.north,cDims.innerWidth)}),$Ps.south&&$Ps.south.css({width:cssW($Ps.south,cDims.innerWidth)}))):(i.top=d.top,i.bottom=d.bottom,i.height=max(1,cssH(a,d.height)),h=i.height>1);if(h){f.css(i);if(e.noRoom){e.noRoom=!1;if(e.isHidden)return;show(a,!e.isClosed)}c||(sizeContent(a),execUserCallback(a,b.onresize_end||b.onresize))}else if(!e.noRoom){e.noRoom=!0;if(e.isHidden)return;c?(f.hide(),g&&g.hide()):hide(a)}})},sizeContent=function(a){if(!a||a=="all")a=c.allPanes;$.each(a.split(","),function(){if(!$Cs[this])return;var a=str(this),b=options[a].contentIgnoreSelector,c=$Ps[a],d=$Cs[a],e=d[0],f=cssH(c);c.children().each(function(){if(this==e)return;var a=$(this);if(!b||!a.is(b))f-=a.outerHeight()}),f>0&&(f=cssH(d,f)),f<1?d.hide():d.css({height:f}).show()})},sizeHandles=function(a,b){if(!a||a=="all")a=c.borderPanes;$.each(a.split(","),function(){var a=str(this),d=options[a],e=state[a],f=$Ps[a],g=$Rs[a],h=$Ts[a];if(!f||!g||!d.resizable&&!d.closable)return;var i=c[a].dir,j=e.isClosed?"_closed":"_open",k=d["spacing"+j],l=d["togglerAlign"+j],m=d["togglerLength"+j],n,o,p={};if(k==0){g.hide();return}!e.noRoom&&!e.isHidden&&g.show(),i=="horz"?(n=f.outerWidth(),g.css({width:max(1,cssW(g,n)),height:max(1,cssH(g,k)),left:cssNum(f,"left")})):(n=f.outerHeight(),g.css({height:max(1,cssH(g,n)),width:max(1,cssW(g,k)),top:cDims.top+getPaneSize("north",!0)}));if(h){if(m==0||e.isSliding&&d.hideTogglerOnSlide){h.hide();return}h.show();if(!(m>0)||m=="100%"||m>n)m=n,o=0;else if(typeof l=="string")switch(l){case"top":case"left":o=0;break;case"bottom":case"right":o=n-m;break;case"middle":case"center":default:o=Math.floor((n-m)/2)}else{var q=parseInt(l);l>=0?o=q:o=n-m+q}var r=d.togglerContent_open?h.children(".content-open"):!1,s=d.togglerContent_closed?h.children(".content-closed"):!1,t=e.isClosed?s:r;r&&r.css("display",e.isClosed?"none":"block"),s&&s.css("display",e.isClosed?"block":"none");if(i=="horz"){var u=cssW(h,m);h.css({width:max(0,u),height:max(1,cssH(h,k)),left:o}),t&&t.css("marginLeft",Math.floor((u-t.outerWidth())/2))}else{var v=cssH(h,m);h.css({height:max(0,v),width:max(1,cssW(h,k)),top:o}),t&&t.css("marginTop",Math.floor((v-t.outerHeight())/2))}}b&&d.initHidden&&(g.hide(),h&&h.hide())})},resizeAll=function(){var a=cDims.innerWidth,b=cDims.innerHeight;cDims=state.container=getElemDims($Container);var d=cDims.innerHeight<b,e=cDims.innerWidth<a,f,g;(d||e)&&$.each(["south","north","east","west"],function(a,b){f=state[b],g=c[b].dir,!f.isClosed&&(d&&g=="horz"||e&&g=="vert")&&(setPaneMinMaxSizes(b),f.size>f.maxSize&&sizePane(b,f.maxSize))}),sizeMidPanes("all"),sizeHandles("all")},$Container=$(this).css({overflow:"hidden"}),$Ps={},$Cs={},$Rs={},$Ts={},c=config,cDims=state.container;return create(),{options:options,state:state,panes:$Ps,toggle:toggle,open:open,close:close,hide:hide,show:show,resizeContent:sizeContent,sizePane:sizePane,resizeAll:resizeAll,addToggleBtn:addToggleBtn,addOpenBtn:addOpenBtn,addCloseBtn:addCloseBtn,addPinBtn:addPinBtn,allowOverflow:allowOverflow,resetOverflow:resetOverflow,cssWidth:cssW,cssHeight:cssH}}})(jQuery);;
+
+/*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
+ * Licensed under the MIT License (LICENSE.txt).
+ *
+ * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
+ * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
+ * Thanks to: Seamus Leahy for adding deltaX and deltaY
+ *
+ * Version: 3.0.6
+ * 
+ * Requires: 1.2.2+
+ */
+
+(function($) {
+
+var types = ['DOMMouseScroll', 'mousewheel'];
+
+if ($.event.fixHooks) {
+    for ( var i=types.length; i; ) {
+        $.event.fixHooks[ types[--i] ] = $.event.mouseHooks;
+    }
+}
+
+$.event.special.mousewheel = {
+    setup: function() {
+        if ( this.addEventListener ) {
+            for ( var i=types.length; i; ) {
+                this.addEventListener( types[--i], handler, false );
+            }
+        } else {
+            this.onmousewheel = handler;
+        }
+    },
+    
+    teardown: function() {
+        if ( this.removeEventListener ) {
+            for ( var i=types.length; i; ) {
+                this.removeEventListener( types[--i], handler, false );
+            }
+        } else {
+            this.onmousewheel = null;
+        }
+    }
+};
+
+$.fn.extend({
+    mousewheel: function(fn) {
+        return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+    },
+    
+    unmousewheel: function(fn) {
+        return this.unbind("mousewheel", fn);
+    }
+});
+
+
+function handler(event) {
+    var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
+    event = $.event.fix(orgEvent);
+    event.type = "mousewheel";
+    
+    // Old school scrollwheel delta
+    if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
+    if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
+    
+    // New school multidimensional scroll (touchpads) deltas
+    deltaY = delta;
+    
+    // Gecko
+    if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+        deltaY = 0;
+        deltaX = -1*delta;
+    }
+    
+    // Webkit
+    if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
+    if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
+    
+    // Add event and delta to the front of the arguments
+    args.unshift(event, delta, deltaX, deltaY);
+    
+    return ($.event.dispatch || $.event.handle).apply(this, args);
+}
+
+})(jQuery);
+;
 
 // moment.js
 // version : 1.6.2

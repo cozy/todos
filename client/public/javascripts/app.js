@@ -955,9 +955,17 @@ window.require.define({"models/task": function(exports, require, module) {
     };
 
     Task.prototype.setListName = function() {
-      var _ref, _ref1, _ref2, _ref3;
-      this.listTitle = (_ref = window.app) != null ? (_ref1 = _ref.homeView.todolists.get(this.list)) != null ? _ref1.title : void 0 : void 0;
-      return this.listPath = (_ref2 = window.app) != null ? (_ref3 = _ref2.homeView.todolists.get(this.list)) != null ? _ref3.path.join(" > ") : void 0 : void 0;
+      var list, path, _ref, _ref1;
+      list = (_ref = window.app) != null ? (_ref1 = _ref.homeView.todolists.get(this.list)) != null ? _ref1.path : void 0 : void 0;
+      this.listTitle = list.title;
+      path = list.path;
+      if ((path != null) && !typeof path === "Array") {
+        console.log(path);
+        path = JSON.parse(path);
+      }
+      if (path != null) {
+        return this.listPath = path.join(" > ");
+      }
     };
 
     Task.prototype.setNextTask = function(task) {
@@ -1206,7 +1214,7 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
     HomeView.prototype.render = function() {
       $(this.el).html(require('./templates/home'));
-      this.todolist = $("#todo-list");
+      this.todolist = this.$("#todo-list");
       return this;
     };
 
@@ -1535,6 +1543,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
     }
 
     TaskLine.prototype.render = function() {
+      var _this = this;
       template = require('./templates/task');
       $(this.el).html(template({
         "model": this.model
@@ -1549,6 +1558,20 @@ window.require.define({"views/task_view": function(exports, require, module) {
       this.$(".task-buttons").hide();
       this.descriptionField.data('before', this.descriptionField.val());
       this.todoButton = this.$(".todo-button");
+      this.todoButton.hover(function() {
+        if (_this.model.done) {
+          return _this.todoButton.html("todo?");
+        } else {
+          return _this.todoButton.html("done?");
+        }
+      });
+      this.todoButton.mouseout(function() {
+        if (_this.model.done) {
+          return _this.todoButton.html("done");
+        } else {
+          return _this.todoButton.html("todo");
+        }
+      });
       return this.el;
     };
 
@@ -1612,17 +1635,25 @@ window.require.define({"views/task_view": function(exports, require, module) {
     TaskLine.prototype.onTodoButtonClicked = function(event) {
       var _this = this;
       this.showLoading();
-      if (this.model.done) {
-        this.model.setUndone();
-      } else {
-        this.model.setDone();
-      }
       this.model.url = "todolists/" + this.model.list + "/tasks/" + this.model.id;
       return this.model.save({
         done: this.model.done
       }, {
         success: function() {
-          return _this.hideLoading();
+          _this.hideLoading();
+          return _this.todoButton.flippy({
+            direction: 'TOP',
+            content: "done",
+            onFinish: function() {
+              _this.todoButton.attr('style', '');
+              _this.todoButton.addClass('done');
+              if (_this.model.done) {
+                return _this.model.setUndone();
+              } else {
+                return _this.model.setDone();
+              }
+            }
+          });
         },
         error: function() {
           alert("An error occured, modifications were not saved.");
@@ -1785,14 +1816,12 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
     TaskLine.prototype.done = function() {
       this.$(".todo-button").html("done");
-      this.$(".todo-button").addClass("disabled");
       this.$(".todo-button").removeClass("btn-info");
       return $(this.el).addClass("done");
     };
 
     TaskLine.prototype.undone = function() {
       this.$(".todo-button").html("todo");
-      this.$(".todo-button").removeClass("disabled");
       this.$(".todo-button").addClass("btn-info");
       return $(this.el).removeClass("done");
     };
@@ -1988,7 +2017,7 @@ window.require.define({"views/templates/home": function(exports, require, module
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tags"></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="todo-list" class="ui-layout-center"></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tags"></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="content" class="ui-layout-center"><div id="todo-list"></div></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };

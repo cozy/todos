@@ -1,6 +1,22 @@
 @import 'nib'
 @import 'base'
 
+basecolor = #34B6F4
+contrastcolor = #9D9
+actioncolor = #fe8800
+
+
+@font-face
+    font-family: styled
+    src: url('/fonts/maven-pro-light-300.otf');
+
+@font-face
+    font-family: main
+    src: url('/fonts/signika-regular.ttf');
+
+body
+    font-family: styled, helvetica
+
 // layout
 
 #home-view
@@ -14,37 +30,62 @@
   background-color bgcolornav
 
 #todo-list
-  shadow 2px 2px 5px bgshadowcolor 
   background-color #FCFCFC
-
-#todo-list
   padding-bottom: 1%
+  overflow: auto
+  border: 0
+  height: 100%
+  width: 100%
 
 #todo-list h2
   padding 1% 
 
 .task
-  padding 3px 2%
+    padding 3px 2%
+
+    input
+        border: 1px solid transparent
+        border-radius: 20px
+        padding-left: 10px
+        shadow: none
+        font-family: styled, helvetica
 
 .task:hover
-  background-color #E2F3FF
+    input
+        border: 1px solid #DDD
+        border: 1px solid rgba(82, 168, 236, 0.8)
+        color: #333
+        border-radius: 20px
+        padding-left: 10px
+        shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
+
+.task
+    input:focus
+    input:active
+        border: 1px solid actioncolor
+        color: #333
+        border-radius: 20px
+        padding-left: 10px
+        shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
 
 .task button
   float left
 
-.task input 
-  border: 0px
-  shadow none
+.done button
+    background: contrastcolor
+    border-color: contrastcolor
 
-.task input:focus
-  shadow: 0 1px 1px rgba(255, 255, 255, 0.12) inset, 0px 0px 8px #5CACF1
+.done .description
+  color #AAA
+  text-decoration line-through
+  
 
 .task .description
   margin-left: 1% 
   font-size: 16px
   height:22px
   width: 90%
-  padding: 4px
+  padding: 4px 10px
   background-color: #FCFCFC
   margin-bottom 0
 
@@ -74,9 +115,6 @@
 .todo-list-title button
   float right
 
-.done .description
-  color #AAA
-  text-decoration line-through
 
 .archive-title
   font-size: 16px
@@ -87,35 +125,37 @@
   margin-bottom: 2px
 
 
-.btn 
-  background-repeat: repeat-x 
-  background-image: linear-gradient(top, #EAEAEA, #AaAaAa)
-  background-color: #AAAAAA !important
-  border-color: #CCC 
-  -webkit-font-smoothing: antialiased 
-  color: #444
-  text-shadow: none
+/*
+//.btn 
+  //background-repeat: repeat-x 
+  //background-image: linear-gradient(top, #EAEAEA, #AaAaAa)
+  //background-color: #AAAAAA !important
+  //border-color: #CCC 
+  //-webkit-font-smoothing: antialiased 
+  //color: #444
+  //text-shadow: none
 
-.btn-info
-  background-image: linear-gradient(top, #bdb09d, #927f61)  
-  background-color: #927f61 !important
-  color: #EEE
-  border-color: #927f61 #927f61 hsl(36, 20%, 43%)  
+//.btn-info
+  //background-image: linear-gradient(top, #bdb09d, #927f61)  
+  //background-color: #927f61 !important
+  //color: #EEE
+  //border-color: #927f61 #927f61 hsl(36, 20%, 43%)  
 
-.btn.disabled
-  color: #020
-  text-shadow: none
-  background-color: #A9D74F !important 
-  cursor: pointer
+//.btn.disabled
+  //color: #020
+  //text-shadow: none
+  //background-color: #A9D74F !important 
+  //cursor: pointer
 
-.btn-large
-  text-shadow: none
+//.btn-large
+  //text-shadow: none
 
-.todo-button
-  background-color: #c17400 !important
-  background-image: linear-gradient(top, #f5bb65, #c17400)
-  border-color:  #f5bb65, #e68f0e, hsl(36, 20%, 43%)  
-  color: #FFFAFA
+//.todo-button
+  //background-color: #c17400 !important
+  //background-image: linear-gradient(top, #f5bb65, #c17400)
+  //border-color:  #f5bb65, #e68f0e, hsl(36, 20%, 43%)  
+  //color: #FFFAFA
+  */
 
 .breadcrumb
   background: none 
@@ -141,6 +181,41 @@
   border-bottom: 1px solid #EEE
   margin-bottom: 5px
 
+
+/* buttons */
+
+.btn
+    border: 1px solid basecolor
+    background: basecolor
+    color: white
+    shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 1px 2px rgba(0, 0, 0, 0.05)
+    text-shadow: none
+    font-family: main
+
+.btn:hover
+    background: #45C7F5
+    color: white
+
+.btn:active
+    background: #23A5E3
+    shadow: 1px 3px 2px rgba(0, 0, 0, 0.2) inset, 0 1px 2px rgba(0, 0, 0, 0.0)
+    color: white
+
+.btn-info
+    margin-top: 2px
+    background: basecolor
+    border: 1px solid basecolor
+    shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 1px 2px rgba(0, 0, 0, 0.05)
+
+.btn-info:hover
+    background: actioncolor + 20%
+    border-color: actioncolor + 20%
+    font-weight: bold
+
+.btn-info:active
+    background: actioncolor -20%
+    border-color: actioncolor - 20%
+    font-weight: bold
 
 /* tags */
 

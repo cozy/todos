@@ -26,7 +26,7 @@ class exports.HomeView extends Backbone.View
     render: ->
         $(@el).html require('./templates/home')
 
-        @todolist = $("#todo-list")
+        @todolist = @$("#todo-list")
         @
 
     # Use jquery layout so set main layout of current window.

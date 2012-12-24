@@ -42,6 +42,16 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.data 'before', @descriptionField.val()
         @todoButton = @$(".todo-button")
 
+        @todoButton.hover =>
+            if @model.done
+                @todoButton.html("todo?")
+            else
+                @todoButton.html("done?")
+        @todoButton.mouseout =>
+            if @model.done
+                @todoButton.html("done")
+            else
+                @todoButton.html("todo")
         @el
 
     # Listen for description modification
@@ -81,11 +91,17 @@ class exports.TaskLine extends Backbone.View
     # backend.
     onTodoButtonClicked: (event) =>
         @showLoading()
-        if @model.done then @model.setUndone() else @model.setDone()
         @model.url = "todolists/#{@model.list}/tasks/#{@model.id}"
+        @model.done = not @model.done
+
         @model.save { done: @model.done },
             success: =>
                 @hideLoading()
+                if not @model.done
+                    @model.setUndone()
+                else
+                    @model.setDone()
+
             error: =>
                 alert "An error occured, modifications were not saved."
                 @hideLoading()
@@ -216,14 +232,12 @@ class exports.TaskLine extends Backbone.View
     # Change styles and text to display done state.
     done: ->
         @.$(".todo-button").html "done"
-        @.$(".todo-button").addClass "disabled"
         @.$(".todo-button").removeClass "btn-info"
         $(@el).addClass "done"
 
     # Change styles and text to display todo state.
     undone: ->
         @.$(".todo-button").html "todo"
-        @.$(".todo-button").removeClass "disabled"
         @.$(".todo-button").addClass "btn-info"
         $(@el).removeClass "done"
 

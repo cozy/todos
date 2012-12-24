@@ -20,7 +20,6 @@ class exports.TaskCollection extends Backbone.Collection
 
     # View binding : for each task added, it appends a task line to task list.
     onReset: (tasks) =>
-        previousTask = @at @length - 1 if @length > 0
         tasks.forEach (task) =>
             task.collection = @
             task.setPreviousTask previousTask if previousTask?
@@ -46,6 +45,7 @@ class exports.TaskCollection extends Backbone.Collection
     # Insert task at a given position, update links then save task to backend.
     insertTask: (previousTask, task, callbacks) ->
         index = @toArray().indexOf previousTask
+        
         if previousTask.get("nextTask")?
             nextTask = @at(index + 1)
             nextTask?.set "previousTask", task.id

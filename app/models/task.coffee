@@ -66,12 +66,13 @@ Task.allTodo = (listId, callback) ->
         task = firstTask
         task = tasks[0] if not task?
         result = []
+
+        # Order tasks
         while task? and result.length <= tasks.length
             result.push(task)
             nextTaskId = task.nextTask
             delete idList[task.id]
             task = idList[nextTaskId]
-
 
         # Rebuild linked list if there are unlinked tasks
         lastTask = result[result.length - 1]
@@ -127,6 +128,7 @@ Task.setFirstTask = (task, callback) ->
             firstTask.previousTask = task.id
             task.nextTask = firstTask.id
             task.previousTask = null
+
             firstTask.save (err) ->
                 return callback(err, null) if err
 
@@ -217,7 +219,7 @@ Task.createNew = (task, callback) ->
 
 # Change next task ID of previous task with next task ID of current task.
 Task.removePreviousLink = (task, callback) ->
-    if task.previousTask? and not task.done
+    if task? and task.previousTask? and not task.done
         Task.find task.previousTask, (err, previousTask) =>
             return callback err if err
 
@@ -310,7 +312,9 @@ Task.move = (task, attributes, callback) ->
 # Extract string prefixed with a # from the description and set them as tags
 Task::extractTags = () ->
     if @description?
-        tags =  @description.match(/#(\w)*/g)
+        desc = @description + " "
+        tags =  desc.match(/#(\w)*/g)
+        
         @tags = []
         
         if tags?

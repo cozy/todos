@@ -76,8 +76,8 @@ describe "Task Model", ->
                 description: "Task 09"
                 done: false
 
-            Task.create task, ->
-                Task.setFirstTask task, ->
+            Task.createNew task, (err, newTask) ->
+                Task.setFirstTask newTask, ->
                     done()
 
         it "Then the task links are properly set", (done) ->
@@ -135,9 +135,9 @@ describe "Task Model", ->
                         description: "Task 10"
                         done: false
                         previousTask: @tasks[1].id
-                    Task.create task, (err, newTask) =>
+                    Task.createNew task, (err, newTask) =>
                         @task = newTask
-                        Task.insertTask task, ->
+                        Task.insertTask newTask, ->
                             done()
 
             it "Then all tasks has proper links", (done) ->

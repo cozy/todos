@@ -1,7 +1,7 @@
 @import 'nib'
 @import 'base'
 
-basecolor = #34B6F4
+basecolor = #34A6FF
 contrastcolor = #9D9
 actioncolor = #fe8800
 
@@ -17,6 +17,9 @@ actioncolor = #fe8800
 body
     font-family: styled, helvetica
 
+html
+    overflow: hidden
+
 // layout
 
 #home-view
@@ -29,16 +32,19 @@ body
   padding 0
   background-color bgcolornav
 
+
 #todo-list
   background-color #FCFCFC
   padding-bottom: 1%
-  overflow: auto
+  overflow: hidden
   border: 0
-  height: 100%
-  width: 100%
+
 
 #todo-list h2
   padding 1% 
+
+#content 
+  padding: 0
 
 .task
     padding 3px 2%

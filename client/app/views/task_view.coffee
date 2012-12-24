@@ -92,19 +92,15 @@ class exports.TaskLine extends Backbone.View
     onTodoButtonClicked: (event) =>
         @showLoading()
         @model.url = "todolists/#{@model.list}/tasks/#{@model.id}"
+        @model.done = not @model.done
+
         @model.save { done: @model.done },
             success: =>
                 @hideLoading()
-                @todoButton.flippy
-                    direction:'TOP'
-                    content: "done"
-                    onFinish: =>
-                        @todoButton.attr 'style', ''
-                        @todoButton.addClass 'done'
-                        if @model.done
-                            @model.setUndone()
-                        else
-                            @model.setDone()
+                if not @model.done
+                    @model.setUndone()
+                else
+                    @model.setDone()
 
             error: =>
                 alert "An error occured, modifications were not saved."

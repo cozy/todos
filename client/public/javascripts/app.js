@@ -113,15 +113,11 @@ window.require.define({"collections/tasks": function(exports, require, module) {
     };
 
     TaskCollection.prototype.onReset = function(tasks) {
-      var previousTask,
-        _this = this;
-      if (this.length > 0) {
-        previousTask = this.at(this.length - 1);
-      }
+      var _this = this;
       tasks.forEach(function(task) {
-        var _ref, _ref1;
+        var previousTask, _ref, _ref1;
         task.collection = _this;
-        if (previousTask != null) {
+        if (typeof previousTask !== "undefined" && previousTask !== null) {
           task.setPreviousTask(previousTask);
         }
         if ((_ref = _this.options) != null ? _ref.grouping : void 0) {
@@ -957,14 +953,16 @@ window.require.define({"models/task": function(exports, require, module) {
     Task.prototype.setListName = function() {
       var list, path, _ref, _ref1;
       list = (_ref = window.app) != null ? (_ref1 = _ref.homeView.todolists.get(this.list)) != null ? _ref1.path : void 0 : void 0;
-      this.listTitle = list.title;
-      path = list.path;
-      if ((path != null) && !typeof path === "Array") {
-        console.log(path);
-        path = JSON.parse(path);
-      }
-      if (path != null) {
-        return this.listPath = path.join(" > ");
+      if (list != null) {
+        this.listTitle = list.title;
+        path = list.path;
+        if ((path != null) && !typeof path === "Array") {
+          console.log(path);
+          path = JSON.parse(path);
+        }
+        if (path != null) {
+          return this.listPath = path.join(" > ");
+        }
       }
     };
 
@@ -1636,24 +1634,17 @@ window.require.define({"views/task_view": function(exports, require, module) {
       var _this = this;
       this.showLoading();
       this.model.url = "todolists/" + this.model.list + "/tasks/" + this.model.id;
+      this.model.done = !this.model.done;
       return this.model.save({
         done: this.model.done
       }, {
         success: function() {
           _this.hideLoading();
-          return _this.todoButton.flippy({
-            direction: 'TOP',
-            content: "done",
-            onFinish: function() {
-              _this.todoButton.attr('style', '');
-              _this.todoButton.addClass('done');
-              if (_this.model.done) {
-                return _this.model.setUndone();
-              } else {
-                return _this.model.setDone();
-              }
-            }
-          });
+          if (!_this.model.done) {
+            return _this.model.setUndone();
+          } else {
+            return _this.model.setDone();
+          }
         },
         error: function() {
           alert("An error occured, modifications were not saved.");

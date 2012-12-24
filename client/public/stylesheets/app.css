@@ -5546,6 +5546,9 @@ ol {
 body {
   font-family: styled, helvetica;
 }
+html {
+  overflow: hidden;
+}
 #home-view {
   height: 100%;
   margin: 0;
@@ -5559,13 +5562,14 @@ body {
 #todo-list {
   background-color: #fcfcfc;
   padding-bottom: 1%;
-  overflow: auto;
+  overflow: hidden;
   border: 0;
-  height: 100%;
-  width: 100%;
 }
 #todo-list h2 {
   padding: 1%;
+}
+#content {
+  padding: 0;
 }
 .task {
   padding: 3px 2%;
@@ -5716,8 +5720,8 @@ body {
 }
 /* buttons */
 .btn {
-  border: 1px solid #34b6f4;
-  background: #34b6f4;
+  border: 1px solid #34a6ff;
+  background: #34a6ff;
   color: #fff;
   -moz-box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 1px 2px rgba(0,0,0,0.05);
   -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 1px 2px rgba(0,0,0,0.05);
@@ -5740,8 +5744,8 @@ body {
 }
 .btn-info {
   margin-top: 2px;
-  background: #34b6f4;
-  border: 1px solid #34b6f4;
+  background: #34a6ff;
+  border: 1px solid #34a6ff;
   -moz-box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 1px 2px rgba(0,0,0,0.05);
   -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 1px 2px rgba(0,0,0,0.05);
   -webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset, 0 1px 2px rgba(0,0,0,0.05);

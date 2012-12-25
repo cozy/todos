@@ -1829,7 +1829,7 @@ window.require.define({"views/task_view": function(exports, require, module) {
     TaskLine.prototype.done = function() {
       this.$(".todo-button").html("done");
       this.$(".todo-button").removeClass("btn-info");
-      return $(this.el).addClass("done");
+      return this.$el.addClass("done");
     };
 
     TaskLine.prototype.undone = function() {

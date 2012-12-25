@@ -21,7 +21,7 @@ class exports.TodoList extends BaseModel
 
     # Copy todolist properties to current model.
     constructor: (todolist) ->
-        super()
+        super(todolist)
         for property of todolist
             @[property] = todolist[property]
 

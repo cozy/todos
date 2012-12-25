@@ -951,13 +951,12 @@ window.require.define({"models/task": function(exports, require, module) {
     };
 
     Task.prototype.setListName = function() {
-      var list, path, _ref, _ref1;
-      list = (_ref = window.app) != null ? (_ref1 = _ref.homeView.todolists.get(this.list)) != null ? _ref1.path : void 0 : void 0;
+      var list, path, _ref;
+      list = (_ref = window.app) != null ? _ref.homeView.todolists.get(this.list) : void 0;
       if (list != null) {
         this.listTitle = list.title;
         path = list.path;
-        if ((path != null) && !typeof path === "Array") {
-          console.log(path);
+        if ((path != null) && typeof path === "string") {
           path = JSON.parse(path);
         }
         if (path != null) {
@@ -1058,7 +1057,7 @@ window.require.define({"models/todolist": function(exports, require, module) {
 
     function TodoList(todolist) {
       var property;
-      TodoList.__super__.constructor.call(this);
+      TodoList.__super__.constructor.call(this, todolist);
       for (property in todolist) {
         this[property] = todolist[property];
       }
@@ -2264,7 +2263,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           currentPath = paths.join("/");
           listName = paths.pop();
           breadcrumb = "<a href='" + path + currentPath + "'>";
-          breadcrumb += "" + listName + "</a> >" + breadcrumb;
+          breadcrumb += "" + listName + "</a> > " + breadcrumb;
         } else {
           listName = paths.pop();
         }

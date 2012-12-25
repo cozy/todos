@@ -23,12 +23,13 @@ class exports.Task extends BaseModel
 
     # Store list data into model (for display outside list widget).
     setListName: ->
-        list = window.app?.homeView.todolists.get(@list)?.path
+        list = window.app?.homeView.todolists.get(@list)
+        
         if list?
             @listTitle = list.title
             path = list.path
-            if path? and not typeof(path) == "Array"
-                console.log path
+            
+            if path? and typeof(path) == "string"
                 path = JSON.parse path
             if path?
                 @listPath = path.join(" > ")

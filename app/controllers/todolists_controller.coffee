@@ -3,9 +3,7 @@ load 'application'
 async = require "async"
 
 
-###--------------------------------------#
-# Helpers
-###
+### Helpers ###
 
 ###
 # Return to client a todoList list like this
@@ -17,7 +15,7 @@ returnTodoLists = (err, todoLists) ->
         send error: "Retrieve todoLists failed.", 500
     else
         todoLists.forEach (list)->
-            list.path = JSON.stringify list.path
+            list.path = JSON.parse list.path
         send length: todoLists.length, rows: todoLists
 
 ###
@@ -54,9 +52,7 @@ before 'load tree', ->
 
 
 
-###--------------------------------------#
-# Actions
-###
+### Actions ###
 
 ###
 # Return all todoLists

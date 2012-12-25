@@ -138,7 +138,6 @@ class exports.TodoListWidget extends Backbone.View
             @title.html @model.title
         else
             @breadcrumb.html ""
-
             if @model?.tag?
                 @title.html @model.tag
             else
@@ -161,7 +160,7 @@ class exports.TodoListWidget extends Backbone.View
                 currentPath = paths.join("/")
                 listName = paths.pop()
                 breadcrumb = "<a href='#{path}#{currentPath}'>"
-                breadcrumb += "#{listName}</a> >#{breadcrumb}"
+                breadcrumb += "#{listName}</a> > #{breadcrumb}"
             else
                 listName = paths.pop()
 

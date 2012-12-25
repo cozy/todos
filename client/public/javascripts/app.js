@@ -2290,7 +2290,7 @@ window.require.define({"views/todolist_view": function(exports, require, module)
           listName = paths.pop();
         }
       }
-      breadcrumb = "<a href='#todolist/all'> All</a> >" + breadcrumb;
+      breadcrumb = "<a href='#todolist/all'> All</a> > " + breadcrumb;
       return breadcrumb;
     };
 

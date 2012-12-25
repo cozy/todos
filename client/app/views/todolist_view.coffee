@@ -164,5 +164,5 @@ class exports.TodoListWidget extends Backbone.View
             else
                 listName = paths.pop()
 
-        breadcrumb = "<a href='#todolist/all'> All</a> >#{breadcrumb}"
+        breadcrumb = "<a href='#todolist/all'> All</a> > #{breadcrumb}"
         breadcrumb

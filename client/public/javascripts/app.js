@@ -113,21 +113,23 @@ window.require.define({"collections/tasks": function(exports, require, module) {
     };
 
     TaskCollection.prototype.onReset = function(tasks) {
-      var _this = this;
+      var previousTask,
+        _this = this;
+      previousTask = null;
       tasks.forEach(function(task) {
-        var previousTask, _ref, _ref1;
+        var _ref, _ref1;
         task.collection = _this;
-        if (typeof previousTask !== "undefined" && previousTask !== null) {
+        if (previousTask != null) {
           task.setPreviousTask(previousTask);
         }
+        previousTask = task;
         if ((_ref = _this.options) != null ? _ref.grouping : void 0) {
           if (((_ref1 = _this.lastTask) != null ? _ref1.simpleDate : void 0) !== task.simpleDate) {
             _this.view.addDateLine(task.simpleDate);
           }
           _this.lastTask = task;
         }
-        _this.view.addTaskLine(task);
-        return previousTask = task;
+        return _this.view.addTaskLine(task);
       });
       return this.lastTask = null;
     };
@@ -1073,7 +1075,7 @@ window.require.define({"models/todolist": function(exports, require, module) {
           slugs.push(slugify(title));
         }
         this.urlPath = slugs.join("/");
-        this.urlPath = "todolist/" + this.id + "/all/" + this.urlPath + "/";
+        this.urlPath = "todolist/" + this.id + "/all/" + this.urlPath;
       }
     }
 

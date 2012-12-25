@@ -34,7 +34,7 @@ class exports.TodoList extends BaseModel
             for title in @path
                 slugs.push slugify(title)
             @urlPath = slugs.join("/")
-            @urlPath = "todolist/#{@id}/all/#{@urlPath}/"
+            @urlPath = "todolist/#{@id}/all/#{@urlPath}"
 
     # Set right url then send save request to server.
     saveContent: (content) ->

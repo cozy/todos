@@ -20,9 +20,11 @@ class exports.TaskCollection extends Backbone.Collection
 
     # View binding : for each task added, it appends a task line to task list.
     onReset: (tasks) =>
+        previousTask = null
         tasks.forEach (task) =>
             task.collection = @
             task.setPreviousTask previousTask if previousTask?
+            previousTask = task
 
             if @options?.grouping
                 if @lastTask?.simpleDate != task.simpleDate
@@ -30,7 +32,6 @@ class exports.TaskCollection extends Backbone.Collection
                 @lastTask = task
             @view.addTaskLine task
 
-            previousTask = task
         @lastTask = null
 
     # Prepend a task to the task list and update previousTask field of

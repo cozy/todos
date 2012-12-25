@@ -52,8 +52,10 @@ describe 'Task Collection', ->
                 new Task id: 6, list: 123, description:"task 06", done: true
                 new Task id: 7, list: 123, description:"task 07", done: false
             ]
-            @collection.onReset @tasks
+            @tasks[0].set "previousTask", 4
+
             @collection.add task, silent: true for task in @tasks
+            @collection.onReset @tasks
 
         it "then their links are correctly set", ->
             expect(@tasks[0].get "previousTask").to.equal 4

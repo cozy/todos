@@ -35,7 +35,7 @@ describe "/tasks", ->
 
 
     describe "GET /todolists ", ->
-        it "Retrieve working todo-list", (done) ->
+        it "Retrieve todo-lists", (done) ->
             client.get "todolists/", (error, response, body) =>
                 testLength body, 2
                 @listId = body.rows[0].id

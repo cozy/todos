@@ -15,7 +15,10 @@ returnTodoLists = (err, todoLists) ->
         send error: "Retrieve todoLists failed.", 500
     else
         todoLists.forEach (list)->
-            list.path = JSON.parse list.path
+            try
+                list.path = JSON.parse list.path
+            catch error
+                list.path = ""
         send length: todoLists.length, rows: todoLists
 
 ###

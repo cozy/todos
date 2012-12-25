@@ -97,34 +97,22 @@ action 'update', ->
 
     # Task move from todo to done
     if body.done? and body.done and @task.done != body.done
-        console.log "cas 1"
-        
         Task.done @task, body, answer
 
     # Task move from done to todo
     else if body.done? and not body.done and @task.done != body.done
-        console.log "cas 2"
-
         Task.todo @task, body, answer
 
     # Weird case that happens when task is moved as first task
     else if body.previousTask is null and @task.previousTask isnt null
-        console.log "cas 3"
         Task.setFirstTask @task, answer
-
 
     # When link changes previous and next task are updated.
     else if body.previousTask != undefined \
             and body.previousTask != @task.previousTask
-        console.log "cas 4"
-        console.log body.previousTask
-        console.log @task.previousTask
-        
-        
         Task.move @task, body, answer
 
     else
-        console.log "cas 5"
         @task.description = body.description
         @task.extractTags()
         body.tags = @task.tags

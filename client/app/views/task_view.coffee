@@ -12,6 +12,7 @@ class exports.TaskLine extends Backbone.View
         "click .del-task-button": "onDelButtonClicked"
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
+        "click .task-infos a": "onListLinkClicked"
 
     ###
     # Initializers
@@ -223,6 +224,10 @@ class exports.TaskLine extends Backbone.View
             @firstDel = true
         else
             @firstDel = false
+
+    onListLinkClicked: (event) ->
+        window.app.router.navigate @model.listPath, true
+        event.preventDefault()
 
             
     ###

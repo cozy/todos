@@ -1,5 +1,7 @@
 BaseModel = require("models/models").BaseModel
 
+slugify = require "lib/slug"
+
 
 request = (type, url, data, callback) ->
     $.ajax
@@ -20,10 +22,19 @@ class exports.TodoList extends BaseModel
     url: 'todolists/'
 
     # Copy todolist properties to current model.
+    # Set two fields : breadcrumb and urlpath defined by list path
     constructor: (todolist) ->
         super(todolist)
         for property of todolist
             @[property] = todolist[property]
+
+        if @path?
+            @breadcrumb = @path.join(" > ")
+            slugs = []
+            for title in @path
+                slugs.push slugify(title)
+            @urlPath = slugs.join("/")
+            @urlPath = "todolist/#{@id}/all/#{@urlPath}/"
 
     # Set right url then send save request to server.
     saveContent: (content) ->

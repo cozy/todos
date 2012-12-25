@@ -32,7 +32,8 @@ class exports.Task extends BaseModel
             if path? and typeof(path) == "string"
                 path = JSON.parse path
             if path?
-                @listPath = path.join(" > ")
+                @listBreadcrumb = list.breadcrumb
+                @listPath = list.urlPath
     
     setNextTask: (task) ->
         @set "nextTask", task?.id ? null

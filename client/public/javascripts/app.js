@@ -960,7 +960,8 @@ window.require.define({"models/task": function(exports, require, module) {
           path = JSON.parse(path);
         }
         if (path != null) {
-          return this.listPath = path.join(" > ");
+          this.listBreadcrumb = list.breadcrumb;
+          return this.listPath = list.urlPath;
         }
       }
     };
@@ -1027,11 +1028,13 @@ window.require.define({"models/task": function(exports, require, module) {
 }});
 
 window.require.define({"models/todolist": function(exports, require, module) {
-  var BaseModel, request,
+  var BaseModel, request, slugify,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   BaseModel = require("models/models").BaseModel;
+
+  slugify = require("lib/slug");
 
   request = function(type, url, data, callback) {
     return $.ajax({
@@ -1056,10 +1059,21 @@ window.require.define({"models/todolist": function(exports, require, module) {
     TodoList.prototype.url = 'todolists/';
 
     function TodoList(todolist) {
-      var property;
+      var property, slugs, title, _i, _len, _ref;
       TodoList.__super__.constructor.call(this, todolist);
       for (property in todolist) {
         this[property] = todolist[property];
+      }
+      if (this.path != null) {
+        this.breadcrumb = this.path.join(" > ");
+        slugs = [];
+        _ref = this.path;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          title = _ref[_i];
+          slugs.push(slugify(title));
+        }
+        this.urlPath = slugs.join("/");
+        this.urlPath = "todolist/" + this.id + "/all/" + this.urlPath + "/";
       }
     }
 
@@ -1509,7 +1523,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
       "click .todo-button": "onTodoButtonClicked",
       "click .del-task-button": "onDelButtonClicked",
       "click .up-task-button": "onUpButtonClicked",
-      "click .down-task-button": "onDownButtonClicked"
+      "click .down-task-button": "onDownButtonClicked",
+      "click .task-infos a": "onListLinkClicked"
     };
 
     /*
@@ -1799,6 +1814,11 @@ window.require.define({"views/task_view": function(exports, require, module) {
       }
     };
 
+    TaskLine.prototype.onListLinkClicked = function(event) {
+      window.app.router.navigate(this.model.listPath, true);
+      return event.preventDefault();
+    };
+
     /*
         # Functions
     */
@@ -2032,7 +2052,9 @@ window.require.define({"views/templates/task": function(exports, require, module
   }
   if ( !model.collection.listId)
   {
-  buf.push('<span class="task-list-infos">' + escape((interp = model.listPath) == null ? '' : interp) + '</span>');
+  buf.push('<a');
+  buf.push(attrs({ 'href':("#" + (model.listPath) + ""), "class": ('task-list-infos') }, {"href":true}));
+  buf.push('>' + escape((interp = model.listBreadcrumb) == null ? '' : interp) + '</a>');
   }
   buf.push('</div>');
   }

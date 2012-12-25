@@ -13,4 +13,4 @@ input.description(type="text",contenteditable="true",
     if model.done && !model.collection.listId
         &nbsp;|&nbsp;
     if !model.collection.listId
-        span.task-list-infos #{model.listPath}
+        a.task-list-infos(href="##{model.listPath}") #{model.listBreadcrumb}

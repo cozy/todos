@@ -5663,37 +5663,6 @@ html {
 .todo-list-title .description {
   margin-bottom: 2px;
 }
-/*
-//.btn 
-  //background-repeat: repeat-x 
-  //background-image: linear-gradient(top, #EAEAEA, #AaAaAa)
-  //background-color: #AAAAAA !important
-  //border-color: #CCC 
-  //-webkit-font-smoothing: antialiased 
-  //color: #444
-  //text-shadow: none
-
-//.btn-info
-  //background-image: linear-gradient(top, #bdb09d, #927f61)  
-  //background-color: #927f61 !important
-  //color: #EEE
-  //border-color: #927f61 #927f61 hsl(36, 20%, 43%)  
-
-//.btn.disabled
-  //color: #020
-  //text-shadow: none
-  //background-color: #A9D74F !important 
-  //cursor: pointer
-
-//.btn-large
-  //text-shadow: none
-
-//.todo-button
-  //background-color: #c17400 !important
-  //background-image: linear-gradient(top, #f5bb65, #c17400)
-  //border-color:  #f5bb65, #e68f0e, hsl(36, 20%, 43%)  
-  //color: #FFFAFA
-  */
 .breadcrumb {
   background: none;
   border: none;
@@ -5712,6 +5681,17 @@ html {
 .task-infos {
   font-size: 12px;
   color: #aaa;
+}
+.task-infos a {
+  color: #34a6ff;
+}
+.task-infos a:hover,
+.task-infos a:active,
+.task-infos a:focus {
+  font-size: 12px;
+  font-weight: normal;
+  color: #fe8800;
+  border: 0;
 }
 .completion-date {
   font-size: 12px;

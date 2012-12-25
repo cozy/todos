@@ -11,7 +11,7 @@
   , "mime":             "= 1.2.7"
   , "qs":               "= 0.5.0"
   , "jugglingdb":       "= 0.1.27-3"
-  , "jugglingdb-cozy-adapter": ">= 0"
+  , "jugglingdb-cozy-adapter": "= 0.2.3"
   , "redis":            "= 0.7.2"
   , "async":            "= 0.1.22"
   , "restler":          "= 2.0.1"

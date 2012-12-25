@@ -18,7 +18,7 @@ returnTodoLists = (err, todoLists) ->
             try
                 list.path = JSON.parse list.path
             catch error
-                list.path = ""
+
         send length: todoLists.length, rows: todoLists
 
 ###
@@ -43,7 +43,6 @@ before 'load todoList', ->
 # exist it is created.
 ###
 before 'load tree', ->
-
     createTreeCb = (err, tree) ->
         if err
             console.log err

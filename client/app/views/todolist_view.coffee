@@ -56,11 +56,9 @@ class exports.TodoListWidget extends Backbone.View
                 @tasks.add data
                 $(".task:first .description").focus()
                 helpers.selectAll($(".task:first .description"))
-
-                if not @isEditMode
-                    $(".task:first .task-buttons").hide()
-                else
-                    $(".task:first .task-buttons").show()
+                if @tasks.length is 0 or @tasks.length is 1
+                    @taskList.$el.append '<p class="info">To add a new ' + \
+                        'task, focus on a task then type enter.</p>'
 
             error: ->
                 alert "An error occured while saving data"
@@ -108,13 +106,19 @@ class exports.TodoListWidget extends Backbone.View
                 $(@archiveTasks.view.el).spin()
         @tasks.fetch
             success: =>
-                if $(".task:not(.done)").length > 0
-                    $(".task:first .description").focus()
+                console.log @tasks.length
+                if @$(".task:not(.done)").length > 0
+                    @$(".task:first .description").focus()
+                    
+                    if @tasks.length is 1
+                        @taskList.$el.append '<p class="info">To add a new ' + \
+                            'task, focus on a task then type enter.</p>'
                 else
                     @onAddClicked() if @model? and @model.id?
-                $(@tasks.view.el).spin()
+
+                @$(@tasks.view.el).spin()
             error: =>
-                $(@tasks.view.el).spin()
+                @$(@tasks.view.el).spin()
 
     # Add task to todo task list.
     moveToTaskList: (task) ->

@@ -1390,7 +1390,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
 
     HomeView.prototype.selectList = function(id) {
-      if (id === "all" || id === void 0) {
+      if (id === "all" || !(id != null)) {
         id = 'tree-node-all';
       }
       return this.tree.selectNode(id);
@@ -2158,10 +2158,8 @@ window.require.register("views/todolist_view", function(exports, require, module
           _this.tasks.add(data);
           $(".task:first .description").focus();
           helpers.selectAll($(".task:first .description"));
-          if (!_this.isEditMode) {
-            return $(".task:first .task-buttons").hide();
-          } else {
-            return $(".task:first .task-buttons").show();
+          if (_this.tasks.length === 0 || _this.tasks.length === 1) {
+            return _this.taskList.$el.append('<p class="info">To add a new ' + 'task, focus on a task then type enter.</p>');
           }
         },
         error: function() {
@@ -2215,17 +2213,21 @@ window.require.register("views/todolist_view", function(exports, require, module
       });
       return this.tasks.fetch({
         success: function() {
-          if ($(".task:not(.done)").length > 0) {
-            $(".task:first .description").focus();
+          console.log(_this.tasks.length);
+          if (_this.$(".task:not(.done)").length > 0) {
+            _this.$(".task:first .description").focus();
+            if (_this.tasks.length === 1) {
+              _this.taskList.$el.append('<p class="info">To add a new ' + 'task, focus on a task then type enter.</p>');
+            }
           } else {
             if ((_this.model != null) && (_this.model.id != null)) {
               _this.onAddClicked();
             }
           }
-          return $(_this.tasks.view.el).spin();
+          return _this.$(_this.tasks.view.el).spin();
         },
         error: function() {
-          return $(_this.tasks.view.el).spin();
+          return _this.$(_this.tasks.view.el).spin();
         }
       });
     };

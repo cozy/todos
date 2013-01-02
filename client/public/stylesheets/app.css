@@ -5636,6 +5636,11 @@ html {
   margin-top: 2px;
   margin-bottom: 4px;
 }
+.info {
+  font-size: 10px;
+  color: #777;
+  padding-left: 20px;
+}
 .todo-button {
   width: 6%;
 }
@@ -5789,6 +5794,10 @@ html {
     display: none;
   }
 }
+@font-face {
+  font-family: main;
+  src: url("/fonts/signika-regular.ttf");
+}
 #nav {
   position: absolute;
   bottom: 10px;
@@ -5796,6 +5805,7 @@ html {
   right: 0px;
   left: 10px;
   margin-bottom: 0;
+  font-family: main;
 }
 #tree {
   font-size: 14px;
@@ -5819,13 +5829,17 @@ html {
   left: 15px;
   right: 0px;
   position: absolute;
+  font-weight: normal;
 }
 #tree a.jstree-clicked {
-  background: #c5ebf9;
+  background: #cbe4fb;
   border: 0;
 }
 #tree a.jstree-hovered {
   border: 0;
+  background: #ffc47f;
+  font-weight: normal;
+  font-size: 13.5px;
 }
 .jstree-rename-input {
   margin-left: -18px;
@@ -5854,35 +5868,16 @@ html {
   cursor: pointer;
   padding-left: 3px;
 }
-.bold-name {
-  font-weight: bold;
+#tags a {
+  width: 100%;
 }
-.text-dropdown i {
-  padding-right: 5px;
+#tags a:hover {
+  background-color: #ffc47f;
+  text-decoration: none;
+  font-family: main;
 }
-.tag-special {
-  background-color: #fff;
-  border: none;
-  border: 1px solid #fff;
-  height: 14px;
-  position: relative;
-  margin: 0 2px 2px 0;
-  padding: 0 3px 0 3px;
-  color: #000;
-  font: 11px "lucida grande", tahoma, verdana, arial, sans-serif;
-}
-#tree-search-field {
-  width: 200px;
-  padding-right: 20px;
-}
-#suppr-button {
-  position: absolute;
-  top: 23px;
-  left: 202px;
-  z-index: 2;
-}
-#suppr-button:hover {
-  cursor: pointer;
+#tags .selected {
+  background: #c5ebf9;
 }
 .ui-layout-west {
   border: 0px;

@@ -5585,9 +5585,8 @@ html {
   box-shadow: none;
   font-family: styled, helvetica;
 }
-.task:hover input {
-  border: 1px solid #ddd;
-  border: 1px solid rgba(82,168,236,0.8);
+.task input:hover {
+  border: 1px solid #fe8800;
   color: #333;
   -webkit-border-radius: 0px;
   border-radius: 0px;
@@ -5599,7 +5598,7 @@ html {
 }
 .task input:focus,
 .task input:active {
-  border: 1px solid #fe8800;
+  border: 1px solid rgba(82,168,236,0.8);
   color: #333;
   -webkit-border-radius: 0px;
   border-radius: 0px;

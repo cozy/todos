@@ -32,13 +32,11 @@ html
   padding 0
   background-color bgcolornav
 
-
 #todo-list
   background-color #FCFCFC
   padding-bottom: 1%
   overflow: hidden
   border: 0
-
 
 #todo-list h2
   padding 1% 
@@ -46,32 +44,35 @@ html
 #content 
   padding: 0
 
+// Tasks
+
+
 .task
-    padding 2px 2%
+    padding: 2px 2%
 
     input
+        padding-left: 1% 
         border: 1px solid transparent
         border-radius: 0px
-        padding-left: 10px
         shadow: none
         font-family: styled, helvetica
 
 .task
     input:hover
+        padding-left: 1% 
         border: 1px solid actioncolor
-        color: #333
         border-radius: 0px
-        padding-left: 10px
         shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
+        color: #333
 
 .task
     input:focus
     input:active
+        padding-left: 1% 
         border: 1px solid rgba(82, 168, 236, 0.8)
-        color: #333
         border-radius: 0px
-        padding-left: 10px
         shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
+        color: #333
 
 .task button
   float left
@@ -97,7 +98,7 @@ html
   font-size: 16px
   height:22px
   width: 90%
-  padding: 4px 10px
+  padding: 4px 1%
   background-color: #FCFCFC
   margin-top: 2px
   margin-bottom: 4px
@@ -109,6 +110,10 @@ html
   float right
   margin-top: 6px
   margin-right: 2%
+
+#todo-list 
+    header
+        margin-top: 20px
 
 .todo-list-title
   border-bottom 1px solid #CCC

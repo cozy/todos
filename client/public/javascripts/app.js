@@ -61,20 +61,25 @@
     throw new Error('Cannot find module "' + name + '"');
   };
 
-  var define = function(bundle) {
-    for (var key in bundle) {
-      if (has(bundle, key)) {
-        modules[key] = bundle[key];
+  var define = function(bundle, fn) {
+    if (typeof bundle === 'object') {
+      for (var key in bundle) {
+        if (has(bundle, key)) {
+          modules[key] = bundle[key];
+        }
       }
+    } else {
+      modules[bundle] = fn;
     }
-  }
+  };
 
   globals.require = require;
   globals.require.define = define;
+  globals.require.register = define;
   globals.require.brunch = true;
 })();
 
-window.require.define({"collections/tasks": function(exports, require, module) {
+window.require.register("collections/tasks", function(exports, require, module) {
   var Task,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -327,9 +332,8 @@ window.require.define({"collections/tasks": function(exports, require, module) {
 
   })(Backbone.Collection);
   
-}});
-
-window.require.define({"collections/todolists": function(exports, require, module) {
+});
+window.require.register("collections/todolists", function(exports, require, module) {
   var TodoList,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -356,9 +360,8 @@ window.require.define({"collections/todolists": function(exports, require, modul
 
   })(Backbone.Collection);
   
-}});
-
-window.require.define({"helpers": function(exports, require, module) {
+});
+window.require.register("helpers", function(exports, require, module) {
   
   exports.BrunchApplication = (function() {
 
@@ -468,9 +471,8 @@ window.require.define({"helpers": function(exports, require, module) {
     return tags;
   };
   
-}});
-
-window.require.define({"initialize": function(exports, require, module) {
+});
+window.require.register("initialize", function(exports, require, module) {
   var BrunchApplication, HomeView, MainRouter,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -501,9 +503,8 @@ window.require.define({"initialize": function(exports, require, module) {
 
   window.app = new exports.Application;
   
-}});
-
-window.require.define({"lib/request": function(exports, require, module) {
+});
+window.require.register("lib/request", function(exports, require, module) {
   
   exports.request = function(type, url, data, callbacks) {
     return $.ajax({
@@ -531,9 +532,8 @@ window.require.define({"lib/request": function(exports, require, module) {
     return exports.request("DELETE", url, null, callbacks);
   };
   
-}});
-
-window.require.define({"lib/slug": function(exports, require, module) {
+});
+window.require.register("lib/slug", function(exports, require, module) {
   var char_map, removelist, slug, word;
 
   removelist = ['sign', 'cross', 'of', 'symbol', 'staff'];
@@ -895,9 +895,8 @@ window.require.define({"lib/slug": function(exports, require, module) {
     return result.toLowerCase();
   };
   
-}});
-
-window.require.define({"models/models": function(exports, require, module) {
+});
+window.require.register("models/models", function(exports, require, module) {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -917,9 +916,8 @@ window.require.define({"models/models": function(exports, require, module) {
 
   })(Backbone.Model);
   
-}});
-
-window.require.define({"models/task": function(exports, require, module) {
+});
+window.require.register("models/task", function(exports, require, module) {
   var BaseModel,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1027,9 +1025,8 @@ window.require.define({"models/task": function(exports, require, module) {
 
   })(BaseModel);
   
-}});
-
-window.require.define({"models/todolist": function(exports, require, module) {
+});
+window.require.register("models/todolist", function(exports, require, module) {
   var BaseModel, request, slugify,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1112,9 +1109,8 @@ window.require.define({"models/todolist": function(exports, require, module) {
 
   })(BaseModel);
   
-}});
-
-window.require.define({"routers/main_router": function(exports, require, module) {
+});
+window.require.register("routers/main_router", function(exports, require, module) {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1171,9 +1167,8 @@ window.require.define({"routers/main_router": function(exports, require, module)
 
   })(Backbone.Router);
   
-}});
-
-window.require.define({"views/home_view": function(exports, require, module) {
+});
+window.require.register("views/home_view", function(exports, require, module) {
   var TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, client, helpers,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -1430,9 +1425,8 @@ window.require.define({"views/home_view": function(exports, require, module) {
 
   })(Backbone.View);
   
-}});
-
-window.require.define({"views/taglist_view": function(exports, require, module) {
+});
+window.require.register("views/taglist_view", function(exports, require, module) {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1499,9 +1493,8 @@ window.require.define({"views/taglist_view": function(exports, require, module) 
 
   })(Backbone.View);
   
-}});
-
-window.require.define({"views/task_view": function(exports, require, module) {
+});
+window.require.register("views/task_view", function(exports, require, module) {
   var Task, helpers, template,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -1905,9 +1898,8 @@ window.require.define({"views/task_view": function(exports, require, module) {
 
   })(Backbone.View);
   
-}});
-
-window.require.define({"views/tasks_view": function(exports, require, module) {
+});
+window.require.register("views/tasks_view", function(exports, require, module) {
   var TaskCollection, TaskLine, helpers,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2009,9 +2001,8 @@ window.require.define({"views/tasks_view": function(exports, require, module) {
 
   })(Backbone.View);
   
-}});
-
-window.require.define({"views/templates/have_done_list": function(exports, require, module) {
+});
+window.require.register("views/templates/have_done_list", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
   attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
   var buf = [];
@@ -2021,9 +2012,8 @@ window.require.define({"views/templates/have_done_list": function(exports, requi
   }
   return buf.join("");
   };
-}});
-
-window.require.define({"views/templates/home": function(exports, require, module) {
+});
+window.require.register("views/templates/home", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
   attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
   var buf = [];
@@ -2033,9 +2023,8 @@ window.require.define({"views/templates/home": function(exports, require, module
   }
   return buf.join("");
   };
-}});
-
-window.require.define({"views/templates/task": function(exports, require, module) {
+});
+window.require.register("views/templates/task", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
   attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
   var buf = [];
@@ -2062,9 +2051,8 @@ window.require.define({"views/templates/task": function(exports, require, module
   }
   return buf.join("");
   };
-}});
-
-window.require.define({"views/templates/todolist": function(exports, require, module) {
+});
+window.require.register("views/templates/todolist", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
   attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
   var buf = [];
@@ -2074,9 +2062,8 @@ window.require.define({"views/templates/todolist": function(exports, require, mo
   }
   return buf.join("");
   };
-}});
-
-window.require.define({"views/templates/tree_buttons": function(exports, require, module) {
+});
+window.require.register("views/templates/tree_buttons", function(exports, require, module) {
   module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
   attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
   var buf = [];
@@ -2086,10 +2073,9 @@ window.require.define({"views/templates/tree_buttons": function(exports, require
   }
   return buf.join("");
   };
-}});
-
-window.require.define({"views/todolist_view": function(exports, require, module) {
-  var Task, TaskCollection, TaskList, helpers,
+});
+window.require.register("views/todolist_view", function(exports, require, module) {
+  var Task, TaskCollection, TaskList, helpers, slugify,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -2101,6 +2087,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
   TaskList = require("./tasks_view").TaskList;
 
   helpers = require("../helpers");
+
+  slugify = require("lib/slug");
 
   exports.TodoListWidget = (function(_super) {
 
@@ -2252,10 +2240,10 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
     TodoListWidget.prototype.refreshBreadcrump = function() {
       var _ref;
-      $(".breadcrumb a").unbind();
+      this.$(".breadcrumb a").unbind();
       if ((this.model != null) && (this.model.id != null)) {
         this.breadcrumb.html(this.createBreadcrumb());
-        $(".breadcrumb a").click(function(event) {
+        this.$(".breadcrumb a").click(function(event) {
           var hash, id, path;
           event.preventDefault();
           hash = event.target.hash.substring(1);
@@ -2275,19 +2263,24 @@ window.require.define({"views/todolist_view": function(exports, require, module)
     };
 
     TodoListWidget.prototype.createBreadcrumb = function() {
-      var breadcrumb, currentPath, listName, parent, path, paths;
+      var breadcrumb, href, link, listName, parent, path, paths, slugs, _i, _len;
       paths = this.model.path;
       listName = paths.pop();
+      slugs = [];
+      for (_i = 0, _len = paths.length; _i < _len; _i++) {
+        path = paths[_i];
+        slugs.push(slugify(path));
+      }
       breadcrumb = "";
       parent = app.homeView.tree.getSelectedNode();
       while (paths.length > 0) {
         parent = app.homeView.tree.getParent(parent);
         if (parent != null) {
-          path = "#todolist/" + parent[0].id + "/";
-          currentPath = paths.join("/");
+          href = "#todolist/" + parent[0].id + "/" + (slugs.join("/"));
+          slugs.pop();
           listName = paths.pop();
-          breadcrumb = "<a href='" + path + currentPath + "'>";
-          breadcrumb += "" + listName + "</a> > " + breadcrumb;
+          link = "<a href='" + href + "'>" + listName + "</a> ";
+          breadcrumb = "" + link + " > " + breadcrumb;
         } else {
           listName = paths.pop();
         }
@@ -2300,9 +2293,8 @@ window.require.define({"views/todolist_view": function(exports, require, module)
 
   })(Backbone.View);
   
-}});
-
-window.require.define({"views/widgets/have_done_list": function(exports, require, module) {
+});
+window.require.register("views/widgets/have_done_list", function(exports, require, module) {
   var TaskList,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
@@ -2356,9 +2348,8 @@ window.require.define({"views/widgets/have_done_list": function(exports, require
 
   })(Backbone.View);
   
-}});
-
-window.require.define({"views/widgets/tree": function(exports, require, module) {
+});
+window.require.register("views/widgets/tree", function(exports, require, module) {
   var slugify,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -2618,5 +2609,4 @@ window.require.define({"views/widgets/tree": function(exports, require, module) 
 
   })();
   
-}});
-
+});

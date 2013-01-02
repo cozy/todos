@@ -2,6 +2,7 @@
 {Task} = require "../models/task"
 {TaskList} = require "./tasks_view"
 helpers = require "../helpers"
+slugify = require "lib/slug"
 
 # Display todo list wrapper that contains todo task list and archive task list.
 class exports.TodoListWidget extends Backbone.View
@@ -121,14 +122,14 @@ class exports.TodoListWidget extends Backbone.View
 
     # Force task saving if task was modified.
     blurAllTaskDescriptions: ->
-        @.$(".task .description").trigger("blur")
+        @$(".task .description").trigger("blur")
 
     # Refresh breadcrump with data from current model.
     refreshBreadcrump: ->
-        $(".breadcrumb a").unbind()
+        @$(".breadcrumb a").unbind()
         if @model? and @model.id?
             @breadcrumb.html @createBreadcrumb()
-            $(".breadcrumb a").click (event) ->
+            @$(".breadcrumb a").click (event) ->
                 event.preventDefault()
                 hash = event.target.hash.substring(1)
                 path = hash.split("/")
@@ -148,19 +149,22 @@ class exports.TodoListWidget extends Backbone.View
     # to the current list path
     createBreadcrumb: ->
         paths = @model.path
+        
         listName = paths.pop()
+        slugs = []
+        slugs.push slugify(path) for path in paths
         breadcrumb = ""
-
         parent = app.homeView.tree.getSelectedNode()
         
         while paths.length > 0
             parent = app.homeView.tree.getParent parent
+            
             if parent?
-                path = "#todolist/#{parent[0].id}/"
-                currentPath = paths.join("/")
+                href = "#todolist/#{parent[0].id}/#{slugs.join("/")}"
+                slugs.pop()
                 listName = paths.pop()
-                breadcrumb = "<a href='#{path}#{currentPath}'>"
-                breadcrumb += "#{listName}</a> > #{breadcrumb}"
+                link = "<a href='#{href}'>#{listName}</a> "
+                breadcrumb = "#{link} > #{breadcrumb}"
             else
                 listName = paths.pop()
 

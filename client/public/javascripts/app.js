@@ -1390,7 +1390,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
 
     HomeView.prototype.selectList = function(id) {
-      if (id === "all") {
+      if (id === "all" || id === void 0) {
         id = 'tree-node-all';
       }
       return this.tree.selectNode(id);

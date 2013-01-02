@@ -160,7 +160,7 @@ class exports.HomeView extends Backbone.View
 
     # Force selection inside tree of todolist represented by given path.
     selectList: (id) ->
-        id = 'tree-node-all' if id == "all"
+        id = 'tree-node-all' if id is "all" or not id?
         @tree.selectNode id
 
     selectTag: (tag) ->

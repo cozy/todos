@@ -31,6 +31,9 @@ before 'set list id', ->
     @listId = params.listId
     next()
 
+after 'blah', ->
+    console.log "blah"
+    
 
 ###
 # Controllers

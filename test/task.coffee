@@ -1,11 +1,12 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
-app = require('../server')
 helpers = require("./helpers")
 
 client = new Client("http://localhost:8888/")
 
+instantiateApp = require('../server')
+app = instantiateApp()
 
 ## Helpers
 

@@ -1,7 +1,6 @@
 Client = require('request-json').JsonClient
 client = new Client("http://localhost:8888/")
 
-
 # Remove all todolists and tree from DB.
 exports.cleanDb = (callback) ->
     TodoList.destroyAll ->

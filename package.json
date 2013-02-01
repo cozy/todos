@@ -10,7 +10,7 @@
   , "coffee-script":    "= 1.4.0"
   , "mime":             "= 1.2.7"
   , "qs":               "= 0.5.0"
-  , "jugglingdb":       "= 1.27-3"
+  , "jugglingdb":       "= 0.1.27-3"
   , "jugglingdb-cozy-adapter": ">= 0"
   , "redis":            "= 0.7.2"
   , "async":            "= 0.1.22"

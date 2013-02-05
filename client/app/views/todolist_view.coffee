@@ -56,7 +56,8 @@ class exports.TodoListWidget extends Backbone.View
                 @tasks.add data
                 $(".task:first .description").focus()
                 helpers.selectAll($(".task:first .description"))
-                if @tasks.length is 0 or @tasks.length is 1
+                
+                if @creationInfosRequired()
                     @taskList.$el.append '<p class="info">To add a new ' + \
                         'task, focus on a task then type enter.</p>'
 
@@ -106,11 +107,10 @@ class exports.TodoListWidget extends Backbone.View
                 $(@archiveTasks.view.el).spin()
         @tasks.fetch
             success: =>
-                console.log @tasks.length
                 if @$(".task:not(.done)").length > 0
                     @$(".task:first .description").focus()
                     
-                    if @tasks.length is 1
+                    if @creationInfosRequired()
                         @taskList.$el.append '<p class="info">To add a new ' + \
                             'task, focus on a task then type enter.</p>'
                 else
@@ -119,6 +119,9 @@ class exports.TodoListWidget extends Backbone.View
                 @$(@tasks.view.el).spin()
             error: =>
                 @$(@tasks.view.el).spin()
+
+    creationInfosRequired: =>
+        @tasks.length is 1 and @model.get("id")?
 
     # Add task to todo task list.
     moveToTaskList: (task) ->

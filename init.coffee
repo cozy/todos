@@ -26,6 +26,7 @@ under."
     new Task
         description: "Click on done button and task will be back to the todo\ 
 with the todo state."
+        done: true
     new Task
         description: "Click on todo button and task will be archived and set\ 
 to done."

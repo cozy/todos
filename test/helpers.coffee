@@ -1,35 +1,42 @@
 Client = require('request-json').JsonClient
 client = new Client("http://localhost:8888/")
 
-# Remove all todolists and tree from DB.
-exports.cleanDb = (callback) ->
-    TodoList.destroyAll ->
-        Tree.destroyAll ->
-            Task.destroyAll callback
+module.exports = (compound) ->
+    TodoList = compound.models.TodoList
+    Task = compound.models.Task
+    Tree = compound.models.Tree
 
-# Create a new todo list.
-exports.createTodoListFunction = (title, path) ->
-    (callback) ->
-        todolist =
-            title: title
-            path: path
+    # Remove all todolists and tree from DB.
+    exports.cleanDb = (callback) ->
+        TodoList.destroyAll ->
+            Tree.destroyAll ->
+                Task.destroyAll callback
 
-        TodoList.create todolist, callback
+    # Create a new todo list.
+    exports.createTodoListFunction = (title, path) ->
+        (callback) ->
+            todolist =
+                title: title
+                path: path
 
-exports.newTodoListFunction = (title, parentId) ->
-    (callback) ->
-        todolist =
-            title: title
-            parent_id: path
+            TodoList.create todolist, callback
 
-    client.post "todolists/", todolist, callback
-        
-exports.createTaskFunction = (list, done, description) ->
-    (callback) ->
-        task =
-            list: list
-            done: done
-            description: description
+    exports.newTodoListFunction = (title, parentId) ->
+        (callback) ->
+            todolist =
+                title: title
+                parent_id: path
 
-        Task.create task, (err, taskObject) ->
-            Task.setFirstTask taskObject, callback
+        client.post "todolists/", todolist, callback
+            
+    exports.createTaskFunction = (list, done, description) ->
+        (callback) ->
+            task =
+                list: list
+                done: done
+                description: description
+
+            Task.create task, (err, taskObject) ->
+                Task.setFirstTask taskObject, callback
+            
+    exports

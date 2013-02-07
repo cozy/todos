@@ -133,6 +133,7 @@ action 'destroy', ->
 action 'show', ->
     returnTasks null, [@task]
 
+# Return all tags as a list of strings
 action 'tags', ->
     Task.tags (err, tags) ->
         if err
@@ -144,6 +145,7 @@ action 'tags', ->
                 results.push tag.key
             send results
 
+# Get all not done tasks for a given tag
 action 'tagTodo', ->
     tag = params.tag
     if tag?
@@ -151,6 +153,7 @@ action 'tagTodo', ->
     else
         send error: "No tag given", 400
 
+# Get all done tasks for a given tag
 action 'tagArchives', ->
     tag = params.tag
     if tag?

@@ -31,8 +31,9 @@ Task.defineRequest "archiveTag", archiveTag, requests.checkError
 Task.defineRequest "todosTag", todosTag, requests.checkError
 tags =
     map: ->
-        for tag in doc.tags
-            emit tag, tag
+        if not doc.done
+            for tag in doc.tags
+                emit tag, tag
         return
     reduce: (key, values) ->
         return true

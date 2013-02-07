@@ -1,4 +1,5 @@
 {TaskCollection} = require "../collections/tasks"
+{Task} = require "../models/task"
 {TaskLine} = require "../views/task_view"
 helpers = require "../helpers"
 
@@ -76,3 +77,14 @@ class exports.TaskList extends Backbone.View
             taskLine.showButtons()
         taskLine
     
+    checkEmptiness: ->
+        if @tasks.length is 0
+            @$el.prepend(
+                "<button id=\"new-task-button\" class=\"btn btn-info\"\
+                >create new task</button>")
+            addButton = @$ "#new-task-button"
+            @$(".info").remove()
+            addButton.click =>
+                addButton.unbind()
+                addButton.remove()
+                @todoListView.onAddClicked()

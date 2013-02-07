@@ -57,9 +57,7 @@ class exports.TodoListWidget extends Backbone.View
                 $(".task:first .description").focus()
                 helpers.selectAll($(".task:first .description"))
                 
-                if @creationInfosRequired()
-                    @taskList.$el.append '<p class="info">To add a new ' + \
-                        'task, focus on a task then type enter.</p>'
+                @displayCreationInfos()
 
             error: ->
                 alert "An error occured while saving data"
@@ -110,9 +108,7 @@ class exports.TodoListWidget extends Backbone.View
                 if @$(".task:not(.done)").length > 0
                     @$(".task:first .description").focus()
                     
-                    if @creationInfosRequired()
-                        @taskList.$el.append '<p class="info">To add a new ' + \
-                            'task, focus on a task then type enter.</p>'
+                    @displayCreationInfos()
                 else
                     @onAddClicked() if @model? and @model.id?
 
@@ -122,6 +118,14 @@ class exports.TodoListWidget extends Backbone.View
 
     creationInfosRequired: =>
         @tasks.length is 1 and @model.get("id")?
+
+    displayCreationInfos: =>
+        if @creationInfosRequired()
+            @taskList.$el.append '<p class="info">To add a new ' + \
+                'task, focus on a task then type enter.</p>'
+
+    removeCreationInfos: =>
+        @$el.remove '.info'
 
     # Add task to todo task list.
     moveToTaskList: (task) ->

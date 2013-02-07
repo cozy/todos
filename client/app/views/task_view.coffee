@@ -210,7 +210,7 @@ class exports.TaskLine extends Backbone.View
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
         description = @descriptionField.val()
-        if description.length == 0 and @firstDel
+        if description.length is 0 and @firstDel
             @isDeleting = true
 
             if @list.$("##{@model.id}").prev().find(".description").length
@@ -220,7 +220,7 @@ class exports.TaskLine extends Backbone.View
 
             @delTask()
 
-        else if description.length == 0 and not @firstDel
+        else if description.length is 0 and not @firstDel
             @firstDel = true
         else
             @firstDel = false
@@ -274,6 +274,7 @@ class exports.TaskLine extends Backbone.View
         @model.collection.removeTask @model,
             success: =>
                 callback() if callback
+                @list.checkEmptiness()
                 @hideLoading()
             error: =>
                 alert "An error occured, deletion was not saved."

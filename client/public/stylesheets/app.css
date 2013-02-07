@@ -5756,6 +5756,10 @@ html {
   border-color: #cb6d00;
   font-weight: bold;
 }
+#new-task-button {
+  width: 150px;
+  margin-left: 20px;
+}
 /* tags */
 #tags {
   margin-left: 20px;

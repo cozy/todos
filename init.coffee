@@ -12,8 +12,8 @@ todolist = new TodoList
 
 tasks = [
     new Task
-        description: "When you hit backspace in an empty task, the task is\ 
-deleted."
+        description: "When you hit backspace in an empty task (a task with no\
+ text), the task is deleted."
     new Task
         description: "Keyboard shortcut: ctrl+space change state of current\ 
 task: done or todo."
@@ -73,4 +73,3 @@ TodoList.create todolist, (err, list) ->
             tree.updateAttributes struct: dataTree.toJson(), (err) ->
                 console.log "Initialization succeeds."
                 process.exit(0)
-

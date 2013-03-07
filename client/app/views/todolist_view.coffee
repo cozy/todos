@@ -32,8 +32,33 @@ class exports.TodoListWidget extends Backbone.View
 
         @title = @.$(".todo-list-title .description")
         @breadcrumb = @.$(".todo-list-title .breadcrumb")
-        
+
         @taskList = new TaskList @, @.$("#task-list")
+
+        # New task form management
+        @newTaskForm = $(".new-task button")
+        @newTaskFormInput = $(".new-task .description")
+        hasUserTyped = false # whether the user has written something or not
+        @newTaskFormInput.keyup (event) =>
+
+            hasUserTyped = true
+            if !$(event.target).val()
+                @newTaskForm.addClass('disabled')
+                @newTaskForm.html('new')
+            else
+                @newTaskForm.removeClass('disabled')
+                @newTaskForm.html('add')
+
+        @newTaskFormInput.focus (event) ->
+            if !hasUserTyped
+                $(@).val("")
+
+        @newTaskFormInput.focusout (event) =>
+            if @newTaskFormInput.val() == ""
+                @clearNewTask()
+                hasUserTyped = false
+        # ./end New task form management
+
         @archiveList = new TaskList @, @.$("#archive-list")
         @tasks = @taskList.tasks
         @archiveTasks = @archiveList.tasks
@@ -41,6 +66,9 @@ class exports.TodoListWidget extends Backbone.View
         @refreshBreadcrump()
 
         @el
+
+    clearNewTask: () =>
+        @newTaskFormInput.val "What do you have to do next ?"
 
     ###
     # Listeners
@@ -53,15 +81,16 @@ class exports.TodoListWidget extends Backbone.View
         task.save null,
             success: (data) =>
                 data.url = "tasks/#{data.id}/"
+                console.debug data
                 @tasks.add data
                 $(".task:first .description").focus()
                 helpers.selectAll($(".task:first .description"))
-                
+
                 @displayCreationInfos()
 
             error: ->
                 alert "An error occured while saving data"
- 
+
     # When edit is clicked, edition widgets are displayed (editions widgets are
     # better for touch interfaces).
     onEditClicked: (event) =>
@@ -89,7 +118,7 @@ class exports.TodoListWidget extends Backbone.View
             @archiveTasks.url = "tasks/archives"
         else
             console.log @model
-            
+
             if @model.tag?
                 @tasks.url = "tasks/tags/#{@model.tag}/todo"
                 @archiveTasks.url = "tasks/tags/#{@model.tag}/archives"
@@ -107,7 +136,7 @@ class exports.TodoListWidget extends Backbone.View
             success: =>
                 if @$(".task:not(.done)").length > 0
                     @$(".task:first .description").focus()
-                    
+
                     @displayCreationInfos()
                 else
                     @onAddClicked() if @model? and @model.id?
@@ -146,7 +175,7 @@ class exports.TodoListWidget extends Backbone.View
                 path = hash.split("/")
                 id = path[1]
                 app.homeView.selectList id
-                                             
+
             @title.html @model.title
         else
             @breadcrumb.html ""
@@ -160,16 +189,16 @@ class exports.TodoListWidget extends Backbone.View
     # to the current list path
     createBreadcrumb: ->
         paths = @model.path
-        
+
         listName = paths.pop()
         slugs = []
         slugs.push slugify(path) for path in paths
         breadcrumb = ""
         parent = app.homeView.tree.getSelectedNode()
-        
+
         while paths.length > 0
             parent = app.homeView.tree.getParent parent
-            
+
             if parent?
                 href = "#todolist/#{parent[0].id}/#{slugs.join("/")}"
                 slugs.pop()

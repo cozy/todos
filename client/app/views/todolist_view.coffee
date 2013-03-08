@@ -34,41 +34,61 @@ class exports.TodoListWidget extends Backbone.View
         @breadcrumb = @.$(".todo-list-title .breadcrumb")
 
         @taskList = new TaskList @, @.$("#task-list")
+        @archiveList = new TaskList @, @.$("#archive-list")
+        @tasks = @taskList.tasks
+        @archiveTasks = @archiveList.tasks
+        @refreshBreadcrump()
 
         # New task form management
-        @newTaskForm = $(".new-task button")
+        @newTaskFormButton = $(".new-task button")
         @newTaskFormInput = $(".new-task .description")
-        hasUserTyped = false # whether the user has written something or not
+        # whether the user has written something or not in the new task form
+        @hasUserTyped = false
+
         @newTaskFormInput.keyup (event) =>
+            @hasUserTyped = true
+            @newTaskButtonHandler()
 
-            hasUserTyped = true
-            if !$(event.target).val()
-                @newTaskForm.addClass('disabled')
-                @newTaskForm.html('new')
-            else
-                @newTaskForm.removeClass('disabled')
-                @newTaskForm.html('add')
-
-        @newTaskFormInput.focus (event) ->
-            if !hasUserTyped
-                $(@).val("")
+        @newTaskFormInput.focus (event) =>
+            if !@hasUserTyped
+                @newTaskFormInput.val("")
 
         @newTaskFormInput.focusout (event) =>
             if @newTaskFormInput.val() == ""
                 @clearNewTask()
-                hasUserTyped = false
+                @hasUserTyped = false
+
+        @newTaskFormButton.click (event) =>
+            task = new Task
+                done: false
+                description: @newTaskFormInput.val()
+
+            @newTaskFormButton.html('&nbsp;')
+            @newTaskFormButton.spin('tiny')
+            @hasUserTyped = false
+            @taskList.tasks.insertTask null, task,
+                success: (data) =>
+                    @clearNewTask()
+                    @newTaskFormButton.html('new')
+                    @newTaskFormButton.spin()
+                error: (data) =>
+                    @newTaskFormButton.html('new')
+                    @newTaskFormButton.spin()
         # ./end New task form management
-
-        @archiveList = new TaskList @, @.$("#archive-list")
-        @tasks = @taskList.tasks
-        @archiveTasks = @archiveList.tasks
-
-        @refreshBreadcrump()
 
         @el
 
     clearNewTask: () =>
         @newTaskFormInput.val "What do you have to do next ?"
+        @newTaskButtonHandler()
+
+    newTaskButtonHandler: () =>
+        if !@hasUserTyped || !@newTaskFormInput.val()
+            @newTaskFormButton.addClass('disabled')
+            @newTaskFormButton.html('new')
+        else
+            @newTaskFormButton.removeClass('disabled')
+            @newTaskFormButton.html('add')
 
     ###
     # Listeners

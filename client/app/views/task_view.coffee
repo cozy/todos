@@ -149,7 +149,7 @@ class exports.TaskLine extends Backbone.View
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
                     @saving = false
-                
+
         if not @saving
             @saving = true
             isDown = @model.collection.down @model
@@ -229,7 +229,7 @@ class exports.TaskLine extends Backbone.View
         window.app.router.navigate @model.listPath, true
         event.preventDefault()
 
-            
+
     ###
     # Functions
     ###
@@ -274,7 +274,6 @@ class exports.TaskLine extends Backbone.View
         @model.collection.removeTask @model,
             success: =>
                 callback() if callback
-                @list.checkEmptiness()
                 @hideLoading()
             error: =>
                 alert "An error occured, deletion was not saved."

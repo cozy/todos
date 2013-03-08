@@ -49,6 +49,9 @@ class exports.TodoListWidget extends Backbone.View
             @hasUserTyped = true
             @newTaskButtonHandler()
 
+            keyCode = event.which | event.keyCode
+            @newTaskFormButton.click() if(keyCode is 13)
+
         @newTaskFormInput.focus (event) =>
             if !@hasUserTyped
                 @newTaskFormInput.val("")

@@ -44,6 +44,12 @@ class exports.TodoListWidget extends Backbone.View
         @el
 
     initializeTaskManagement: () ->
+
+        # if we are in a tag list, we don't show the form
+        if !@taskList.tasks.listId?
+            $('.new-task').hide()
+            return
+
         @newTaskFormButton = $(".new-task button")
         @newTaskFormInput = $(".new-task .description")
         # whether the user has written something or not in the new task form

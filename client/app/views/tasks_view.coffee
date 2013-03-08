@@ -53,7 +53,7 @@ class exports.TaskList extends Backbone.View
         nextDescription = taskLine.list.$(selector).next().find(".description")
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
- 
+
     # Move focus from previous field to next field by saving cursor position.
     # If options contains flag maxPosition, cursor position is set at the end
     # of the field.
@@ -71,12 +71,16 @@ class exports.TaskList extends Backbone.View
         taskLine = new TaskLine(task)
         taskLine.list = @
         taskLineEl = $(taskLine.render())
-        taskLineEl.insertAfter($(previousTaskLine.el))
+        if previousTaskLine?
+            taskLineEl.insertAfter($(previousTaskLine.el))
+        else
+            @$el.prepend(taskLineEl)
+
         taskLine.focusDescription()
         if @todoListView?.isEditMode
             taskLine.showButtons()
         taskLine
-    
+
     checkEmptiness: ->
         if @tasks.length is 0
             @$el.prepend(

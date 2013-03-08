@@ -1,10 +1,12 @@
 header.todo-list-title.clearfix
     p.breadcrumb()
     p.description()
+
+div.new-task.task.clearfix
+    button.btn.btn-info.disabled new
+    input.description(type="text",contenteditable="true",
+                      value="" )
 #task-list
-    div.new-task.task.clearfix
-        button.btn.btn-info.disabled new
-        input.description(type="text",contenteditable="true",
-                          value="" )
+
 h2.archive-title archives
 #archive-list

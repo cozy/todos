@@ -54,41 +54,43 @@ class exports.TodoListWidget extends Backbone.View
                 @newTaskFormInput.val("")
 
         @newTaskFormInput.focusout (event) =>
-            if @newTaskFormInput.val() == ""
+            if @newTaskFormInput.val() is ""
                 @clearNewTask()
                 @hasUserTyped = false
 
-        @newTaskFormButton.click (event) =>
-            task = new Task
-                done: false
-                description: @newTaskFormInput.val()
-
-            @newTaskFormButton.html('&nbsp;')
-            @newTaskFormButton.spin('tiny')
-            @hasUserTyped = false
-            @taskList.tasks.insertTask null, task,
-                success: (data) =>
-                    @clearNewTask()
-                    @newTaskFormButton.html('new')
-                    @newTaskFormButton.spin()
-                error: (data) =>
-                    @newTaskFormButton.html('new')
-                    @newTaskFormButton.spin()
         # ./end New task form management
 
         @el
 
     clearNewTask: () =>
-        @newTaskFormInput.val "What do you have to do next ?"
         @newTaskButtonHandler()
+        @newTaskFormInput.val "What do you have to do next ?"
 
     newTaskButtonHandler: () =>
         if !@hasUserTyped || !@newTaskFormInput.val()
             @newTaskFormButton.addClass('disabled')
             @newTaskFormButton.html('new')
+            @newTaskFormButton.unbind('click')
         else
             @newTaskFormButton.removeClass('disabled')
             @newTaskFormButton.html('add')
+            @newTaskFormButton.unbind('click')
+            @newTaskFormButton.click (event) =>
+                task = new Task
+                    done: false
+                    description: @newTaskFormInput.val()
+
+                @newTaskFormButton.html('&nbsp;')
+                @newTaskFormButton.spin('tiny')
+                @hasUserTyped = false
+                @taskList.tasks.insertTask null, task,
+                    success: (data) =>
+                        @clearNewTask()
+                        @newTaskFormButton.html('new')
+                        @newTaskFormButton.spin()
+                    error: (data) =>
+                        @newTaskFormButton.html('new')
+                        @newTaskFormButton.spin()
 
     ###
     # Listeners

@@ -39,7 +39,11 @@ class exports.TodoListWidget extends Backbone.View
         @archiveTasks = @archiveList.tasks
         @refreshBreadcrump()
 
-        # New task form management
+        @initializeTaskManagement()
+
+        @el
+
+    initializeTaskManagement: () ->
         @newTaskFormButton = $(".new-task button")
         @newTaskFormInput = $(".new-task .description")
         # whether the user has written something or not in the new task form
@@ -60,10 +64,6 @@ class exports.TodoListWidget extends Backbone.View
             if @newTaskFormInput.val() is ""
                 @clearNewTask()
                 @hasUserTyped = false
-
-        # ./end New task form management
-
-        @el
 
     clearNewTask: () =>
         @newTaskButtonHandler()

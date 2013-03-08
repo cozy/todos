@@ -5644,6 +5644,21 @@ html {
 .todo-button {
   width: 6%;
 }
+.add-button {
+  width: 6%;
+}
+.task.new-task button {
+  width: 6%;
+  background: #fe8800 !important;
+  border-color: #fe8800;
+}
+.task.new-task input {
+  border: 1px solid #ccc;
+  color: #ccc;
+}
+.task.new-task input:focus {
+  color: #333;
+}
 .task-buttons {
   float: right;
   margin-top: 6px;

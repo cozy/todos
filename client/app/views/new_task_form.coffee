@@ -55,8 +55,7 @@ class exports.NewTaskForm extends Backbone.View
             @taskCreationHandler(event) if(keyCode is 13) # enter key
 
         @newTaskFormInput.focus (event) =>
-            if !@hasUserTyped
-                @newTaskFormInput.val("")
+            @newTaskFormInput.val("") unless @hasUserTyped
 
         @newTaskFormInput.focusout (event) =>
             if @newTaskFormInput.val() is ""

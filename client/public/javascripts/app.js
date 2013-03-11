@@ -1892,7 +1892,6 @@ window.require.register("views/task_view", function(exports, require, module) {
           if (callback) {
             callback();
           }
-          _this.list.checkEmptiness();
           return _this.hideLoading();
         },
         error: function() {
@@ -2033,21 +2032,6 @@ window.require.register("views/tasks_view", function(exports, require, module) {
       return taskLine;
     };
 
-    TaskList.prototype.checkEmptiness = function() {
-      var addButton,
-        _this = this;
-      if (this.tasks.length === 0) {
-        this.$el.prepend("<button id=\"new-task-button\" class=\"btn btn-info\"\                >create new task</button>");
-        addButton = this.$("#new-task-button");
-        this.$(".info").remove();
-        return addButton.click(function() {
-          addButton.unbind();
-          addButton.remove();
-          return _this.todoListView.onAddClicked();
-        });
-      }
-    };
-
     return TaskList;
 
   })(Backbone.View);
@@ -2109,7 +2093,7 @@ window.require.register("views/templates/todolist", function(exports, require, m
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"></p><p class="description"></p></header><div class="new-task task clearfix"><button class="btn btn-info disabled">new</button><input type="text" contenteditable="true" value="" class="description"/></div><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
+  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"></p><p class="description"></p><button class="btn btn-info toggle-task-form">Loading...</button></header><div class="new-task task clearfix"><button class="btn btn-info add-task disabled">new</button><input type="text" contenteditable="true" value="" class="description"/></div><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
   }
   return buf.join("");
   };
@@ -2178,6 +2162,15 @@ window.require.register("views/todolist_view", function(exports, require, module
       this.newTaskButtonHandler = function() {
         return TodoListWidget.prototype.newTaskButtonHandler.apply(_this, arguments);
       };
+      this.hideTaskForm = function(taskForm, updatePreferences) {
+        return TodoListWidget.prototype.hideTaskForm.apply(_this, arguments);
+      };
+      this.showTaskForm = function(taskForm, updatePreferences) {
+        return TodoListWidget.prototype.showTaskForm.apply(_this, arguments);
+      };
+      this.toggleTaskForm = function(taskForm, updatePreferences, showOrHide) {
+        return TodoListWidget.prototype.toggleTaskForm.apply(_this, arguments);
+      };
       this.clearNewTask = function() {
         return TodoListWidget.prototype.clearNewTask.apply(_this, arguments);
       };
@@ -2206,60 +2199,130 @@ window.require.register("views/todolist_view", function(exports, require, module
       this.tasks = this.taskList.tasks;
       this.archiveTasks = this.archiveList.tasks;
       this.refreshBreadcrump();
-      this.newTaskFormButton = $(".new-task button");
-      this.newTaskFormInput = $(".new-task .description");
+      if (this.taskList.tasks.listId == null) {
+        $('button.toggle-task-form').hide();
+      }
+      this.tasks.on('reset', function(collection) {
+        return _this.initializeTaskManagement();
+      });
+      this.tasks.on('remove', function(collection) {
+        return _this.toggleTaskForm(_this.newTaskForm, false, 'show');
+      });
+      return this.el;
+    };
+
+    TodoListWidget.prototype.initializeTaskManagement = function() {
+      var isListEmpty, show_form,
+        _this = this;
+      this.newTaskForm = $('.new-task');
+      if (this.taskList.tasks.listId == null) {
+        return;
+      }
+      $('button.toggle-task-form').fadeTo(1000, 1);
+      this.newTaskFormButton = this.newTaskForm.find("button.add-task");
+      this.newTaskFormInput = this.newTaskForm.find(".description");
       this.hasUserTyped = false;
+      show_form = $.cookie('todos_prefs:show_form');
+      isListEmpty = this.tasks.length === 0;
+      if (show_form === 'true' || (show_form == null) || isListEmpty) {
+        this.toggleTaskForm(this.newTaskForm, false, 'show');
+      } else {
+        this.toggleTaskForm(this.newTaskForm, false, 'hide');
+      }
+      $(document).keyup(function(event) {
+        var keyCode, str;
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 84 && event.altKey) {
+          _this.toggleTaskForm(_this.newTaskForm, true);
+          str = _this.newTaskFormInput.val();
+          return _this.newTaskFormInput.val(str.substr(0, str.length - 1));
+        }
+      });
+      $('button.toggle-task-form').click(function(event) {
+        return _this.toggleTaskForm(_this.newTaskForm, true);
+      });
       this.newTaskFormInput.keyup(function(event) {
+        var keyCode;
         _this.hasUserTyped = true;
-        return _this.newTaskButtonHandler();
+        _this.newTaskButtonHandler();
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 13) {
+          return _this.newTaskFormButton.click();
+        }
       });
       this.newTaskFormInput.focus(function(event) {
         if (!_this.hasUserTyped) {
           return _this.newTaskFormInput.val("");
         }
       });
-      this.newTaskFormInput.focusout(function(event) {
+      return this.newTaskFormInput.focusout(function(event) {
         if (_this.newTaskFormInput.val() === "") {
           _this.clearNewTask();
           return _this.hasUserTyped = false;
         }
       });
-      this.newTaskFormButton.click(function(event) {
-        var task;
-        task = new Task({
-          done: false,
-          description: _this.newTaskFormInput.val()
-        });
-        _this.newTaskFormButton.html('&nbsp;');
-        _this.newTaskFormButton.spin('tiny');
-        _this.hasUserTyped = false;
-        return _this.taskList.tasks.insertTask(null, task, {
-          success: function(data) {
-            _this.clearNewTask();
-            _this.newTaskFormButton.html('new');
-            return _this.newTaskFormButton.spin();
-          },
-          error: function(data) {
-            _this.newTaskFormButton.html('new');
-            return _this.newTaskFormButton.spin();
-          }
-        });
-      });
-      return this.el;
     };
 
     TodoListWidget.prototype.clearNewTask = function() {
-      this.newTaskFormInput.val("What do you have to do next ?");
-      return this.newTaskButtonHandler();
+      this.newTaskButtonHandler();
+      return this.newTaskFormInput.val("What do you have to do next ?");
+    };
+
+    TodoListWidget.prototype.toggleTaskForm = function(taskForm, updatePreferences, showOrHide) {
+      if ((taskForm.is(':visible') && (showOrHide == null)) || ((showOrHide != null) && showOrHide === 'hide')) {
+        return this.hideTaskForm(taskForm, updatePreferences);
+      } else {
+        return this.showTaskForm(taskForm, updatePreferences);
+      }
+    };
+
+    TodoListWidget.prototype.showTaskForm = function(taskForm, updatePreferences) {
+      taskForm.show();
+      $('button.toggle-task-form').text('Hide the form');
+      if (updatePreferences) {
+        return $.cookie('todos_prefs:show_form', 'true');
+      }
+    };
+
+    TodoListWidget.prototype.hideTaskForm = function(taskForm, updatePreferences) {
+      taskForm.hide();
+      $('button.toggle-task-form').text('Show the form');
+      if (updatePreferences) {
+        return $.cookie('todos_prefs:show_form', 'false');
+      }
     };
 
     TodoListWidget.prototype.newTaskButtonHandler = function() {
+      var _this = this;
       if (!this.hasUserTyped || !this.newTaskFormInput.val()) {
         this.newTaskFormButton.addClass('disabled');
-        return this.newTaskFormButton.html('new');
+        this.newTaskFormButton.html('new');
+        return this.newTaskFormButton.unbind('click');
       } else {
         this.newTaskFormButton.removeClass('disabled');
-        return this.newTaskFormButton.html('add');
+        this.newTaskFormButton.html('add');
+        this.newTaskFormButton.unbind('click');
+        return this.newTaskFormButton.click(function(event) {
+          var task;
+          task = new Task({
+            done: false,
+            description: _this.newTaskFormInput.val()
+          });
+          _this.newTaskFormButton.html('&nbsp;');
+          _this.newTaskFormButton.spin('tiny');
+          _this.hasUserTyped = false;
+          return _this.taskList.tasks.insertTask(null, task, {
+            success: function(data) {
+              _this.clearNewTask();
+              _this.newTaskFormButton.html('new');
+              return _this.newTaskFormButton.spin();
+            },
+            error: function(data) {
+              _this.newTaskFormButton.html('new');
+              return _this.newTaskFormButton.spin();
+            }
+          });
+        });
       }
     };
 

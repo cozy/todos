@@ -10,8 +10,8 @@ class exports.NewTaskForm extends Backbone.View
 
         # We cache the references to the relevant DOM objects
         @newTaskForm = $('.new-task')
-        @newTaskFormButton = @newTaskForm.find("button.add-task")
-        @newTaskFormInput = @newTaskForm.find(".description")
+        @newTaskFormButton = @newTaskForm.find "button.add-task"
+        @newTaskFormInput = @newTaskForm.find ".description"
         @toggleButton = $('button.toggle-task-form')
 
         # When the list is loaded we start the mangement
@@ -20,7 +20,7 @@ class exports.NewTaskForm extends Backbone.View
 
         # If the list is empty, we need to show the form
         @taskList.tasks.on 'remove', (collection) =>
-            @toggleTaskForm(false, true)
+            @toggleTaskForm false, true
 
         # whether the user has written something or not in the new task form
         @hasUserTyped = false
@@ -33,8 +33,8 @@ class exports.NewTaskForm extends Backbone.View
             return
 
         # Show the button if we are not in the tag list
-        @toggleButton.fadeTo(1000, 1)
-        @toggleButton.tooltip({placement: 'bottom'}) # shortcut's tooltip
+        @toggleButton.fadeTo 1000, 1
+        @toggleButton.tooltip {placement: 'bottom'} # shortcut's tooltip
 
         @initializeShortcut()
         @handleDefaultFormState()
@@ -52,7 +52,7 @@ class exports.NewTaskForm extends Backbone.View
             @newTaskButtonHandler()
 
             keyCode = event.which | event.keyCode
-            @taskCreationHandler(event) if(keyCode is 13) # enter key
+            @taskCreationHandler(event) if keyCode is 13 # enter key
 
         @newTaskFormInput.focus (event) =>
             @newTaskFormInput.val("") unless @hasUserTyped
@@ -76,12 +76,12 @@ class exports.NewTaskForm extends Backbone.View
             @newTaskFormButton.removeClass 'disabled'
             @newTaskFormButton.html 'add'
             @newTaskFormButton.unbind 'click'
-            @newTaskFormButton.click(@taskCreationHandler)
+            @newTaskFormButton.click @taskCreationHandler
 
 
     taskCreationHandler: (event) =>
-        @newTaskFormButton.html('&nbsp;')
-        @newTaskFormButton.spin('tiny')
+        @newTaskFormButton.html '&nbsp;'
+        @newTaskFormButton.spin 'tiny'
         @hasUserTyped = false
 
         task = new Task
@@ -91,10 +91,10 @@ class exports.NewTaskForm extends Backbone.View
         @taskList.tasks.insertTask null, task,
             success: (data) =>
                 @clearNewTaskInput()
-                @newTaskFormButton.html('new')
+                @newTaskFormButton.html 'new'
                 @newTaskFormButton.spin()
             error: (data) =>
-                @newTaskFormButton.html('new')
+                @newTaskFormButton.html 'new'
                 @newTaskFormButton.spin()
 
     ###
@@ -141,31 +141,31 @@ class exports.NewTaskForm extends Backbone.View
     toggleTaskForm: (updatePreferences, mustFade) ->
 
         if @newTaskForm.is ':visible'
-            @hideTaskForm(updatePreferences, mustFade)
+            @hideTaskForm updatePreferences, mustFade
         else
-            @showTaskForm(updatePreferences, mustFade)
+            @showTaskForm updatePreferences, mustFade
 
     showTaskForm: (updatePreferences, mustFade) ->
 
         if mustFade? && mustFade
-            @newTaskForm.fadeIn(1000)
+            @newTaskForm.fadeIn 1000
         else
             @newTaskForm.show()
 
         @toggleButton.text 'Hide the form'
         if updatePreferences? && updatePreferences
-            $.cookie('todos_prefs:show_form', 'true')
+            $.cookie 'todos_prefs:show_form', 'true'
 
     hideTaskForm: (updatePreferences, mustFade) ->
 
         if mustFade? && mustFade
-            @newTaskForm.fadeOut(1000)
+            @newTaskForm.fadeOut 1000
         else
             @newTaskForm.hide()
 
         @toggleButton.text 'Show the form'
         if updatePreferences? && updatePreferences
-            $.cookie('todos_prefs:show_form', 'false')
+            $.cookie 'todos_prefs:show_form', 'false'
 
     ###
         ./end Toggle handling

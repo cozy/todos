@@ -73,13 +73,16 @@ class exports.TodoListWidget extends Backbone.View
         else
             @toggleTaskForm(@newTaskForm, false, 'hide')
 
+        # prevent the toggle new task form shortcut from writing in forms
+        @newTaskFormInput.keydown (event) ->
+            keyCode = event.which | event.keyCode
+            if keyCode is 84 && event.altKey # alt + t
+                event.preventDefault()
+
         $(document).keyup (event) =>
             keyCode = event.which | event.keyCode
-            if (keyCode is 84 && event.altKey)
+            if (keyCode is 84 && event.altKey) # alt + t
                 @toggleTaskForm(@newTaskForm, true)
-                # hack to remove the alt+t character
-                str = @newTaskFormInput.val()
-                @newTaskFormInput.val(str.substr(0, str.length - 1))
 
         $('button.toggle-task-form').click (event) =>
             @toggleTaskForm(@newTaskForm, true)

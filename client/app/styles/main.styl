@@ -114,10 +114,13 @@ html
   width: 6%
 
 .task.new-task
-  button
-    width: 6%
-    background: actioncolor !important
+  position: relative
+  display: none
+
+  button.add-task
+    background: actioncolor
     border-color: actioncolor
+    width: 6%
 
   input
     border: 1px solid #ccc
@@ -134,6 +137,17 @@ html
 #todo-list
     header
         margin-top: 20px
+        position: relative
+
+        button.toggle-task-form
+          opacity: 0.2
+          position: absolute
+          right: 18px
+          bottom: 0
+          background: actioncolor !important
+          border-color: actioncolor
+          &:hover
+            font-weight: normal
 
 .todo-list-title
   border-bottom 1px solid #CCC

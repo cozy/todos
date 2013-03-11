@@ -48,7 +48,7 @@ class exports.TaskCollection extends Backbone.Collection
     insertTask: (previousTask, task, callbacks) ->
         index = @toArray().indexOf previousTask
 
-        if previousTask? && previousTask.get("nextTask")?
+        if previousTask? and previousTask.get("nextTask")?
             nextTask = @at(index + 1)
             nextTask?.set "previousTask", task.id
         else if (firstTask = @at(0))?

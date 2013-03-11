@@ -1618,6 +1618,13 @@ window.require.register("views/task_view", function(exports, require, module) {
         keyCode = event.which | event.keyCode;
         return keyCode !== 13 && keyCode !== 9;
       });
+      this.descriptionField.keydown(function(event) {
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 84 && event.altKey) {
+          return event.preventDefault();
+        }
+      });
       this.descriptionField.keyup(function(event) {
         var keyCode;
         keyCode = event.which | event.keyCode;
@@ -2093,7 +2100,7 @@ window.require.register("views/templates/todolist", function(exports, require, m
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"></p><p class="description"></p><button class="btn btn-info toggle-task-form">Loading...</button></header><div class="new-task task clearfix"><button class="btn btn-info add-task disabled">new</button><input type="text" contenteditable="true" value="" class="description"/></div><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
+  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"></p><p class="description"></p><button data-toggle="tooltip" title="Shortcut: alt+t" class="btn btn-info toggle-task-form">Loading...</button></header><div class="new-task task clearfix"><button class="btn btn-info add-task disabled">new</button><input type="text" contenteditable="true" value="" class="description"/></div><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
   }
   return buf.join("");
   };
@@ -2219,6 +2226,9 @@ window.require.register("views/todolist_view", function(exports, require, module
         return;
       }
       $('button.toggle-task-form').fadeTo(1000, 1);
+      $('button.toggle-task-form').tooltip({
+        placement: 'bottom'
+      });
       this.newTaskFormButton = this.newTaskForm.find("button.add-task");
       this.newTaskFormInput = this.newTaskForm.find(".description");
       this.hasUserTyped = false;
@@ -2229,13 +2239,18 @@ window.require.register("views/todolist_view", function(exports, require, module
       } else {
         this.toggleTaskForm(this.newTaskForm, false, 'hide');
       }
-      $(document).keyup(function(event) {
-        var keyCode, str;
+      this.newTaskFormInput.keydown(function(event) {
+        var keyCode;
         keyCode = event.which | event.keyCode;
         if (keyCode === 84 && event.altKey) {
-          _this.toggleTaskForm(_this.newTaskForm, true);
-          str = _this.newTaskFormInput.val();
-          return _this.newTaskFormInput.val(str.substr(0, str.length - 1));
+          return event.preventDefault();
+        }
+      });
+      $(document).keyup(function(event) {
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 84 && event.altKey) {
+          return _this.toggleTaskForm(_this.newTaskForm, true);
         }
       });
       $('button.toggle-task-form').click(function(event) {

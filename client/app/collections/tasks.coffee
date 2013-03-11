@@ -2,13 +2,13 @@
 
 
 class exports.TaskCollection extends Backbone.Collection
-    
+
     model: Task
     url: 'tasks/'
 
     constructor: (@view, @listId, @options) ->
         super()
-       
+
         @url = "todolists/#{@listId}/tasks"
         @bind "add", @onTaskAdded
         @bind "reset", @onReset
@@ -20,10 +20,11 @@ class exports.TaskCollection extends Backbone.Collection
 
     # View binding : for each task added, it appends a task line to task list.
     onReset: (tasks) =>
-        previousTask = @at @length - 1 if @length > 0
+        previousTask = null
         tasks.forEach (task) =>
             task.collection = @
             task.setPreviousTask previousTask if previousTask?
+            previousTask = task
 
             if @options?.grouping
                 if @lastTask?.simpleDate != task.simpleDate
@@ -31,35 +32,43 @@ class exports.TaskCollection extends Backbone.Collection
                 @lastTask = task
             @view.addTaskLine task
 
-            previousTask = task
         @lastTask = null
 
-    # Prepend a task to the task list and update previousTask field of 
+    # Prepend a task to the task list and update previousTask field of
     # previous first task.
     onTaskAdded: (task) =>
         task.url = "#{@url}/#{task.id}/" if task.id?
         task.collection = @
         task.setPreviousTask @at(@length - 2) if @length > 1
-        
+
         @view.addTaskLine task
 
     # Insert task at a given position, update links then save task to backend.
+    # When previousTask is null, the task is inserted at the first place
     insertTask: (previousTask, task, callbacks) ->
         index = @toArray().indexOf previousTask
-        if previousTask.get("nextTask")?
+
+        if previousTask? and previousTask.get("nextTask")?
             nextTask = @at(index + 1)
             nextTask?.set "previousTask", task.id
-        task.set "nextTask", previousTask.get "nextTask"
+        else if (firstTask = @at(0))?
+            nextTask = firstTask
+        else
+            nextTask = null
+
+        task.set "nextTask", nextTask
         task.setPreviousTask previousTask
         task.collection = @
-
 
         task.url = "#{@url}/"
         task.save task.attributes,
             success: =>
                 task.url = "#{@url}/#{task.id}/"
                 @add task, { at: (index + 1), silent: true }
-                @view.insertTask previousTask.view, task
+                if previousTask?
+                    @view.insertTask previousTask.view, task
+                else
+                    @view.insertTask null, task
                 callbacks?.success(task)
             error: =>
                 callbacks?.error
@@ -98,7 +107,7 @@ class exports.TaskCollection extends Backbone.Collection
             task
         else
             null
-        
+
     # Change task position, decrement its index position.
     # Links are updated.
     # View is changed too.
@@ -138,7 +147,7 @@ class exports.TaskCollection extends Backbone.Collection
     down: (task) =>
         index = @toArray().indexOf task
         tasksLength = @size()
-    
+
         return false if index == tasksLength - 1
 
         oldNextTask = @at(index + 1) if index < tasksLength - 1
@@ -181,10 +190,9 @@ class exports.TaskCollection extends Backbone.Collection
             previousTask?.setNextTask nextTask
         else
             previousTask?.setNextTask null
-        
+
         task.destroy
-            success: ->
+            success: =>
                 task.view.remove()
                 callbacks?.success()
             error: callbacks?.error
-

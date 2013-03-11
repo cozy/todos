@@ -23,8 +23,17 @@ class exports.Task extends BaseModel
 
     # Store list data into model (for display outside list widget).
     setListName: ->
-        @listTitle = window.app?.homeView.todolists.get(@list)?.title
-        @listPath = window.app?.homeView.todolists.get(@list)?.path.join(" > ")
+        list = window.app?.homeView.todolists.get(@list)
+        
+        if list?
+            @listTitle = list.title
+            path = list.path
+            
+            if path? and typeof(path) == "string"
+                path = JSON.parse path
+            if path?
+                @listBreadcrumb = list.breadcrumb
+                @listPath = list.urlPath
     
     setNextTask: (task) ->
         @set "nextTask", task?.id ? null

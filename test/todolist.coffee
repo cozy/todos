@@ -61,7 +61,7 @@ describe "/todolists", ->
             client.put "todolists/#{@recipeTodoList.id}", title: "Recipes", done
 
 
-        it "Then it should have rename recipe todolist and its children", (done) ->
+        it "Then it should have rename recipe list and its children", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
                 todolists = body
@@ -98,7 +98,7 @@ describe "/todolists", ->
             client.put "todolists/#{@recipeTodoList.id}", \
                         { parent_id: @travelListId }, done
 
-        it "Then it should have move recipe todolist and its children", (done) ->
+        it "Then it should have move recipe list and its children", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
                 todolists = body
@@ -119,7 +119,8 @@ describe "/todolists", ->
                 tree.root.children[1].data.should.equal "Travel"
                 tree.root.children[1].children[0].data.should.equal "Cambodia"
                 tree.root.children[1].children[1].data.should.equal "Recipes"
-                tree.root.children[1].children[1].children[0].data.should.equal "Dessert"
+                tree.root.children[1].children[1]
+                    .children[0].data.should.equal "Dessert"
                 done()
 
 
@@ -138,7 +139,7 @@ describe "/todolists", ->
         it "When I delete Recipe todolist", (done) ->
             client.del "todolists/#{@recipeTodoList.id}", done
 
-        it "Then it should have delete recipe todolist and its children", (done) ->
+        it "Then it should have delete recipe list and its children", (done) ->
             client.get "todolists/", (error, response, body) =>
                 response.statusCode.should.equal 200
                 todolists = body

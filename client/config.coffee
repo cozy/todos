@@ -1,7 +1,14 @@
 exports.config =
+  coffeelint:
+    pattern: /^app\/.*\.coffee$/
+    options:
+      indentation:
+        level: "error"
+        value: 4
+
   # Edit the next line to change default build path.
   paths:
-      public: 'public'
+    public: 'public'
 
   files:
     javascripts:
@@ -26,7 +33,9 @@ exports.config =
           'vendor/scripts/console-helper.js',
           'vendor/scripts/jquery-1.7.1.js',
           'vendor/scripts/underscore-1.3.1.js',
-          'vendor/scripts/backbone-0.9.1.js'
+          'vendor/scripts/backbone-0.9.1.js',
+          'vendor/scripts/jquery.cookie.js',
+          'vendor/scripts/bootstrap.js'
         ]
 
     stylesheets:

@@ -20,7 +20,7 @@ before 'load task', ->
     Task.find params.id, (err, task) =>
         if err
             send error: 'An error occured', 500
-        else if task is null
+        else if task == null
             send error: 'Task not found', 404
         else
             @task = task
@@ -103,6 +103,10 @@ action 'update', ->
     else if body.done? and not body.done and @task.done != body.done
         Task.todo @task, body, answer
 
+    # Weird case that happens when task is moved as first task
+    else if body.previousTask is null and @task.previousTask isnt null
+        Task.setFirstTask @task, answer
+
     # When link changes previous and next task are updated.
     else if body.previousTask != undefined \
             and body.previousTask != @task.previousTask
@@ -117,17 +121,19 @@ action 'update', ->
 
 # Destroy given task and remove it from todo linked list.
 action 'destroy', ->
-    Task.remove @task, (err) ->
-        if err
-            console.log err
-            send error: 'Cannot destroy task', 500
-        else
+    Task.find params.id, (err, task) =>
+        Task.remove @task, (err) ->
+            if err
+                console.log err
+                send error: 'Cannot destroy task', 500
+            else
             send success: 'Task succesfuly deleted'
 
 # Returns a given task
 action 'show', ->
     returnTasks null, [@task]
 
+# Return all tags as a list of strings
 action 'tags', ->
     Task.tags (err, tags) ->
         if err
@@ -139,6 +145,7 @@ action 'tags', ->
                 results.push tag.key
             send results
 
+# Get all not done tasks for a given tag
 action 'tagTodo', ->
     tag = params.tag
     if tag?
@@ -146,6 +153,7 @@ action 'tagTodo', ->
     else
         send error: "No tag given", 400
 
+# Get all done tasks for a given tag
 action 'tagArchives', ->
     tag = params.tag
     if tag?

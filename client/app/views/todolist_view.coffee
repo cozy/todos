@@ -1,6 +1,7 @@
 {TaskCollection} = require "../collections/tasks"
 {Task} = require "../models/task"
 {TaskList} = require "./tasks_view"
+{NewTaskForm} = require "./new_task_form"
 helpers = require "../helpers"
 slugify = require "lib/slug"
 
@@ -38,118 +39,9 @@ class exports.TodoListWidget extends Backbone.View
         @archiveTasks = @archiveList.tasks
         @refreshBreadcrump()
 
-        # if we are in a tag list, we don't show the button to toggle the form
-        if !@taskList.tasks.listId?
-            $('button.toggle-task-form').hide()
-
-        @tasks.on 'reset', (collection) =>
-            @initializeTaskManagement()
-        @tasks.on 'remove', (collection) =>
-            @toggleTaskForm(@newTaskForm, false, 'show')
-
+        @newTaskForm = new NewTaskForm @taskList
 
         @el
-
-    initializeTaskManagement: () ->
-
-        @newTaskForm = $('.new-task')
-
-        # if we are in a tag list, we don't show the form
-        if !@taskList.tasks.listId?
-            return
-
-        $('button.toggle-task-form').fadeTo(1000, 1)
-        $('button.toggle-task-form').tooltip({placement: 'bottom'})
-        @newTaskFormButton = @newTaskForm.find("button.add-task")
-        @newTaskFormInput = @newTaskForm.find(".description")
-        # whether the user has written something or not in the new task form
-        @hasUserTyped = false
-
-        show_form = $.cookie('todos_prefs:show_form')
-        isListEmpty = @tasks.length is 0
-        if(show_form is 'true' || !show_form? || isListEmpty)
-            @toggleTaskForm(@newTaskForm, false, 'show')
-
-        else
-            @toggleTaskForm(@newTaskForm, false, 'hide')
-
-        # prevent the toggle new task form shortcut from writing in forms
-        @newTaskFormInput.keydown (event) ->
-            keyCode = event.which | event.keyCode
-            if keyCode is 84 && event.altKey # alt + t
-                event.preventDefault()
-
-        $(document).keyup (event) =>
-            keyCode = event.which | event.keyCode
-            if (keyCode is 84 && event.altKey) # alt + t
-                @toggleTaskForm(@newTaskForm, true)
-
-        $('button.toggle-task-form').click (event) =>
-            @toggleTaskForm(@newTaskForm, true)
-
-        @newTaskFormInput.keyup (event) =>
-            @hasUserTyped = true
-            @newTaskButtonHandler()
-
-            keyCode = event.which | event.keyCode
-            @newTaskFormButton.click() if(keyCode is 13)
-
-        @newTaskFormInput.focus (event) =>
-            if !@hasUserTyped
-                @newTaskFormInput.val("")
-
-        @newTaskFormInput.focusout (event) =>
-            if @newTaskFormInput.val() is ""
-                @clearNewTask()
-                @hasUserTyped = false
-
-    clearNewTask: () =>
-        @newTaskButtonHandler()
-        @newTaskFormInput.val "What do you have to do next ?"
-
-    toggleTaskForm: (taskForm, updatePreferences, showOrHide) =>
-
-        if (taskForm.is(':visible') && !showOrHide?) ||
-                    (showOrHide? && showOrHide is 'hide')
-            @hideTaskForm(taskForm, updatePreferences)
-        else
-            @showTaskForm(taskForm, updatePreferences)
-
-    showTaskForm: (taskForm, updatePreferences) =>
-        taskForm.show()
-        $('button.toggle-task-form').text('Hide the form')
-        $.cookie('todos_prefs:show_form', 'true') if updatePreferences
-
-    hideTaskForm: (taskForm, updatePreferences) =>
-        taskForm.hide()
-        $('button.toggle-task-form').text('Show the form')
-        $.cookie('todos_prefs:show_form', 'false') if updatePreferences
-
-    newTaskButtonHandler: () =>
-        if !@hasUserTyped || !@newTaskFormInput.val()
-            @newTaskFormButton.addClass('disabled')
-            @newTaskFormButton.html('new')
-            @newTaskFormButton.unbind('click')
-        else
-            @newTaskFormButton.removeClass('disabled')
-            @newTaskFormButton.html('add')
-            @newTaskFormButton.unbind('click')
-            @newTaskFormButton.click (event) =>
-                task = new Task
-                    done: false
-                    description: @newTaskFormInput.val()
-
-                @newTaskFormButton.html('&nbsp;')
-                @newTaskFormButton.spin('tiny')
-                @hasUserTyped = false
-                @taskList.tasks.insertTask null, task,
-                    success: (data) =>
-                        @clearNewTask()
-                        @newTaskFormButton.html('new')
-                        @newTaskFormButton.spin()
-                    error: (data) =>
-                        @newTaskFormButton.html('new')
-                        @newTaskFormButton.spin()
 
     ###
     # Listeners

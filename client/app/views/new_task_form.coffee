@@ -20,7 +20,7 @@ class exports.NewTaskForm extends Backbone.View
 
         # If the list is empty, we need to show the form
         @taskList.tasks.on 'remove', (collection) =>
-            @toggleTaskForm()
+            @toggleTaskForm(false, true)
 
         # whether the user has written something or not in the new task form
         @hasUserTyped = false
@@ -44,6 +44,7 @@ class exports.NewTaskForm extends Backbone.View
         Input handling
     ###
 
+    # Form input behaviour management
     inputHandler: () ->
 
         @newTaskFormInput.keyup (event) =>
@@ -66,6 +67,7 @@ class exports.NewTaskForm extends Backbone.View
         @newTaskButtonHandler()
         @newTaskFormInput.val "What do you have to do next ?"
 
+    # "new task" Button behaviour management
     newTaskButtonHandler: () ->
         if !@hasUserTyped || !@newTaskFormInput.val()
             @newTaskFormButton.addClass 'disabled'
@@ -137,21 +139,31 @@ class exports.NewTaskForm extends Backbone.View
         else
             @hideTaskForm()
 
-    toggleTaskForm: (updatePreferences) ->
+    toggleTaskForm: (updatePreferences, mustFade) ->
 
         if @newTaskForm.is ':visible'
-            @hideTaskForm(updatePreferences)
+            @hideTaskForm(updatePreferences, mustFade)
         else
-            @showTaskForm(updatePreferences)
+            @showTaskForm(updatePreferences, mustFade)
 
-    showTaskForm: (updatePreferences) ->
-        @newTaskForm.show()
+    showTaskForm: (updatePreferences, mustFade) ->
+
+        if mustFade? && mustFade
+            @newTaskForm.fadeIn(1000)
+        else
+            @newTaskForm.show()
+
         @toggleButton.text 'Hide the form'
         if updatePreferences? && updatePreferences
             $.cookie('todos_prefs:show_form', 'true')
 
-    hideTaskForm: (updatePreferences) ->
-        @newTaskForm.hide()
+    hideTaskForm: (updatePreferences, mustFade) ->
+
+        if mustFade? && mustFade
+            @newTaskForm.fadeOut(1000)
+        else
+            @newTaskForm.hide()
+
         @toggleButton.text 'Show the form'
         if updatePreferences? && updatePreferences
             $.cookie('todos_prefs:show_form', 'false')

@@ -62,12 +62,6 @@ class exports.TaskLine extends Backbone.View
             keyCode = event.which | event.keyCode
             keyCode != 13 and keyCode != 9
 
-        # prevent the toggle new task form shortcut from writing in forms
-        @descriptionField.keydown (event) ->
-            keyCode = event.which | event.keyCode
-            if keyCode is 84 && event.altKey # alt + t
-                event.preventDefault()
-
         @descriptionField.keyup (event) =>
             keyCode = event.which | event.keyCode
             if event.ctrlKey

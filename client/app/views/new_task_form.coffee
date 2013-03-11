@@ -4,7 +4,6 @@
 class exports.NewTaskForm extends Backbone.View
 
     constructor: (@taskList) ->
-
         super()
 
     initialize: ->
@@ -110,7 +109,7 @@ class exports.NewTaskForm extends Backbone.View
     # alt+t: toggle the "new task" form
     initializeShortcut: () ->
         # prevent the shortcut from writing in forms
-        @newTaskFormInput.keydown (event) ->
+        $(document).keydown (event) ->
             keyCode = event.which | event.keyCode
             if keyCode is 84 && event.altKey # alt + t
                 event.preventDefault()

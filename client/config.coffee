@@ -34,7 +34,8 @@ exports.config =
           'vendor/scripts/jquery-1.7.1.js',
           'vendor/scripts/underscore-1.3.1.js',
           'vendor/scripts/backbone-0.9.1.js',
-          'vendor/scripts/jquery.cookie.js'
+          'vendor/scripts/jquery.cookie.js',
+          'vendor/scripts/bootstrap.js'
         ]
 
     stylesheets:

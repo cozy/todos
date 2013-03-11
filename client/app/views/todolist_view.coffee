@@ -59,6 +59,7 @@ class exports.TodoListWidget extends Backbone.View
             return
 
         $('button.toggle-task-form').fadeTo(1000, 1)
+        $('button.toggle-task-form').tooltip({placement: 'bottom'})
         @newTaskFormButton = @newTaskForm.find("button.add-task")
         @newTaskFormInput = @newTaskForm.find(".description")
         # whether the user has written something or not in the new task form

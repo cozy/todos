@@ -38,9 +38,9 @@ html
   border: 0
 
 #todo-list h2
-  padding 1% 
+  padding 1%
 
-#content 
+#content
   padding: 0
 
 // Tasks
@@ -50,7 +50,7 @@ html
     padding: 2px 2%
 
     input
-        padding-left: 1% 
+        padding-left: 1%
         border: 1px solid transparent
         border-radius: 0px
         shadow: none
@@ -58,7 +58,7 @@ html
 
 .task
     input:hover
-        padding-left: 1% 
+        padding-left: 1%
         border: 1px solid actioncolor
         border-radius: 0px
         shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
@@ -67,7 +67,7 @@ html
 .task
     input:focus
     input:active
-        padding-left: 1% 
+        padding-left: 1%
         border: 1px solid rgba(82, 168, 236, 0.8)
         border-radius: 0px
         shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
@@ -90,10 +90,10 @@ html
   color #AAA
   text-decoration line-through
   margin-top: 0px
-  
+
 
 .task .description
-  margin-left: 1% 
+  margin-left: 1%
   font-size: 16px
   height:22px
   width: 90%
@@ -106,22 +106,52 @@ html
     font-size: 10px
     color: #777
     padding-left: 20px
-    
+
 .todo-button
   width: 6%
+
+.add-button
+  width: 6%
+
+.task.new-task
+  position: relative
+  display: none
+
+  button.add-task
+    background: actioncolor
+    border-color: actioncolor
+    width: 6%
+
+  input
+    border: 1px solid #ccc
+    color: #ccc
+  input:focus
+    color: #333
+
 
 .task-buttons
   float right
   margin-top: 6px
   margin-right: 2%
 
-#todo-list 
+#todo-list
     header
         margin-top: 20px
+        position: relative
+
+        button.toggle-task-form
+          opacity: 0.2
+          position: absolute
+          right: 18px
+          bottom: 0
+          background: actioncolor !important
+          border-color: actioncolor
+          &:hover
+            font-weight: normal
 
 .todo-list-title
   border-bottom 1px solid #CCC
-  padding-left: 1% 
+  padding-left: 1%
   margin-bottom: 3%
   margin-top: 1%
   margin-left: 1%
@@ -147,14 +177,14 @@ html
   margin-bottom: 2px
 
 .breadcrumb
-  background: none 
-  border: none 
+  background: none
+  border: none
   font-size: 12px
   padding: 2px
   margin: 0
   text-transform: lowercase
 
-  a 
+  a
     color: basecolor
 
   a:hover

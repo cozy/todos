@@ -5644,6 +5644,25 @@ html {
 .todo-button {
   width: 6%;
 }
+.add-button {
+  width: 6%;
+}
+.task.new-task {
+  position: relative;
+  display: none;
+}
+.task.new-task button.add-task {
+  background: #fe8800;
+  border-color: #fe8800;
+  width: 6%;
+}
+.task.new-task input {
+  border: 1px solid #ccc;
+  color: #ccc;
+}
+.task.new-task input:focus {
+  color: #333;
+}
 .task-buttons {
   float: right;
   margin-top: 6px;
@@ -5651,6 +5670,20 @@ html {
 }
 #todo-list header {
   margin-top: 20px;
+  position: relative;
+}
+#todo-list header button.toggle-task-form {
+  opacity: 0.2;
+  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=20);
+  filter: alpha(opacity=20);
+  position: absolute;
+  right: 18px;
+  bottom: 0;
+  background: #fe8800 !important;
+  border-color: #fe8800;
+}
+#todo-list header button.toggle-task-form:hover {
+  font-weight: normal;
 }
 .todo-list-title {
   border-bottom: 1px solid #ccc;

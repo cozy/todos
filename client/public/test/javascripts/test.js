@@ -475,9 +475,5 @@ window.require.register("test/test-helpers", function(exports, require, module) 
   };
   
 });
-var hasFilterer = window.brunch && window.brunch.test && window.brunch.test.filterer;
-var valid = hasFilterer ? window.brunch.test.filterer('test/task_collection_test') : true;
-if (valid) window.require('test/task_collection_test');
-var hasFilterer = window.brunch && window.brunch.test && window.brunch.test.filterer;
-var valid = hasFilterer ? window.brunch.test.filterer('test/task_model_test') : true;
-if (valid) window.require('test/task_model_test');
+window.require('test/task_collection_test');
+window.require('test/task_model_test');

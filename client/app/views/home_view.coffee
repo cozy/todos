@@ -18,13 +18,15 @@ class exports.HomeView extends Backbone.View
 
     constructor: ->
         @todolists = new TodoListCollection()
+        Backbone.Mediator.subscribe 'task:changed', @onTaskChanged
+
         super()
 
     # Build widgets (task lists) then load data.
     render: ->
         $(@el).html require('./templates/home')
 
-        @todolist = $("#todo-list")
+        @todolist = @$("#todo-list")
         @
 
     # Use jquery layout so set main layout of current window.
@@ -50,19 +52,20 @@ class exports.HomeView extends Backbone.View
         # Update layout when windows size is changed
         $(window).resize =>
             size = $(window).width()
-            if (size < 700 and @previousSize > 700) or (size > 700 and @previousSize < 700)
-                @layout.toggle "west"
+            isSmall = size < 700 and @previousSize > 700
+            isBig = size > 700 and @previousSize < 700
+            @layout.toggle "west" if isSmall or isBig
             @previousSize = size
             
 
-    # Grab tree data, then build and display it. 
+    # Grab tree data, then build and display it.
     # Links callback to tree events (creation, renaming...)
     # Set listeners for other buttons
     loadData: (callback) ->
         @$("#tree").spin()
         $.get "tree/", (data) =>
-           window.tree = data
-           @tree = new Tree @.$("#nav"), data,
+            window.tree = data
+            @tree = new Tree @.$("#nav"), data,
                 onCreate: @onTodoListCreated
                 onRename: @onTodoListRenamed
                 onRemove: @onTodoListRemoved
@@ -104,7 +107,7 @@ class exports.HomeView extends Backbone.View
             TodoList.deleteTodoList listId, ->
         $("#todo-list").html(null)
 
-    # When a todolist is selected, the todolist widget is displayed and fill 
+    # When a todolist is selected, the todolist widget is displayed and fill
     # with todolist data.
     # Route is updated with selected todo list path.
     onTodoListSelected: (path, id, data) =>
@@ -147,13 +150,17 @@ class exports.HomeView extends Backbone.View
                 @currentTodolist.set "path", body.path
                 @currentTodolist.view.refreshBreadcrump()
 
+    # Check for new tag if a task changed.
+    onTaskChanged: (tags) =>
+        @tagListView?.addTags tags
+
     ###
     # Functions
     ###
 
     # Force selection inside tree of todolist represented by given path.
     selectList: (id) ->
-        id = 'tree-node-all' if id == "all"
+        id = 'tree-node-all' if id is "all" or not id?
         @tree.selectNode id
 
     selectTag: (tag) ->
@@ -162,7 +169,7 @@ class exports.HomeView extends Backbone.View
         list = new TodoList title: tag, tag: tag
         @renderTodolist list
 
-    # Fill todolist widget with todolist data. Then load todo task list 
+    # Fill todolist widget with todolist data. Then load todo task list
     # and archives for this todolist.
     renderTodolist: (todolist) ->
         todolist.url = "todolists/#{todolist.id}" if todolist?

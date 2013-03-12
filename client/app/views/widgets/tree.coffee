@@ -3,7 +3,7 @@ slugify = require("helpers").slugify
 
 ### Widget to easily manipulate data tree (navigation for cozy apps)
 Properties :
-    currentPath      = ex : /all/coutries/great_britain 
+    currentPath      = ex : /all/coutries/great_britain
     currentData      = data : jstree data obj sent by the select
     currentNote_uuid : uuid of the currently selected note
     widget           = @jstreeEl.jstree
@@ -92,7 +92,8 @@ class exports.Tree
             title: "Add a sub-list"
 
         $("#tree-create").on "click", (e) ->
-            jstreeEl.jstree("create", this.parentElement.parentElement , 0 , "New list")
+            jstreeEl.jstree(
+                "create", this.parentElement.parentElement , 0 , "New list")
             $(this).tooltip('hide')
             e.stopPropagation()
             e.preventDefault()
@@ -102,7 +103,8 @@ class exports.Tree
             title: "Add a list"
 
         $("#tree-create-root").on "click", (e) ->
-            jstreeEl.jstree("create", this.parentElement.parentElement , 0 , "New list")
+            jstreeEl.jstree(
+                "create", this.parentElement.parentElement , 0 , "New list")
             $(this).tooltip('hide')
             e.stopPropagation()
             e.preventDefault()
@@ -133,11 +135,13 @@ class exports.Tree
             e.preventDefault()
             e.stopPropagation()
 
-        # add listeners for the tree-buttons appear & disappear when mouse is over/out
+        # add listeners for the tree-buttons appear & disappear when mouse
+        # is over/out
         tree_buttons_target = $("#nav")
 
         @widget.on "hover_node.jstree", (event, data) ->
-            # event & data - check the core doc of jstree for a detailed description
+            # event & data - check the core doc of jstree for a
+            # detailed description
             if data.rslt.obj[0].id is "tree-node-all"
                 tree_buttons_root.appendTo(data.args[0])
                 tree_buttons_root.css("display","block")
@@ -146,7 +150,8 @@ class exports.Tree
                 tree_buttons.css("display","block")
 
         @widget.on "dehover_node.jstree", (event, data) ->
-            # event & data - check the core doc of jstree for a detailed description
+            # event & data - check the core doc of jstree for
+            # a detailed description
             if data.rslt.obj[0].id is "tree-node-all"
                 tree_buttons_root.css("display","none")
                 tree_buttons_root.appendTo(tree_buttons_target)
@@ -154,7 +159,8 @@ class exports.Tree
                 tree_buttons.css("display","none")
                 tree_buttons.appendTo(tree_buttons_target)
 
-        #repositionning the input field, tree and suggestion list when the suppression
+        #repositionning the input field, tree and suggestion list
+        #when the suppression
         # button is used
         textPrompt = $(".text-prompt")
         

@@ -12,44 +12,45 @@ todolist = new TodoList
 
 tasks = [
     new Task
-        description: "When you hit enter in a task, it creates a new task line\
-just above"
+        description: "When you hit backspace in an empty task (a task with no\
+ text), the task is deleted."
     new Task
-        description: "When you hit backspace in an empty task, it is deleted."
+        description: "Keyboard shortcut: ctrl+space change state of current\ 
+task: done or todo."
     new Task
-        description: "Keyboard shortcut: ctrl+space change state of current\
-task"
+        description: "Keyboard shortcut: ctrl+up makes move up current task\ 
+one line above."
     new Task
-        description: "Keyboard shortcut: ctrl+up makes move up current task
-one row over."
+        description: "Keyboard shortcut: ctrl+down makes move down one line\ 
+under."
     new Task
-        description: "Keyboard shortcut: ctrl+down makes move down current\
-task from one above"
+        description: "Click on done button and task will be back to the todo\ 
+with the todo state."
+        done: true
     new Task
-        description: "Click on done button and task will be back to the todo\
-the todo state."
-    new Task
-        description: "Click on todo button and task will be archived and set\
+        description: "Click on todo button and task will be archived and set\ 
 to done."
     new Task
-        description: "Last button will display your have done list"
+        description: "navigation: pencil button lets you rename selected list."
     new Task
-        description: "magnifying glass button lets you find list"
+        description: "navigation: x button lets you delete selected list."
     new Task
-        description: "pencil button lets you rename selected list"
+        description: "navigation: + button lets you create a new todo list\ 
+as a child of currenlty selected list."
     new Task
-        description: "x button lets you delete selected list"
+        description: "Writes an # at the begginning of a word and task will\ 
+be tagged with that word."
     new Task
-        description: "+ button lets you create a new todo list as child of \
-currenlty selected list"
+        description: "A shortcut list for all the task that share this\ 
+tag is available in the navigation pane."
     new Task
-        description: "Write an # at the begginning of a word and it will \
-create a shortcut for all the task that share this tag."
+        description: "When you hit enter in a task, it creates a new task\ 
+line under the current line."
     ]
 
 saveFunc = (obj) ->
     (callback) ->
-        obj.save callback
+        Task.createNew obj, callback
 
 
 TodoList.create todolist, (err, list) ->
@@ -72,4 +73,3 @@ TodoList.create todolist, (err, list) ->
             tree.updateAttributes struct: dataTree.toJson(), (err) ->
                 console.log "Initialization succeeds."
                 process.exit(0)
-

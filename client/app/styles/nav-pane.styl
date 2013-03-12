@@ -1,3 +1,10 @@
+basecolor = #34A6FF
+contrastcolor = #5C5
+actioncolor = #fe8800
+
+@font-face
+    font-family: main
+    src: url('/fonts/signika-regular.ttf');
 
 #nav
     position absolute
@@ -6,25 +13,21 @@
     right 0px
     left 10px
     margin-bottom 0
-    // TODO : the best way is to manage the hight of tree, not ro crop.
-    //overflow hidden 
-
-
-// Tree
+    font-family: main
 
 #tree
     font-size 14px
     background-color transparent
     margin-top 15px
-    outline none // => focus on the tree is invisible
+    outline none
     padding-left 8px
 
 #tree li
-    padding 0 // padding arround the content of a list item (leaf of the tree)
+    padding 0
     position relative
 
 #tree ins
-    width 14px  // width of the inset of each level of the tree
+    width 14px
 
 #tree a
     padding 0px 0px 0px 0px
@@ -34,13 +37,17 @@
     left 15px
     right 0px
     position absolute
+    font-weight: normal
 
 #tree a.jstree-clicked
-    background #c5ebf9 
+    background #CBE4FB
     border 0
 
 #tree a.jstree-hovered
     border 0
+    background actioncolor + 50%
+    font-weight: normal
+    font-size: 13.5px
 
 .jstree-rename-input
     margin-left: -18px
@@ -69,39 +76,18 @@
     cursor pointer
     padding-left 3px
 
-// class for auto suggestion list : the characters 
-// corresponding to the user search are higlighted
-.bold-name
-  font-weight: bold
-
-.text-dropdown i
-    padding-right: 5px
-
-.tag-special
-    background-color: white
-    border: none
-    border: 1px solid #FFFFFF
-    height: 14px
-    position: relative
-    margin: 0 2px 2px 0
-    padding: 0 3px 0 3px
-    color: #000000
-    font: 11px "lucida grande",tahoma,verdana,arial,sans-serif
-
-#tree-search-field
-    width: 200px
-    padding-right: 20px
+#tags
     
-    
-#suppr-button
-    position: absolute
-    top: 23px
-    left: 202px
-    z-index: 2
-    
-#suppr-button:hover
-    cursor: pointer
+    a
+        width: 100%
 
+    a:hover
+        background-color: actioncolor + 50%
+        text-decoration: none
+        font-family: main
+
+    .selected
+        background: #C5EBF9
 
 // separator between nav-pane and content-pane
 .ui-layout-west

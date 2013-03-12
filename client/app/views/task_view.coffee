@@ -12,9 +12,10 @@ class exports.TaskLine extends Backbone.View
         "click .del-task-button": "onDelButtonClicked"
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
+        "click .task-infos a": "onListLinkClicked"
 
-    ### 
-    # Initializers 
+    ###
+    # Initializers
     ###
 
     constructor: (@model, @list) ->
@@ -42,6 +43,16 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.data 'before', @descriptionField.val()
         @todoButton = @$(".todo-button")
 
+        @todoButton.hover =>
+            if @model.done
+                @todoButton.html("todo?")
+            else
+                @todoButton.html("done?")
+        @todoButton.mouseout =>
+            if @model.done
+                @todoButton.html("done")
+            else
+                @todoButton.html("todo")
         @el
 
     # Listen for description modification
@@ -77,15 +88,21 @@ class exports.TaskLine extends Backbone.View
     # Listeners
     ###
 
-    # On todo button clicked, update task state and send modifications to 
+    # On todo button clicked, update task state and send modifications to
     # backend.
     onTodoButtonClicked: (event) =>
         @showLoading()
-        if @model.done then @model.setUndone() else @model.setDone()
         @model.url = "todolists/#{@model.list}/tasks/#{@model.id}"
+        @model.done = not @model.done
+
         @model.save { done: @model.done },
             success: =>
                 @hideLoading()
+                if not @model.done
+                    @model.setUndone()
+                else
+                    @model.setDone()
+
             error: =>
                 alert "An error occured, modifications were not saved."
                 @hideLoading()
@@ -97,52 +114,66 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        condition = @model.collection.listId?
-        condition = condition and not @model.done
-        condition = condition and @model.collection.up @model
-
-        if condition
+        persistUp = =>
             @focusDescription()
             @showLoading()
             @model.save null,
                 success: =>
                     @todoButton = @$(".todo-button")
                     @hideLoading()
+                    @saving = false
                 error: =>
                     @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+                    @saving = false
+
+        if not @saving
+            @saving = true
+            isUp = @model.collection.up @model
+            if @model.collection.listId? and not @model.done and isUp
+                persistUp()
+
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        condition = @model.collection.listId?
-        condition = condition and not @model.done
-        condition = condition and @model.collection.down @model
-
-        if condition
+        persistDown = =>
             @showLoading()
             @model.save null,
                 success: =>
                     @todoButton = @$(".todo-button")
                     @hideLoading()
+                    @saving = false
                 error: =>
                     @todoButton = @$(".todo-button")
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
-                
+                    @saving = false
+
+        if not @saving
+            @saving = true
+            isDown = @model.collection.down @model
+            if @model.collection.listId? and not @model.done and isDown
+                persistDown()
+
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>
         unless keyCode == 8 or @descriptionField.val().length == 0
-            @saving = false
+            @saving = true
             @model.description = @descriptionField.val()
             @showLoading()
             @model.save { description: @model.description },
                 success: =>
+                    tags = helpers.extractTags(@model.description)
+                    Backbone.Mediator.publish 'task:changed', tags
+                    @model.set 'tags', tags
                     @hideLoading()
+                    @saving = false
                 error: =>
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
+                    @saving = false
 
     # Change focus to next task.
     onUpKeyup: ->
@@ -179,7 +210,7 @@ class exports.TaskLine extends Backbone.View
     # When backspace key is up, if field is empty, current task is deleted.
     onBackspaceKeyup: ->
         description = @descriptionField.val()
-        if description.length == 0 and @firstDel
+        if description.length is 0 and @firstDel
             @isDeleting = true
 
             if @list.$("##{@model.id}").prev().find(".description").length
@@ -189,27 +220,29 @@ class exports.TaskLine extends Backbone.View
 
             @delTask()
 
-        else if description.length == 0 and not @firstDel
+        else if description.length is 0 and not @firstDel
             @firstDel = true
         else
             @firstDel = false
 
-            
+    onListLinkClicked: (event) ->
+        window.app.router.navigate @model.listPath, true
+        event.preventDefault()
+
+
     ###
     # Functions
     ###
 
     # Change styles and text to display done state.
     done: ->
-        @.$(".todo-button").html "done"
-        @.$(".todo-button").addClass "disabled"
-        @.$(".todo-button").removeClass "btn-info"
-        $(@el).addClass "done"
+        @$(".todo-button").html "done"
+        @$(".todo-button").removeClass "btn-info"
+        @$el.addClass "done"
 
     # Change styles and text to display todo state.
     undone: ->
         @.$(".todo-button").html "todo"
-        @.$(".todo-button").removeClass "disabled"
         @.$(".todo-button").addClass "btn-info"
         $(@el).removeClass "done"
 

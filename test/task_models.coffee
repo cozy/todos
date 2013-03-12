@@ -137,7 +137,7 @@ describe "Task Model", ->
                         description: "Task 10"
                         done: false
                         previousTask: @tasks[1].id
-                    Task.create task, (err, newTask) =>
+                    Task.createNew task, (err, newTask) =>
                         @task = newTask
                         Task.insertTask newTask, ->
                             done()
@@ -266,7 +266,7 @@ describe "Task Model", ->
 
 
 ## When task go back to todo, it is added as first task to the todo list.
-## If task previous task is specified, it is inserted after this task. 
+## If task previous task is specified, it is inserted after this task.
 ##Task.todo = (task, attributes, callback) ->
     ##if attributes.previousTask?
         ##task.previousTask = attributes.previousTask

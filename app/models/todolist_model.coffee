@@ -5,7 +5,7 @@ TodoList.all = (callback) -> TodoList.request "all", callback
 
 ###
 # Delete all notes.
-# This method doesn't update the tree. Better suited for database clearing 
+# This method doesn't update the tree. Better suited for database clearing
 # or test writing.
 ###
 TodoList.destroyAll = (callback) ->
@@ -15,7 +15,8 @@ TodoList.destroyAll = (callback) ->
 ###*
  * Destroy a note and its children and update the tree.
  * @param  {string} nodeId id of the note to delete
- * @param  {function} cbk    cbk(error) is executed at the end returning null or the error.
+ * @param  {function} cbk    cbk(error) is executed at the end returning null
+           or the error.
 ###
 TodoList.destroy = (nodeId, cbk)->
 

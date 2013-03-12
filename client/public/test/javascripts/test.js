@@ -61,20 +61,25 @@
     throw new Error('Cannot find module "' + name + '"');
   };
 
-  var define = function(bundle) {
-    for (var key in bundle) {
-      if (has(bundle, key)) {
-        modules[key] = bundle[key];
+  var define = function(bundle, fn) {
+    if (typeof bundle === 'object') {
+      for (var key in bundle) {
+        if (has(bundle, key)) {
+          modules[key] = bundle[key];
+        }
       }
+    } else {
+      modules[bundle] = fn;
     }
-  }
+  };
 
   globals.require = require;
   globals.require.define = define;
+  globals.require.register = define;
   globals.require.brunch = true;
 })();
 
-window.require.define({"test/task_collection_test": function(exports, require, module) {
+window.require.register("test/task_collection_test", function(exports, require, module) {
   var HomeView, Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
 
   Task = require('models/task').Task;
@@ -128,7 +133,7 @@ window.require.define({"test/task_collection_test": function(exports, require, m
     });
     describe("onReset", function() {
       it("when collection is reset with a list of tasks", function() {
-        var task, _i, _len, _ref, _results;
+        var task, _i, _len, _ref;
         this.tasks = [
           new Task({
             id: 5,
@@ -147,16 +152,15 @@ window.require.define({"test/task_collection_test": function(exports, require, m
             done: false
           })
         ];
-        this.collection.onReset(this.tasks);
+        this.tasks[0].set("previousTask", 4);
         _ref = this.tasks;
-        _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           task = _ref[_i];
-          _results.push(this.collection.add(task, {
+          this.collection.add(task, {
             silent: true
-          }));
+          });
         }
-        return _results;
+        return this.collection.onReset(this.tasks);
       });
       it("then their links are correctly set", function() {
         expect(this.tasks[0].get("previousTask")).to.equal(4);
@@ -283,9 +287,8 @@ window.require.define({"test/task_collection_test": function(exports, require, m
     });
   });
   
-}});
-
-window.require.define({"test/task_model_test": function(exports, require, module) {
+});
+window.require.register("test/task_model_test", function(exports, require, module) {
   var HomeView, Task, TaskCollection, TaskLine, TaskList, TodoList, TodoListWidget;
 
   Task = require('models/task').Task;
@@ -345,7 +348,8 @@ window.require.define({"test/task_model_test": function(exports, require, module
       });
       return it("just like list data", function() {
         expect(this.model.listTitle).to.equal("list 01");
-        return expect(this.model.listPath).to.equal("parent > list 01");
+        expect(this.model.listPath).to.equal("todolist/123/all/parent/list-01");
+        return expect(this.model.listBreadcrumb).to.equal("parent > list 01");
       });
     });
     describe("Done", function() {
@@ -459,9 +463,8 @@ window.require.define({"test/task_model_test": function(exports, require, module
     });
   });
   
-}});
-
-window.require.define({"test/test-helpers": function(exports, require, module) {
+});
+window.require.register("test/test-helpers", function(exports, require, module) {
   
   module.exports = {
     expect: require('chai').expect,
@@ -471,7 +474,6 @@ window.require.define({"test/test-helpers": function(exports, require, module) {
     moment: require('moment')
   };
   
-}});
-
+});
 window.require('test/task_collection_test');
 window.require('test/task_model_test');

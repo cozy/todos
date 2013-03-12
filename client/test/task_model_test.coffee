@@ -52,7 +52,8 @@ describe 'Task Model', ->
  
         it "just like list data", ->
             expect(@model.listTitle).to.equal "list 01"
-            expect(@model.listPath).to.equal "parent > list 01"
+            expect(@model.listPath).to.equal "todolist/123/all/parent/list-01"
+            expect(@model.listBreadcrumb).to.equal "parent > list 01"
  
     describe "Done", ->
         it "When task state is changed to done.", ->

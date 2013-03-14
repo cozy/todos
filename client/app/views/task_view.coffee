@@ -15,8 +15,6 @@ class exports.TaskLine extends Backbone.View
         "click .task-infos a": "onListLinkClicked"
         "dragstart": "onDragStart"
         "dragover": "onDragOver"
-        "dragenter": "onDragEnter"
-        "dragleave": "onDragLeave"
         "drop": "onDrop"
         "dragend": "onDragEnd"
         "hover": "onMouseOver"
@@ -79,8 +77,6 @@ class exports.TaskLine extends Backbone.View
         event.originalEvent.dataTransfer.effectAllowed = 'all'
         @list.draggedItem = @
 
-
-
     onDragOver: (event) ->
         if event.preventDefault
             event.preventDefault()
@@ -102,14 +98,6 @@ class exports.TaskLine extends Backbone.View
             $(@list.$el.children()[index + 1]).css('visibility', 'visible')
 
         return false
-
-    onDragEnter: (event) ->
-
-        # nothing
-
-
-    onDragLeave: (event) ->
-        # nothing
 
     onDrop: (event) ->
         if event.stopPropagation

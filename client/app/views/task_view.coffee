@@ -13,9 +13,17 @@ class exports.TaskLine extends Backbone.View
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
         "click .task-infos a": "onListLinkClicked"
+        "dragstart": "onDragStart"
+        "dragover": "onDragOver"
+        "drop": "onDrop"
+        "dragend": "onDragEnd"
+        "hover": "onMouseOver"
 
     ###
     # Initializers
+    ###
+
+    ###
     ###
 
     constructor: (@model, @list) ->
@@ -26,6 +34,14 @@ class exports.TaskLine extends Backbone.View
         @model.view = @
         @firstDel = false
         @isDeleting = false
+
+        if !@list.tasks.listId?
+            @$el.unbind('dragstart')
+            @$el.unbind('dragover')
+            @$el.unbind('drop')
+            @$el.unbind('dragend')
+            @$el.unbind('hover')
+
         @list
 
     # Render wiew and bind it to model.
@@ -53,7 +69,108 @@ class exports.TaskLine extends Backbone.View
                 @todoButton.html("done")
             else
                 @todoButton.html("todo")
+
+        @$el.prop 'draggable', true
+
         @el
+
+    ###
+        Drag'n'Drop management
+    ###
+
+    onDragStart: (event) ->
+        @$el.css 'opacity', '0.4'
+
+        event.originalEvent.dataTransfer.effectAllowed = 'all'
+        @list.draggedItem = @
+
+        # mandatory to firefox
+        event.originalEvent.dataTransfer.setData 'text/plain', @model.id
+
+    onDragOver: (event) ->
+
+        event.preventDefault() if event.preventDefault
+        event.originalEvent.dataTransfer.dropEffect = 'move'
+        $('.separator').css('visibility', 'hidden')
+        index = @list.$el.children().index(@$el)
+
+        pageY = event.originalEvent.pageY
+        targetOffsetTop = event.target.offsetTop
+        offsetY = event.originalEvent.offsetY
+        y = pageY - targetOffsetTop | offsetY
+        limit = @$el.height() / 2
+
+
+        if(y <= limit)
+            $(@list.$el.children()[index - 1]).css('visibility', 'visible')
+        else
+            $(@list.$el.children()[index + 1]).css('visibility', 'visible')
+
+        return false
+
+    onDrop: (event) ->
+        if event.stopPropagation
+            event.stopPropagation()
+
+        pageY = event.originalEvent.pageY
+        targetOffsetTop = event.target.offsetTop
+        offsetY = event.originalEvent.offsetY
+        y = pageY - targetOffsetTop | offsetY
+        limit = @$el.height() / 2
+
+        index = @list.$el.children('.task').index(@$el)
+        newIndex = index
+        if(y > limit) && index > 0
+            newIndex = index + 1
+
+            nextTask = $(@list.$el.children('.task')[index + 1])
+            nextTaskID = nextTask?.prop 'id'
+        else
+            previousTask = $(@list.$el.children('.task')[index - 1])
+            previousTaskID = previousTask?.prop 'id'
+
+
+        draggedItemID = @list.draggedItem.model.id
+        condition = (nextTaskID? and nextTaskID is draggedItemID) or
+                    (previousTaskID? and previousTaskID is draggedItemID)
+
+        unless draggedItemID is @model.id or condition
+            @onReorder @list.draggedItem, newIndex
+
+        return false
+
+    onDragEnd: (event) ->
+        $('.separator').css 'visibility', 'hidden'
+        @$el.css 'opacity', '1'
+        @list.draggedItem = null
+
+    onReorder: (draggedItem, newIndex) ->
+        if not @saving
+            isReordered = @model.collection.reorder draggedItem.model, newIndex
+
+            if @model.collection.listId? and isReordered
+                draggedItem.saving = true
+                draggedItem.showLoading()
+                childrenTasks = @list.$el.children('.task')
+                oldIndex = childrenTasks.index(draggedItem.$el)
+                children = @list.$el.children()
+                index = children.index(draggedItem.$el)
+                separator = children.eq(index + 1)
+
+                if newIndex >= childrenTasks.length
+                    @list.$el.append(draggedItem.$el)
+                else
+                    childrenTasks.eq(newIndex).before(draggedItem.$el)
+                separator.insertAfter(draggedItem.$el)
+                draggedItem.model.save null,
+                success: =>
+                    draggedItem.saving = false
+                    draggedItem.hideLoading()
+                error: =>
+                    console.log "An error while saving the task."
+                    draggedItem.saving = false
+                    draggedItem.hideLoading()
+
 
     # Listen for description modification
     setListeners: ->
@@ -71,7 +188,7 @@ class exports.TaskLine extends Backbone.View
             else
                 @onUpKeyup() if keyCode is 38
                 @onDownKeyup() if keyCode is 40
-                @onEnterKeyup() if keyCode is 13
+                @onEnterKeyup(event.shiftKey) if keyCode is 13
                 @onBackspaceKeyup() if keyCode is 8
                 @onDownKeyup() if keyCode is 9 and not event.shiftKey
                 @onUpKeyup() if keyCode is 9 and event.shiftKey
@@ -87,6 +204,14 @@ class exports.TaskLine extends Backbone.View
     ###
     # Listeners
     ###
+
+    onMouseOver: (event) ->
+        if event.type is 'mouseenter'
+            @$el.find('.handle').css('display', 'inline-block')
+            @$el.children('.description').addClass('hovered')
+        else
+            @$el.children('.description').removeClass('hovered')
+            @$el.find('.handle').hide()
 
     # On todo button clicked, update task state and send modifications to
     # backend.
@@ -192,14 +317,19 @@ class exports.TaskLine extends Backbone.View
         @onDownButtonClicked()
 
     # When enter key is up a new task is created below current one.
-    onEnterKeyup: ->
+    onEnterKeyup: (isShiftKeyPressed) ->
         if @model.collection.listId?
             @showLoading()
             task = new Task
                 description: "new task"
                 list: @model.collection.listId
 
-            @model.collection.insertTask @model, task,
+            if isShiftKeyPressed
+                insertAfter = @model.collection.getPreviousTask(@model)
+            else
+                insertAfter = @model
+
+            @model.collection.insertTask insertAfter, task,
                  success: (task) =>
                      helpers.selectAll task.view.descriptionField
                      @hideLoading()

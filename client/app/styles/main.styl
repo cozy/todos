@@ -57,7 +57,7 @@ html
         font-family: styled, helvetica
 
 .task
-    input:hover
+    input:hover, input.hovered
         padding-left: 1%
         border: 1px solid actioncolor
         border-radius: 0px
@@ -75,6 +75,25 @@ html
 
 .task button
   float left
+
+/* Drag'N'Drop handling */
+.task .handle
+  width: 25px
+  height: 32px
+  line-height: 35px
+  text-align: center
+  display: none
+
+.separator
+  width: 100%
+  height: 0
+  display: block
+  visibility: hidden
+  border-bottom: 1px solid #CCC
+
+[draggable]
+  user-select none
+  /* end Drag'N'Drop */
 
 .done button
     background: contrastcolor
@@ -96,7 +115,7 @@ html
   margin-left: 1%
   font-size: 16px
   height:22px
-  width: 90%
+  width: 88%
   padding: 4px 1%
   background-color: #FCFCFC
   margin-top: 2px
@@ -144,8 +163,8 @@ html
           position: absolute
           right: 18px
           bottom: 0
-          background: actioncolor !important
-          border-color: actioncolor
+          background: #FFB866 !important
+          border-color: #FFB866
           &:hover
             font-weight: normal
 

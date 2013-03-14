@@ -176,6 +176,35 @@ class exports.TaskCollection extends Backbone.Collection
 
         return true
 
+    reorder: (task, newIndex) ->
+        index = @toArray().indexOf task
+
+        oldPreviousTask = @getPreviousTask task
+        oldNextTask = @getNextTask task
+
+        if oldNextTask?
+            oldNextTask.setPreviousTask oldPreviousTask
+        else
+            oldPreviousTask.setNextTask oldNextTask # null
+
+        newPreviousTask = null
+        if newIndex > 0
+            newPreviousTask = @at(newIndex - 1)
+
+        if newIndex >= @length
+            newNextTask = null
+        else
+            newNextTask = @at(newIndex)
+
+        task.setPreviousTask newPreviousTask
+        task.setNextTask newNextTask
+
+        @remove task
+        @add task,
+            at: newIndex
+            silent: true
+        return true
+
     # Remove task from collection and delete it from backend.
     # Update previous and next links.
     removeTask: (task, callbacks) ->

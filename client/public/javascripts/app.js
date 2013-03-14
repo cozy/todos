@@ -81,7 +81,7 @@
 
 window.require.register("collections/tasks", function(exports, require, module) {
   var Task,
-    _this = this,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -96,22 +96,17 @@ window.require.register("collections/tasks", function(exports, require, module) 
     TaskCollection.prototype.url = 'tasks/';
 
     function TaskCollection(view, listId, options) {
-      var _this = this;
       this.view = view;
       this.listId = listId;
       this.options = options;
-      this.down = function(task) {
-        return TaskCollection.prototype.down.apply(_this, arguments);
-      };
-      this.up = function(task) {
-        return TaskCollection.prototype.up.apply(_this, arguments);
-      };
-      this.onTaskAdded = function(task) {
-        return TaskCollection.prototype.onTaskAdded.apply(_this, arguments);
-      };
-      this.onReset = function(tasks) {
-        return TaskCollection.prototype.onReset.apply(_this, arguments);
-      };
+      this.down = __bind(this.down, this);
+
+      this.up = __bind(this.up, this);
+
+      this.onTaskAdded = __bind(this.onTaskAdded, this);
+
+      this.onReset = __bind(this.onReset, this);
+
       TaskCollection.__super__.constructor.call(this);
       this.url = "todolists/" + this.listId + "/tasks";
       this.bind("add", this.onTaskAdded);
@@ -307,6 +302,35 @@ window.require.register("collections/tasks", function(exports, require, module) 
         silent: true
       });
       task.view.down(oldNextTask.id);
+      return true;
+    };
+
+    TaskCollection.prototype.reorder = function(task, newIndex) {
+      var index, newNextTask, newPreviousTask, oldNextTask, oldPreviousTask;
+      index = this.toArray().indexOf(task);
+      oldPreviousTask = this.getPreviousTask(task);
+      oldNextTask = this.getNextTask(task);
+      if (oldNextTask != null) {
+        oldNextTask.setPreviousTask(oldPreviousTask);
+      } else {
+        oldPreviousTask.setNextTask(oldNextTask);
+      }
+      newPreviousTask = null;
+      if (newIndex > 0) {
+        newPreviousTask = this.at(newIndex - 1);
+      }
+      if (newIndex >= this.length) {
+        newNextTask = null;
+      } else {
+        newNextTask = this.at(newIndex);
+      }
+      task.setPreviousTask(newPreviousTask);
+      task.setNextTask(newNextTask);
+      this.remove(task);
+      this.add(task, {
+        at: newIndex,
+        silent: true
+      });
       return true;
     };
 
@@ -923,7 +947,7 @@ window.require.register("models/models", function(exports, require, module) {
     }
 
     BaseModel.prototype.isNew = function() {
-      return this.id == null;
+      return !(this.id != null);
     };
 
     return BaseModel;
@@ -957,7 +981,7 @@ window.require.register("models/task", function(exports, require, module) {
     }
 
     Task.prototype.setSimpleDate = function(date) {
-      if (date == null) {
+      if (!(date != null)) {
         date = new Date();
       }
       this.simpleDate = moment(date).format("DD/MM/YYYY");
@@ -1184,7 +1208,7 @@ window.require.register("routers/main_router", function(exports, require, module
 });
 window.require.register("views/home_view", function(exports, require, module) {
   var TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, client, helpers,
-    _this = this,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1209,35 +1233,26 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.id = 'home-view';
 
     /*
-    # Initializers
+        # Initializers
     */
 
 
     HomeView.prototype.initialize = function() {};
 
     function HomeView() {
-      var _this = this;
-      this.onTaskChanged = function(tags) {
-        return HomeView.prototype.onTaskChanged.apply(_this, arguments);
-      };
-      this.onTodoListDropped = function(nodeId, targetNodeId) {
-        return HomeView.prototype.onTodoListDropped.apply(_this, arguments);
-      };
-      this.onTreeLoaded = function() {
-        return HomeView.prototype.onTreeLoaded.apply(_this, arguments);
-      };
-      this.onTodoListSelected = function(path, id, data) {
-        return HomeView.prototype.onTodoListSelected.apply(_this, arguments);
-      };
-      this.onTodoListRemoved = function(listId) {
-        return HomeView.prototype.onTodoListRemoved.apply(_this, arguments);
-      };
-      this.onTodoListRenamed = function(listId, newName, data) {
-        return HomeView.prototype.onTodoListRenamed.apply(_this, arguments);
-      };
-      this.onTodoListCreated = function(parentId, newName, data) {
-        return HomeView.prototype.onTodoListCreated.apply(_this, arguments);
-      };
+      this.onTaskChanged = __bind(this.onTaskChanged, this);
+
+      this.onTodoListDropped = __bind(this.onTodoListDropped, this);
+
+      this.onTreeLoaded = __bind(this.onTreeLoaded, this);
+
+      this.onTodoListSelected = __bind(this.onTodoListSelected, this);
+
+      this.onTodoListRemoved = __bind(this.onTodoListRemoved, this);
+
+      this.onTodoListRenamed = __bind(this.onTodoListRenamed, this);
+
+      this.onTodoListCreated = __bind(this.onTodoListCreated, this);
       this.todolists = new TodoListCollection();
       Backbone.Mediator.subscribe('task:changed', this.onTaskChanged);
       HomeView.__super__.constructor.call(this);
@@ -1300,7 +1315,7 @@ window.require.register("views/home_view", function(exports, require, module) {
     };
 
     /*
-    # Listeners
+        # Listeners
     */
 
 
@@ -1408,12 +1423,12 @@ window.require.register("views/home_view", function(exports, require, module) {
     };
 
     /*
-    # Functions
+        # Functions
     */
 
 
     HomeView.prototype.selectList = function(id) {
-      if (id === "all" || (id == null)) {
+      if (id === "all" || !(id != null)) {
         id = 'tree-node-all';
       }
       return this.tree.selectNode(id);
@@ -1451,7 +1466,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 });
 window.require.register("views/new_task_form", function(exports, require, module) {
   var Task,
-    _this = this,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1462,11 +1477,9 @@ window.require.register("views/new_task_form", function(exports, require, module
     __extends(NewTaskForm, _super);
 
     function NewTaskForm(taskList) {
-      var _this = this;
       this.taskList = taskList;
-      this.taskCreationHandler = function(event) {
-        return NewTaskForm.prototype.taskCreationHandler.apply(_this, arguments);
-      };
+      this.taskCreationHandler = __bind(this.taskCreationHandler, this);
+
       NewTaskForm.__super__.constructor.call(this);
     }
 
@@ -1477,16 +1490,19 @@ window.require.register("views/new_task_form", function(exports, require, module
       this.newTaskFormInput = this.newTaskForm.find(".description");
       this.toggleButton = $('button.toggle-task-form');
       this.taskList.tasks.on('reset', function(collection) {
-        return _this.initializeForm();
+        _this.initializeForm();
+        return _this.taskList.tasks.off('reset');
       });
       this.taskList.tasks.on('remove', function(collection) {
-        return _this.toggleTaskForm(false, true);
+        if (_this.taskList.tasks.length === 0) {
+          return _this.toggleTaskForm(false, true);
+        }
       });
       return this.hasUserTyped = false;
     };
 
     NewTaskForm.prototype.initializeForm = function() {
-      if (this.taskList.tasks.listId == null) {
+      if (!(this.taskList.tasks.listId != null)) {
         this.toggleButton.hide();
         return;
       }
@@ -1500,7 +1516,7 @@ window.require.register("views/new_task_form", function(exports, require, module
     };
 
     /*
-        Input handling
+            Input handling
     */
 
 
@@ -1570,12 +1586,12 @@ window.require.register("views/new_task_form", function(exports, require, module
     };
 
     /*
-        ./end Input handling
+            ./end Input handling
     */
 
 
     /*
-        Toggle handling
+            Toggle handling
     */
 
 
@@ -1604,7 +1620,7 @@ window.require.register("views/new_task_form", function(exports, require, module
       var isListEmpty, show_form;
       show_form = $.cookie('todos_prefs:show_form');
       isListEmpty = this.taskList.tasks.length === 0;
-      if (show_form === 'true' || (show_form == null) || isListEmpty) {
+      if (show_form === 'true' || !(show_form != null) || isListEmpty) {
         return this.showTaskForm();
       } else {
         return this.hideTaskForm();
@@ -1644,7 +1660,7 @@ window.require.register("views/new_task_form", function(exports, require, module
     };
 
     /*
-        ./end Toggle handling
+            ./end Toggle handling
     */
 
 
@@ -1704,9 +1720,9 @@ window.require.register("views/taglist_view", function(exports, require, module)
       _results = [];
       for (_i = 0, _len = tags.length; _i < _len; _i++) {
         tag = tags[_i];
-        if (_.find(this.tagList, function(ctag) {
+        if (!(_.find(this.tagList, function(ctag) {
           return tag === ctag;
-        }) == null) {
+        }) != null)) {
           this.tagList.push(tag);
           _results.push(this.addTagLine(tag));
         } else {
@@ -1723,7 +1739,7 @@ window.require.register("views/taglist_view", function(exports, require, module)
 });
 window.require.register("views/task_view", function(exports, require, module) {
   var Task, helpers, template,
-    _this = this,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1746,33 +1762,36 @@ window.require.register("views/task_view", function(exports, require, module) {
       "click .del-task-button": "onDelButtonClicked",
       "click .up-task-button": "onUpButtonClicked",
       "click .down-task-button": "onDownButtonClicked",
-      "click .task-infos a": "onListLinkClicked"
+      "click .task-infos a": "onListLinkClicked",
+      "dragstart": "onDragStart",
+      "dragover": "onDragOver",
+      "drop": "onDrop",
+      "dragend": "onDragEnd",
+      "hover": "onMouseOver"
     };
 
     /*
-    # Initializers
+        # Initializers
+    */
+
+
+    /*
     */
 
 
     function TaskLine(model, list) {
-      var _this = this;
       this.model = model;
       this.list = list;
-      this.onDescriptionChanged = function(event, keyCode) {
-        return TaskLine.prototype.onDescriptionChanged.apply(_this, arguments);
-      };
-      this.onDownButtonClicked = function(event) {
-        return TaskLine.prototype.onDownButtonClicked.apply(_this, arguments);
-      };
-      this.onUpButtonClicked = function(event) {
-        return TaskLine.prototype.onUpButtonClicked.apply(_this, arguments);
-      };
-      this.onDelButtonClicked = function(event) {
-        return TaskLine.prototype.onDelButtonClicked.apply(_this, arguments);
-      };
-      this.onTodoButtonClicked = function(event) {
-        return TaskLine.prototype.onTodoButtonClicked.apply(_this, arguments);
-      };
+      this.onDescriptionChanged = __bind(this.onDescriptionChanged, this);
+
+      this.onDownButtonClicked = __bind(this.onDownButtonClicked, this);
+
+      this.onUpButtonClicked = __bind(this.onUpButtonClicked, this);
+
+      this.onDelButtonClicked = __bind(this.onDelButtonClicked, this);
+
+      this.onTodoButtonClicked = __bind(this.onTodoButtonClicked, this);
+
       TaskLine.__super__.constructor.call(this);
       this.saving = false;
       this.id = this.model._id;
@@ -1812,7 +1831,108 @@ window.require.register("views/task_view", function(exports, require, module) {
           return _this.todoButton.html("todo");
         }
       });
+      this.$el.prop('draggable', true);
       return this.el;
+    };
+
+    /*
+            Drag'n'Drop management
+    */
+
+
+    TaskLine.prototype.onDragStart = function(event) {
+      this.$el.css('opacity', '0.4');
+      event.originalEvent.dataTransfer.effectAllowed = 'all';
+      return this.list.draggedItem = this;
+    };
+
+    TaskLine.prototype.onDragOver = function(event) {
+      var index, limit, offsetY, pageY, targetOffsetTop, y;
+      if (event.preventDefault) {
+        event.preventDefault();
+      }
+      event.originalEvent.dataTransfer.dropEffect = 'copy';
+      $('.separator').css('visibility', 'hidden');
+      index = this.list.$el.children().index(this.$el);
+      pageY = event.originalEvent.pageY;
+      targetOffsetTop = event.target.offsetTop;
+      offsetY = event.originalEvent.offsetY;
+      y = pageY - targetOffsetTop | offsetY;
+      limit = this.$el.height() / 2;
+      if (y <= limit) {
+        $(this.list.$el.children()[index - 1]).css('visibility', 'visible');
+      } else {
+        $(this.list.$el.children()[index + 1]).css('visibility', 'visible');
+      }
+      return false;
+    };
+
+    TaskLine.prototype.onDrop = function(event) {
+      var condition, draggedItemID, index, limit, newIndex, nextTask, nextTaskID, offsetY, pageY, previousTask, previousTaskID, targetOffsetTop, y;
+      if (event.stopPropagation) {
+        event.stopPropagation();
+      }
+      pageY = event.originalEvent.pageY;
+      targetOffsetTop = event.target.offsetTop;
+      offsetY = event.originalEvent.offsetY;
+      y = pageY - targetOffsetTop | offsetY;
+      limit = this.$el.height() / 2;
+      index = this.list.$el.children('.task').index(this.$el);
+      newIndex = index;
+      if ((y > limit) && index > 0) {
+        newIndex = index + 1;
+        nextTask = $(this.list.$el.children('.task')[index + 1]);
+        nextTaskID = nextTask != null ? nextTask.prop('id') : void 0;
+      } else {
+        previousTask = $(this.list.$el.children('.task')[index - 1]);
+        previousTaskID = previousTask != null ? previousTask.prop('id') : void 0;
+      }
+      draggedItemID = this.list.draggedItem.model.id;
+      condition = ((nextTaskID != null) && nextTaskID === draggedItemID) || ((previousTaskID != null) && previousTaskID === draggedItemID);
+      if (!(draggedItemID === this.model.id || condition)) {
+        this.onReorder(this.list.draggedItem, newIndex);
+      }
+      return false;
+    };
+
+    TaskLine.prototype.onDragEnd = function(event) {
+      $('.separator').css('visibility', 'hidden');
+      this.$el.css('opacity', '1');
+      return this.list.draggedItem = null;
+    };
+
+    TaskLine.prototype.onReorder = function(draggedItem, newIndex) {
+      var children, childrenTasks, index, isReordered, oldIndex, separator,
+        _this = this;
+      if (!this.saving) {
+        isReordered = this.model.collection.reorder(draggedItem.model, newIndex);
+        if ((this.model.collection.listId != null) && isReordered) {
+          draggedItem.saving = true;
+          draggedItem.showLoading();
+          childrenTasks = this.list.$el.children('.task');
+          oldIndex = childrenTasks.index(draggedItem.$el);
+          children = this.list.$el.children();
+          index = children.index(draggedItem.$el);
+          separator = children.eq(index + 1);
+          if (newIndex >= childrenTasks.length) {
+            this.list.$el.append(draggedItem.$el);
+          } else {
+            childrenTasks.eq(newIndex).before(draggedItem.$el);
+          }
+          separator.insertAfter(draggedItem.$el);
+          return draggedItem.model.save(null, {
+            success: function() {
+              draggedItem.saving = false;
+              return draggedItem.hideLoading();
+            },
+            error: function() {
+              console.log("An error while saving the task.");
+              draggedItem.saving = false;
+              return draggedItem.hideLoading();
+            }
+          });
+        }
+      }
     };
 
     TaskLine.prototype.setListeners = function() {
@@ -1843,7 +1963,7 @@ window.require.register("views/task_view", function(exports, require, module) {
             _this.onDownKeyup();
           }
           if (keyCode === 13) {
-            _this.onEnterKeyup();
+            _this.onEnterKeyup(event.shiftKey);
           }
           if (keyCode === 8) {
             _this.onBackspaceKeyup();
@@ -1868,9 +1988,19 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     /*
-    # Listeners
+        # Listeners
     */
 
+
+    TaskLine.prototype.onMouseOver = function(event) {
+      if (event.type === 'mouseenter') {
+        this.$el.find('.handle').css('display', 'inline-block');
+        return this.$el.children('.description').addClass('hovered');
+      } else {
+        this.$el.children('.description').removeClass('hovered');
+        return this.$el.find('.handle').hide();
+      }
+    };
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
       var _this = this;
@@ -1998,8 +2128,8 @@ window.require.register("views/task_view", function(exports, require, module) {
       return this.onDownButtonClicked();
     };
 
-    TaskLine.prototype.onEnterKeyup = function() {
-      var task,
+    TaskLine.prototype.onEnterKeyup = function(isShiftKeyPressed) {
+      var insertAfter, task,
         _this = this;
       if (this.model.collection.listId != null) {
         this.showLoading();
@@ -2007,7 +2137,12 @@ window.require.register("views/task_view", function(exports, require, module) {
           description: "new task",
           list: this.model.collection.listId
         });
-        return this.model.collection.insertTask(this.model, task, {
+        if (isShiftKeyPressed) {
+          insertAfter = this.model.collection.getPreviousTask(this.model);
+        } else {
+          insertAfter = this.model;
+        }
+        return this.model.collection.insertTask(insertAfter, task, {
           success: function(task) {
             helpers.selectAll(task.view.descriptionField);
             return _this.hideLoading();
@@ -2048,7 +2183,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     /*
-    # Functions
+        # Functions
     */
 
 
@@ -2168,7 +2303,8 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     TaskList.prototype.addTaskLine = function(task) {
       var taskLine;
       taskLine = new TaskLine(task, this);
-      return $(this.el).append(taskLine.render());
+      $(this.el).append(taskLine.render());
+      return this.$el.append($('<div class="separator"></div>'));
     };
 
     TaskList.prototype.addDateLine = function(date) {
@@ -2226,8 +2362,10 @@ window.require.register("views/tasks_view", function(exports, require, module) {
       taskLineEl = $(taskLine.render());
       if (previousTaskLine != null) {
         taskLineEl.insertAfter($(previousTaskLine.el));
+        taskLineEl.after($('<div class="separator"></div>'));
       } else {
         this.$el.prepend(taskLineEl);
+        taskLineEl.before($('<div class="separator"></div>'));
       }
       taskLine.focusDescription();
       if ((_ref = this.todoListView) != null ? _ref.isEditMode : void 0) {
@@ -2271,7 +2409,7 @@ window.require.register("views/templates/task", function(exports, require, modul
   var interp;
   buf.push('<button class="btn btn-info todo-button">todo</button><input');
   buf.push(attrs({ 'type':("text"), 'contenteditable':("true"), 'value':("" + (model.description) + ""), "class": ('description') }, {"type":true,"contenteditable":true,"value":true}));
-  buf.push('/><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
+  buf.push('/><div class="handle"><i class="icon-move"></i></div><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
   if ( model.done)
   {
   buf.push('<span class="task-date">' + escape((interp = model.fullDate) == null ? '' : interp) + '</span>');
@@ -2297,7 +2435,7 @@ window.require.register("views/templates/todolist", function(exports, require, m
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"></p><p class="description"></p><button data-toggle="tooltip" title="Shortcut: alt+t" class="btn btn-info toggle-task-form">Loading...</button></header><div class="new-task task clearfix"><button class="btn btn-info add-task disabled">new</button><input type="text" contenteditable="true" value="" class="description"/></div><div id="task-list"></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
+  buf.push('<header class="todo-list-title clearfix"><p class="breadcrumb"></p><p class="description"></p><button data-toggle="tooltip" title="Shortcut: alt+t" class="btn btn-info toggle-task-form">Loading...</button></header><div class="new-task task clearfix"><button class="btn btn-info add-task disabled">new</button><input type="text" contenteditable="true" value="" class="description"/></div><div id="task-list"><div class="separator"></div></div><h2 class="archive-title">archives</h2><div id="archive-list"></div>');
   }
   return buf.join("");
   };
@@ -2315,7 +2453,7 @@ window.require.register("views/templates/tree_buttons", function(exports, requir
 });
 window.require.register("views/todolist_view", function(exports, require, module) {
   var NewTaskForm, Task, TaskCollection, TaskList, helpers, slugify,
-    _this = this,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -2348,23 +2486,17 @@ window.require.register("views/todolist_view", function(exports, require, module
 
 
     function TodoListWidget(model) {
-      var _this = this;
       this.model = model;
-      this.removeCreationInfos = function() {
-        return TodoListWidget.prototype.removeCreationInfos.apply(_this, arguments);
-      };
-      this.displayCreationInfos = function() {
-        return TodoListWidget.prototype.displayCreationInfos.apply(_this, arguments);
-      };
-      this.creationInfosRequired = function() {
-        return TodoListWidget.prototype.creationInfosRequired.apply(_this, arguments);
-      };
-      this.onEditClicked = function(event) {
-        return TodoListWidget.prototype.onEditClicked.apply(_this, arguments);
-      };
-      this.onAddClicked = function(event) {
-        return TodoListWidget.prototype.onAddClicked.apply(_this, arguments);
-      };
+      this.removeCreationInfos = __bind(this.removeCreationInfos, this);
+
+      this.displayCreationInfos = __bind(this.displayCreationInfos, this);
+
+      this.creationInfosRequired = __bind(this.creationInfosRequired, this);
+
+      this.onEditClicked = __bind(this.onEditClicked, this);
+
+      this.onAddClicked = __bind(this.onAddClicked, this);
+
       TodoListWidget.__super__.constructor.call(this);
       if (this.model != null) {
         this.id = this.model.slug;
@@ -2394,7 +2526,7 @@ window.require.register("views/todolist_view", function(exports, require, module
     };
 
     /*
-    # Listeners
+        # Listeners
     */
 
 
@@ -2436,13 +2568,13 @@ window.require.register("views/todolist_view", function(exports, require, module
     };
 
     /*
-    # Functions
+        # Functions
     */
 
 
     TodoListWidget.prototype.loadData = function() {
       var _this = this;
-      if (this.model == null) {
+      if (!(this.model != null)) {
         this.tasks.url = "tasks/todo";
         this.archiveTasks.url = "tasks/archives";
       } else {
@@ -2562,7 +2694,7 @@ window.require.register("views/todolist_view", function(exports, require, module
 });
 window.require.register("views/widgets/have_done_list", function(exports, require, module) {
   var TaskList,
-    _this = this,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -2579,10 +2711,7 @@ window.require.register("views/widgets/have_done_list", function(exports, requir
     HaveDoneListModal.prototype.initialize = function() {};
 
     function HaveDoneListModal() {
-      var _this = this;
-      this.hide = function() {
-        return HaveDoneListModal.prototype.hide.apply(_this, arguments);
-      };
+      this.hide = __bind(this.hide, this);
       HaveDoneListModal.__super__.constructor.call(this);
     }
 
@@ -2620,7 +2749,7 @@ window.require.register("views/widgets/have_done_list", function(exports, requir
 });
 window.require.register("views/widgets/tree", function(exports, require, module) {
   var slugify,
-    _this = this;
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   slugify = require("helpers").slugify;
 
@@ -2644,10 +2773,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
     */
 
     function Tree(navEl, data, homeViewCbk) {
-      var _this = this;
-      this._getSlugPath = function(parent, nodeName) {
-        return Tree.prototype._getSlugPath.apply(_this, arguments);
-      };
+      this._getSlugPath = __bind(this._getSlugPath, this);
       this.jstreeEl = $("#tree");
       navEl.prepend(require('../templates/tree_buttons'));
       data = JSON.parse(data);

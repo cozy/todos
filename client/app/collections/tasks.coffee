@@ -196,6 +196,9 @@ class exports.TaskCollection extends Backbone.Collection
         else
             newNextTask = @at(newIndex)
 
+        task.setPreviousTask newPreviousTask
+        task.setNextTask newNextTask
+
         @remove task
         @add task,
             at: newIndex

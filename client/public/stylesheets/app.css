@@ -5831,6 +5831,9 @@ html {
     display: none;
   }
 }
+.dragover {
+  border: 1px solid #f00;
+}
 @font-face {
   font-family: main;
   src: url("/fonts/signika-regular.ttf");

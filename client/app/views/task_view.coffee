@@ -13,9 +13,19 @@ class exports.TaskLine extends Backbone.View
         "click .up-task-button": "onUpButtonClicked"
         "click .down-task-button": "onDownButtonClicked"
         "click .task-infos a": "onListLinkClicked"
+        "dragstart": "onDragStart"
+        "dragover": "onDragOver"
+        "dragenter": "onDragEnter"
+        "dragleave": "onDragLeave"
+        "drop": "onDrop"
+        "dragend": "onDragEnd"
+        "hover": "onMouseOver"
 
     ###
     # Initializers
+    ###
+
+    ###
     ###
 
     constructor: (@model, @list) ->
@@ -26,6 +36,7 @@ class exports.TaskLine extends Backbone.View
         @model.view = @
         @firstDel = false
         @isDeleting = false
+
         @list
 
     # Render wiew and bind it to model.
@@ -53,7 +64,101 @@ class exports.TaskLine extends Backbone.View
                 @todoButton.html("done")
             else
                 @todoButton.html("todo")
+
+        @$el.prop 'draggable', true
+
         @el
+
+    ###
+        Drag'n'Drop management
+    ###
+
+    onDragStart: (event) ->
+        @$el.css 'opacity', '0.4'
+
+        event.originalEvent.dataTransfer.effectAllowed = 'all'
+        @list.draggedItem = @
+
+    onDragOver: (event) ->
+        if event.preventDefault
+            event.preventDefault()
+        event.originalEvent.dataTransfer.dropEffect = 'copy'
+
+        return false
+
+    onDragEnter: (event) ->
+
+        pageY = event.originalEvent.pageY
+        targetOffsetTop = event.target.offsetTop
+        offsetY = event.originalEvent.offsetY
+        y = pageY - targetOffsetTop | offsetY
+        limit = @$el.height() / 2
+
+        $('.separator').css('visibility', 'hidden')
+        index = @list.$el.children().index(@$el)
+
+        if(y <= limit)
+            $(@list.$el.children()[index - 1]).css('visibility', 'visible')
+        else
+            $(@list.$el.children()[index + 1]).css('visibility', 'visible')
+
+    onDragLeave: (event) ->
+        # nothing
+
+    onDrop: (event) ->
+        if event.stopPropagation
+            event.stopPropagation()
+
+        pageY = event.originalEvent.pageY
+        targetOffsetTop = event.target.offsetTop
+        offsetY = event.originalEvent.offsetY
+        y = pageY - targetOffsetTop | offsetY
+        limit = @$el.height() / 2
+
+        index = @list.$el.children('.task').index(@$el)
+        newIndex = index
+        if(y > limit)
+            newIndex = index + 1
+
+        @onReorder @list.draggedItem, newIndex
+
+        return false
+
+    onDragEnd: (event) ->
+        $('.separator').css 'visibility', 'hidden'
+        @$el.css 'opacity', '1'
+        @list.draggedItem = null
+
+    onReorder: (draggedItem, newIndex) ->
+
+        if not @saving
+            draggedItem.saving = true
+            draggedItem.showLoading()
+            isReordered = @model.collection.reorder draggedItem.model, newIndex
+
+            childrenTasks = @list.$el.children('.task')
+            oldIndex = childrenTasks.index(draggedItem.$el)
+            children = @list.$el.children()
+            index = children.index(draggedItem.$el)
+            separator = children.eq(index + 1)
+
+            if newIndex >= childrenTasks.length
+                @list.$el.append(draggedItem.$el)
+            else
+                childrenTasks.eq(newIndex).before(draggedItem.$el)
+            separator.insertAfter(draggedItem.$el)
+            if @model.collection.listId? and not @model.done and isReordered
+                draggedItem.model.save null,
+                success: =>
+                    draggedItem.saving = false
+                    draggedItem.hideLoading()
+
+
+                error: =>
+                    console.log "An error while saving the task."
+                    draggedItem.saving = false
+                    draggedItem.hideLoading()
+
 
     # Listen for description modification
     setListeners: ->
@@ -87,6 +192,14 @@ class exports.TaskLine extends Backbone.View
     ###
     # Listeners
     ###
+
+    onMouseOver: (event) ->
+        if event.type is 'mouseenter'
+            @$el.find('.handle').css('display', 'inline-block')
+            @$el.children('.description').addClass('hovered')
+        else
+            @$el.children('.description').removeClass('hovered')
+            @$el.find('.handle').hide()
 
     # On todo button clicked, update task state and send modifications to
     # backend.

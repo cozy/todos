@@ -14,13 +14,14 @@ class exports.NewTaskForm extends Backbone.View
         @newTaskFormInput = @newTaskForm.find ".description"
         @toggleButton = $('button.toggle-task-form')
 
-        # When the list is loaded we start the mangement
+        # When the list is loaded the first time, we start handling the form
         @taskList.tasks.on 'reset', (collection) =>
             @initializeForm()
+            @taskList.tasks.off 'reset' # we only want this to be executed once
 
         # If the list is empty, we need to show the form
         @taskList.tasks.on 'remove', (collection) =>
-            @toggleTaskForm false, true
+            @toggleTaskForm false, true if @taskList.tasks.length == 0
 
         # whether the user has written something or not in the new task form
         @hasUserTyped = false

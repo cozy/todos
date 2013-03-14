@@ -191,7 +191,7 @@ class exports.TaskLine extends Backbone.View
             else
                 @onUpKeyup() if keyCode is 38
                 @onDownKeyup() if keyCode is 40
-                @onEnterKeyup() if keyCode is 13
+                @onEnterKeyup(event.shiftKey) if keyCode is 13
                 @onBackspaceKeyup() if keyCode is 8
                 @onDownKeyup() if keyCode is 9 and not event.shiftKey
                 @onUpKeyup() if keyCode is 9 and event.shiftKey
@@ -320,14 +320,19 @@ class exports.TaskLine extends Backbone.View
         @onDownButtonClicked()
 
     # When enter key is up a new task is created below current one.
-    onEnterKeyup: ->
+    onEnterKeyup: (isShiftKeyPressed) ->
         if @model.collection.listId?
             @showLoading()
             task = new Task
                 description: "new task"
                 list: @model.collection.listId
 
-            @model.collection.insertTask @model, task,
+            if isShiftKeyPressed
+                insertAfter = @model.collection.getPreviousTask(@model)
+            else
+                insertAfter = @model
+
+            @model.collection.insertTask insertAfter, task,
                  success: (task) =>
                      helpers.selectAll task.view.descriptionField
                      @hideLoading()

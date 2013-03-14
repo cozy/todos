@@ -22,6 +22,7 @@ class exports.TaskList extends Backbone.View
     addTaskLine: (task) ->
         taskLine = new TaskLine task, @
         $(@el).append taskLine.render()
+        @$el.append $('<div class="separator"></div>')
 
     # Add a date line that just display date of all following tasks
     addDateLine: (date) ->
@@ -73,8 +74,11 @@ class exports.TaskList extends Backbone.View
         taskLineEl = $(taskLine.render())
         if previousTaskLine?
             taskLineEl.insertAfter($(previousTaskLine.el))
+            taskLineEl.after $('<div class="separator"></div>')
         else
             @$el.prepend(taskLineEl)
+            taskLineEl.before $('<div class="separator"></div>')
+
 
         taskLine.focusDescription()
         if @todoListView?.isEditMode

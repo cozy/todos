@@ -77,11 +77,13 @@ class exports.TaskLine extends Backbone.View
         event.originalEvent.dataTransfer.effectAllowed = 'all'
         @list.draggedItem = @
 
-    onDragOver: (event) ->
-        if event.preventDefault
-            event.preventDefault()
+        # mandatory to firefox
+        event.originalEvent.dataTransfer.setData 'text/plain', @model.id
 
-        event.originalEvent.dataTransfer.dropEffect = 'copy'
+    onDragOver: (event) ->
+
+        event.preventDefault() if event.preventDefault
+        event.originalEvent.dataTransfer.dropEffect = 'move'
         $('.separator').css('visibility', 'hidden')
         index = @list.$el.children().index(@$el)
 

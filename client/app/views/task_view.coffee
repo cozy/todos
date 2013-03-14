@@ -117,10 +117,22 @@ class exports.TaskLine extends Backbone.View
 
         index = @list.$el.children('.task').index(@$el)
         newIndex = index
-        if(y > limit)
+        if(y > limit) && index > 0
             newIndex = index + 1
 
-        @onReorder @list.draggedItem, newIndex
+            nextTask = $(@list.$el.children('.task')[index + 1])
+            nextTaskID = nextTask?.prop 'id'
+        else
+            previousTask = $(@list.$el.children('.task')[index - 1])
+            previousTaskID = previousTask?.prop 'id'
+
+
+        draggedItemID = @list.draggedItem.model.id
+        condition = (nextTaskID? and nextTaskID is draggedItemID) or
+                    (previousTaskID? and previousTaskID is draggedItemID)
+
+        unless draggedItemID is @model.id or condition
+            @onReorder @list.draggedItem, newIndex
 
         return false
 
@@ -130,30 +142,27 @@ class exports.TaskLine extends Backbone.View
         @list.draggedItem = null
 
     onReorder: (draggedItem, newIndex) ->
-
         if not @saving
-            draggedItem.saving = true
-            draggedItem.showLoading()
             isReordered = @model.collection.reorder draggedItem.model, newIndex
 
-            childrenTasks = @list.$el.children('.task')
-            oldIndex = childrenTasks.index(draggedItem.$el)
-            children = @list.$el.children()
-            index = children.index(draggedItem.$el)
-            separator = children.eq(index + 1)
+            if @model.collection.listId? and isReordered
+                draggedItem.saving = true
+                draggedItem.showLoading()
+                childrenTasks = @list.$el.children('.task')
+                oldIndex = childrenTasks.index(draggedItem.$el)
+                children = @list.$el.children()
+                index = children.index(draggedItem.$el)
+                separator = children.eq(index + 1)
 
-            if newIndex >= childrenTasks.length
-                @list.$el.append(draggedItem.$el)
-            else
-                childrenTasks.eq(newIndex).before(draggedItem.$el)
-            separator.insertAfter(draggedItem.$el)
-            if @model.collection.listId? and not @model.done and isReordered
+                if newIndex >= childrenTasks.length
+                    @list.$el.append(draggedItem.$el)
+                else
+                    childrenTasks.eq(newIndex).before(draggedItem.$el)
+                separator.insertAfter(draggedItem.$el)
                 draggedItem.model.save null,
                 success: =>
                     draggedItem.saving = false
                     draggedItem.hideLoading()
-
-
                 error: =>
                     console.log "An error while saving the task."
                     draggedItem.saving = false

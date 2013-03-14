@@ -176,8 +176,6 @@ class exports.TaskCollection extends Backbone.Collection
 
         return true
 
-    #
-    #
     reorder: (task, newIndex) ->
         index = @toArray().indexOf task
 
@@ -202,7 +200,7 @@ class exports.TaskCollection extends Backbone.Collection
         @add task,
             at: newIndex
             silent: true
-
+        return true
 
     # Remove task from collection and delete it from backend.
     # Update previous and next links.

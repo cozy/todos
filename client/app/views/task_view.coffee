@@ -79,14 +79,15 @@ class exports.TaskLine extends Backbone.View
         event.originalEvent.dataTransfer.effectAllowed = 'all'
         @list.draggedItem = @
 
+
+
     onDragOver: (event) ->
         if event.preventDefault
             event.preventDefault()
+
         event.originalEvent.dataTransfer.dropEffect = 'copy'
-
-        return false
-
-    onDragEnter: (event) ->
+        $('.separator').css('visibility', 'hidden')
+        index = @list.$el.children().index(@$el)
 
         pageY = event.originalEvent.pageY
         targetOffsetTop = event.target.offsetTop
@@ -94,13 +95,18 @@ class exports.TaskLine extends Backbone.View
         y = pageY - targetOffsetTop | offsetY
         limit = @$el.height() / 2
 
-        $('.separator').css('visibility', 'hidden')
-        index = @list.$el.children().index(@$el)
 
         if(y <= limit)
             $(@list.$el.children()[index - 1]).css('visibility', 'visible')
         else
             $(@list.$el.children()[index + 1]).css('visibility', 'visible')
+
+        return false
+
+    onDragEnter: (event) ->
+
+        # nothing
+
 
     onDragLeave: (event) ->
         # nothing

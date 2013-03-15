@@ -35,13 +35,6 @@ class exports.TaskLine extends Backbone.View
         @firstDel = false
         @isDeleting = false
 
-        if !@list.tasks.listId?
-            @$el.unbind('dragstart')
-            @$el.unbind('dragover')
-            @$el.unbind('drop')
-            @$el.unbind('dragend')
-            @$el.unbind('hover')
-
         @list
 
     # Render wiew and bind it to model.
@@ -70,7 +63,14 @@ class exports.TaskLine extends Backbone.View
             else
                 @todoButton.html("todo")
 
-        @$el.prop 'draggable', true
+        if !@list.tasks.listId?
+            @$el.unbind('dragstart')
+            @$el.unbind('dragover')
+            @$el.unbind('drop')
+            @$el.unbind('dragend')
+            @$el.unbind('hover')
+        else
+            @$el.prop 'draggable', true
 
         @el
 

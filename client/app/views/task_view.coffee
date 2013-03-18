@@ -91,8 +91,8 @@ class exports.TaskLine extends Backbone.View
 
         event.preventDefault() if event.preventDefault
         event.originalEvent.dataTransfer.dropEffect = 'move'
-        $('.separator').css('visibility', 'hidden')
-        index = @list.$el.children().index(@$el)
+        $('.separator').css 'visibility', 'hidden'
+        index = @list.$el.children().index @$el
 
         pageY = event.originalEvent.pageY
         targetOffsetTop = event.target.offsetTop
@@ -102,9 +102,9 @@ class exports.TaskLine extends Backbone.View
 
 
         if(y <= limit)
-            $(@list.$el.children()[index - 1]).css('visibility', 'visible')
+            $(@list.$el.children()[index - 1]).css 'visibility', 'visible'
         else
-            $(@list.$el.children()[index + 1]).css('visibility', 'visible')
+            $(@list.$el.children()[index + 1]).css 'visibility', 'visible'
 
         return false
 
@@ -118,9 +118,9 @@ class exports.TaskLine extends Backbone.View
         y = pageY - targetOffsetTop | offsetY
         limit = @$el.height() / 2
 
-        index = @list.$el.children('.task').index(@$el)
+        index = @list.$el.children('.task').index @$el
         newIndex = index
-        if(y > limit) && index > 0
+        if y > limit
             newIndex = index + 1
 
             nextTask = $(@list.$el.children('.task')[index + 1])
@@ -128,7 +128,6 @@ class exports.TaskLine extends Backbone.View
         else
             previousTask = $(@list.$el.children('.task')[index - 1])
             previousTaskID = previousTask?.prop 'id'
-
 
         draggedItemID = @list.draggedItem.model.id
         condition = (nextTaskID? and nextTaskID is draggedItemID) or
@@ -162,6 +161,7 @@ class exports.TaskLine extends Backbone.View
                 else
                     childrenTasks.eq(newIndex).before(draggedItem.$el)
                 separator.insertAfter(draggedItem.$el)
+
                 draggedItem.model.save null,
                 success: =>
                     draggedItem.saving = false

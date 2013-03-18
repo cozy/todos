@@ -182,10 +182,10 @@ class exports.TaskCollection extends Backbone.Collection
         oldPreviousTask = @getPreviousTask task
         oldNextTask = @getNextTask task
 
-        if oldNextTask?
-            oldNextTask.setPreviousTask oldPreviousTask
+        if oldPreviousTask?
+            oldPreviousTask.setNextTask(oldNextTask)
         else
-            oldPreviousTask.setNextTask oldNextTask # null
+            oldNextTask.setPreviousTask(oldPreviousTask)
 
         newPreviousTask = null
         if newIndex > 0
@@ -199,10 +199,22 @@ class exports.TaskCollection extends Backbone.Collection
         task.setPreviousTask newPreviousTask
         task.setNextTask newNextTask
 
+        newNextTask?.previousTask = task.id
+
+        # avoid error in the index because we make a remove/add
+        if index < newIndex
+            newIndex--
+
+        console.debug newIndex
         @remove task
         @add task,
             at: newIndex
             silent: true
+
+        #console.debug @toArray()
+
+        #return false
+
         return true
 
     # Remove task from collection and delete it from backend.

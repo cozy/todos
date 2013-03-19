@@ -67,7 +67,7 @@ action 'archives', ->
 action 'create', ->
     newTask = new Task body
     newTask.list = @listId
-    
+
     Task.createNew newTask, (err, task) ->
         if err
             console.log err
@@ -103,10 +103,6 @@ action 'update', ->
     else if body.done? and not body.done and @task.done != body.done
         Task.todo @task, body, answer
 
-    # Weird case that happens when task is moved as first task
-    else if body.previousTask is null and @task.previousTask isnt null
-        Task.setFirstTask @task, answer
-
     # When link changes previous and next task are updated.
     else if body.previousTask != undefined \
             and body.previousTask != @task.previousTask
@@ -116,7 +112,7 @@ action 'update', ->
         @task.description = body.description
         @task.extractTags()
         body.tags = @task.tags
-        
+
         @task.updateAttributes body, answer
 
 # Destroy given task and remove it from todo linked list.

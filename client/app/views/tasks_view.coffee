@@ -16,12 +16,15 @@ class exports.TaskList extends Backbone.View
 
         @tasks = new TaskCollection @, id, options
 
+        @isSaving = false
+
     # Add a line at the bottom of the list.
     # If grouping option is activated, date is displayed every time it changes
     # in listing.
     addTaskLine: (task) ->
         taskLine = new TaskLine task, @
         $(@el).append taskLine.render()
+        @$el.append $('<div class="separator"></div>')
 
     # Add a date line that just display date of all following tasks
     addDateLine: (date) ->
@@ -43,14 +46,16 @@ class exports.TaskList extends Backbone.View
     # Set focus on previous task. Preserve focus position.
     moveUpFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
-        nextDescription = taskLine.list.$(selector).prev().find(".description")
+        nextDescription = taskLine.list.$(selector).prev().prev()
+                            .find(".description")
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
 
     # Set focus on next task. Preserve focus position.
     moveDownFocus: (taskLine, options) ->
         selector = "##{taskLine.model.id}"
-        nextDescription = taskLine.list.$(selector).next().find(".description")
+        nextDescription = taskLine.list.$(selector).next().next()
+                            .find(".description")
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
 
@@ -73,8 +78,11 @@ class exports.TaskList extends Backbone.View
         taskLineEl = $(taskLine.render())
         if previousTaskLine?
             taskLineEl.insertAfter($(previousTaskLine.el))
+            taskLineEl.after $('<div class="separator"></div>')
         else
             @$el.prepend(taskLineEl)
+            taskLineEl.before $('<div class="separator"></div>')
+
 
         taskLine.focusDescription()
         if @todoListView?.isEditMode

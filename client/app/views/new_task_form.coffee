@@ -14,13 +14,14 @@ class exports.NewTaskForm extends Backbone.View
         @newTaskFormInput = @newTaskForm.find ".description"
         @toggleButton = $('button.toggle-task-form')
 
-        # When the list is loaded we start the mangement
+        # When the list is loaded the first time, we start handling the form
         @taskList.tasks.on 'reset', (collection) =>
             @initializeForm()
+            @taskList.tasks.off 'reset' # we only want this to be executed once
 
         # If the list is empty, we need to show the form
         @taskList.tasks.on 'remove', (collection) =>
-            @toggleTaskForm false, true
+            @toggleTaskForm false, true if @taskList.tasks.length is 0
 
         # whether the user has written something or not in the new task form
         @hasUserTyped = false
@@ -52,7 +53,7 @@ class exports.NewTaskForm extends Backbone.View
             @newTaskButtonHandler()
 
             keyCode = event.which | event.keyCode
-            @taskCreationHandler(event) if keyCode is 13 # enter key
+            @taskCreationHandler event if keyCode is 13 # enter key
 
         @newTaskFormInput.focus (event) =>
             @newTaskFormInput.val("") unless @hasUserTyped
@@ -68,7 +69,7 @@ class exports.NewTaskForm extends Backbone.View
 
     # "new task" Button behaviour management
     newTaskButtonHandler: () ->
-        if !@hasUserTyped || !@newTaskFormInput.val()
+        if !@hasUserTyped or !@newTaskFormInput.val()
             @newTaskFormButton.addClass 'disabled'
             @newTaskFormButton.html 'new'
             @newTaskFormButton.unbind 'click'
@@ -117,7 +118,7 @@ class exports.NewTaskForm extends Backbone.View
 
         $(document).keyup (event) =>
             keyCode = event.which | event.keyCode
-            if (keyCode is 84 && event.altKey) # alt + t
+            if keyCode is 84 && event.altKey # alt + t
                 @toggleTaskForm(true)
 
         @toggleButton.click (event) =>
@@ -125,14 +126,14 @@ class exports.NewTaskForm extends Backbone.View
 
     handleDefaultFormState: () ->
 
-        show_form = $.cookie('todos_prefs:show_form')
+        show_form = $.cookie 'todos_prefs:show_form'
 
         # The collection must fire "reset" before the value is relevant
         isListEmpty = @taskList.tasks.length is 0
 
         # The form is shown by default if the cookie is set or
         # if it doesn't exist or if the collection is empty
-        if(show_form is 'true' || !show_form? || isListEmpty)
+        if show_form is 'true' or !show_form? or isListEmpty
             @showTaskForm()
 
         else

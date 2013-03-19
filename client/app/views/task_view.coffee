@@ -162,6 +162,7 @@ class exports.TaskLine extends Backbone.View
                 else
                     childrenTasks.eq(newIndex).before(draggedItem.$el)
                 separator.insertAfter(draggedItem.$el)
+                draggedItem.descriptionField.focus()
 
                 draggedItem.model.save null,
                 success: =>
@@ -350,18 +351,6 @@ class exports.TaskLine extends Backbone.View
         @.$(".todo-button").html "todo"
         @.$(".todo-button").addClass "btn-info"
         $(@el).removeClass "done"
-
-    # Put line above line correspondig to previousLineId.
-    up: (previousLineId) ->
-        cursorPosition = @descriptionField.getCursorPosition()
-        $(@el).insertBefore($("##{previousLineId}"))
-        @descriptionField.setCursorPosition cursorPosition
-
-    # Put line below line correspondig to nextLineId.
-    down: (nextLineId) ->
-        cursorPosition = @descriptionField.getCursorPosition()
-        $(@el).insertAfter($("##{nextLineId}"))
-        @descriptionField.setCursorPosition cursorPosition
 
     # Remove object from view and unbind listeners.
     remove: ->

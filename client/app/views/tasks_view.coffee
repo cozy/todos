@@ -16,6 +16,8 @@ class exports.TaskList extends Backbone.View
 
         @tasks = new TaskCollection @, id, options
 
+        @isSaving = false
+
     # Add a line at the bottom of the list.
     # If grouping option is activated, date is displayed every time it changes
     # in listing.

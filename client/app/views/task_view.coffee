@@ -144,11 +144,12 @@ class exports.TaskLine extends Backbone.View
         @list.draggedItem = null
 
     onReorder: (draggedItem, newIndex) ->
-        if not @saving
+        #console.debug newIndex
+        if not @list.isSaving
             isReordered = @model.collection.reorder draggedItem.model, newIndex
 
             if @model.collection.listId? and isReordered
-                draggedItem.saving = true
+                @list.isSaving = true
                 draggedItem.showLoading()
                 childrenTasks = @list.$el.children('.task')
                 oldIndex = childrenTasks.index(draggedItem.$el)
@@ -164,11 +165,11 @@ class exports.TaskLine extends Backbone.View
 
                 draggedItem.model.save null,
                 success: =>
-                    draggedItem.saving = false
+                    @list.isSaving = false
                     draggedItem.hideLoading()
                 error: =>
                     console.log "An error while saving the task."
-                    draggedItem.saving = false
+                    @list.isSaving = false
                     draggedItem.hideLoading()
 
 
@@ -178,6 +179,13 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.keypress (event) ->
             keyCode = event.which | event.keyCode
             keyCode != 13 and keyCode != 9
+
+        # to detect the "CMD" key on OSX
+        @descriptionField.keydown (event) =>
+            keyCode = event.which | event.keyCode
+
+            @onCtrlUpKeyup() if keyCode is 38 and event.metaKey
+            @onCtrlDownKeyup() if keyCode is 40 and event.metaKey
 
         @descriptionField.keyup (event) =>
             keyCode = event.which | event.keyCode
@@ -239,48 +247,15 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        persistUp = =>
-            @focusDescription()
-            @showLoading()
-            @model.save null,
-                success: =>
-                    @todoButton = @$(".todo-button")
-                    @hideLoading()
-                    @saving = false
-                error: =>
-                    @todoButton = @$(".todo-button")
-                    alert "An error occured, modifications were not saved."
-                    @hideLoading()
-                    @saving = false
-
-        if not @saving
-            @saving = true
-            isUp = @model.collection.up @model
-            if @model.collection.listId? and not @model.done and isUp
-                persistUp()
-
+        newIndex = (@list.$el.children('.task').index @$el) - 1
+        @onReorder @, newIndex if newIndex? and newIndex >= 0
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        persistDown = =>
-            @showLoading()
-            @model.save null,
-                success: =>
-                    @todoButton = @$(".todo-button")
-                    @hideLoading()
-                    @saving = false
-                error: =>
-                    @todoButton = @$(".todo-button")
-                    alert "An error occured, modifications were not saved."
-                    @hideLoading()
-                    @saving = false
-
-        if not @saving
-            @saving = true
-            isDown = @model.collection.down @model
-            if @model.collection.listId? and not @model.done and isDown
-                persistDown()
-
+        tasks = @list.$el.children('.task')
+        taskListLength = tasks.length
+        newIndex = (tasks.index @$el) + 2
+        @onReorder @, newIndex if newIndex? and newIndex <= taskListLength
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode) =>

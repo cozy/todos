@@ -5572,7 +5572,7 @@ html {
   padding: 0;
 }
 .task {
-  padding: 2px 2%;
+  padding: 0 2%;
 }
 .task input {
   padding-left: 1%;
@@ -5619,6 +5619,12 @@ html {
   line-height: 35px;
   text-align: center;
   display: none;
+  background: url("../img/todos-handle.png") no-repeat center center;
+  -webkit-background-size: 20px 20px;
+  background-size: 20px 20px;
+  opacity: 0.5;
+  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
+  filter: alpha(opacity=50);
 }
 .separator {
   width: 100%;
@@ -5628,9 +5634,6 @@ html {
   border-bottom: 1px solid #ccc;
 }
 [draggable] {
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;

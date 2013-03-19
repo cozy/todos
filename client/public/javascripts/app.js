@@ -99,10 +99,6 @@ window.require.register("collections/tasks", function(exports, require, module) 
       this.view = view;
       this.listId = listId;
       this.options = options;
-      this.down = __bind(this.down, this);
-
-      this.up = __bind(this.up, this);
-
       this.onTaskAdded = __bind(this.onTaskAdded, this);
 
       this.onReset = __bind(this.onReset, this);
@@ -228,92 +224,15 @@ window.require.register("collections/tasks", function(exports, require, module) 
       }
     };
 
-    TaskCollection.prototype.up = function(task) {
-      var index, newPreviousTask, oldNextTask, oldPreviousTask;
-      index = this.toArray().indexOf(task);
-      if (index === 0) {
-        return false;
-      }
-      if (index > 0) {
-        oldPreviousTask = this.at(index - 1);
-      }
-      oldNextTask = this.at(index + 1);
-      if (index > 1) {
-        newPreviousTask = this.at(index - 2);
-      }
-      if (oldNextTask != null) {
-        oldNextTask.setPreviousTask(oldPreviousTask);
-        oldPreviousTask.setNextTask(oldNextTask);
-      } else {
-        oldPreviousTask.setNextTask(null);
-      }
-      if (newPreviousTask != null) {
-        newPreviousTask.setNextTask(task);
-        task.setPreviousTask(newPreviousTask);
-      } else {
-        task.setPreviousTask(null);
-      }
-      task.setNextTask(oldPreviousTask);
-      this.remove(task);
-      this.add(task, {
-        at: index - 1,
-        silent: true
-      });
-      task.view.up(oldPreviousTask.id);
-      return true;
-    };
-
-    TaskCollection.prototype.down = function(task) {
-      var index, newNextTask, oldNextTask, oldPreviousTask, tasksLength;
-      index = this.toArray().indexOf(task);
-      tasksLength = this.size();
-      if (index === tasksLength - 1) {
-        return false;
-      }
-      if (index < tasksLength - 1) {
-        oldNextTask = this.at(index + 1);
-      }
-      if (index < tasksLength - 2) {
-        newNextTask = this.at(index + 2);
-      }
-      if (index > 0) {
-        oldPreviousTask = this.at(index - 1);
-      }
-      if (oldPreviousTask != null) {
-        oldPreviousTask.setNextTask(oldNextTask);
-        if (oldNextTask != null) {
-          oldNextTask.setPreviousTask(oldPreviousTask);
-        }
-      } else {
-        if (oldNextTask != null) {
-          oldNextTask.setPreviousTask(null);
-        }
-      }
-      if (newNextTask != null) {
-        newNextTask.setPreviousTask(task);
-        task.setNextTask(newNextTask);
-      } else {
-        task.setNextTask(null);
-      }
-      task.setPreviousTask(oldNextTask);
-      this.remove(task);
-      this.add(task, {
-        at: index + 1,
-        silent: true
-      });
-      task.view.down(oldNextTask.id);
-      return true;
-    };
-
     TaskCollection.prototype.reorder = function(task, newIndex) {
       var index, newNextTask, newPreviousTask, oldNextTask, oldPreviousTask;
       index = this.toArray().indexOf(task);
       oldPreviousTask = this.getPreviousTask(task);
       oldNextTask = this.getNextTask(task);
-      if (oldNextTask != null) {
-        oldNextTask.setPreviousTask(oldPreviousTask);
-      } else {
+      if (oldPreviousTask != null) {
         oldPreviousTask.setNextTask(oldNextTask);
+      } else {
+        oldNextTask.setPreviousTask(oldPreviousTask);
       }
       newPreviousTask = null;
       if (newIndex > 0) {
@@ -326,6 +245,9 @@ window.require.register("collections/tasks", function(exports, require, module) 
       }
       task.setPreviousTask(newPreviousTask);
       task.setNextTask(newNextTask);
+      if (index < newIndex) {
+        newIndex--;
+      }
       this.remove(task);
       this.add(task, {
         at: newIndex,
@@ -1831,7 +1753,15 @@ window.require.register("views/task_view", function(exports, require, module) {
           return _this.todoButton.html("todo");
         }
       });
-      this.$el.prop('draggable', true);
+      if (!(this.list.tasks.listId != null)) {
+        this.$el.unbind('dragstart');
+        this.$el.unbind('dragover');
+        this.$el.unbind('drop');
+        this.$el.unbind('dragend');
+        this.$el.unbind('hover');
+      } else {
+        this.$el.prop('draggable', true);
+      }
       return this.el;
     };
 
@@ -1843,7 +1773,8 @@ window.require.register("views/task_view", function(exports, require, module) {
     TaskLine.prototype.onDragStart = function(event) {
       this.$el.css('opacity', '0.4');
       event.originalEvent.dataTransfer.effectAllowed = 'all';
-      return this.list.draggedItem = this;
+      this.list.draggedItem = this;
+      return event.originalEvent.dataTransfer.setData('text/plain', this.model.id);
     };
 
     TaskLine.prototype.onDragOver = function(event) {
@@ -1851,7 +1782,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       if (event.preventDefault) {
         event.preventDefault();
       }
-      event.originalEvent.dataTransfer.dropEffect = 'copy';
+      event.originalEvent.dataTransfer.dropEffect = 'move';
       $('.separator').css('visibility', 'hidden');
       index = this.list.$el.children().index(this.$el);
       pageY = event.originalEvent.pageY;
@@ -1879,7 +1810,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       limit = this.$el.height() / 2;
       index = this.list.$el.children('.task').index(this.$el);
       newIndex = index;
-      if ((y > limit) && index > 0) {
+      if (y > limit) {
         newIndex = index + 1;
         nextTask = $(this.list.$el.children('.task')[index + 1]);
         nextTaskID = nextTask != null ? nextTask.prop('id') : void 0;
@@ -1904,10 +1835,10 @@ window.require.register("views/task_view", function(exports, require, module) {
     TaskLine.prototype.onReorder = function(draggedItem, newIndex) {
       var children, childrenTasks, index, isReordered, oldIndex, separator,
         _this = this;
-      if (!this.saving) {
+      if (!this.list.isSaving) {
         isReordered = this.model.collection.reorder(draggedItem.model, newIndex);
         if ((this.model.collection.listId != null) && isReordered) {
-          draggedItem.saving = true;
+          this.list.isSaving = true;
           draggedItem.showLoading();
           childrenTasks = this.list.$el.children('.task');
           oldIndex = childrenTasks.index(draggedItem.$el);
@@ -1920,14 +1851,15 @@ window.require.register("views/task_view", function(exports, require, module) {
             childrenTasks.eq(newIndex).before(draggedItem.$el);
           }
           separator.insertAfter(draggedItem.$el);
+          draggedItem.descriptionField.focus();
           return draggedItem.model.save(null, {
             success: function() {
-              draggedItem.saving = false;
+              _this.list.isSaving = false;
               return draggedItem.hideLoading();
             },
             error: function() {
               console.log("An error while saving the task.");
-              draggedItem.saving = false;
+              _this.list.isSaving = false;
               return draggedItem.hideLoading();
             }
           });
@@ -1941,6 +1873,16 @@ window.require.register("views/task_view", function(exports, require, module) {
         var keyCode;
         keyCode = event.which | event.keyCode;
         return keyCode !== 13 && keyCode !== 9;
+      });
+      this.descriptionField.keydown(function(event) {
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 38 && event.metaKey) {
+          _this.onCtrlUpKeyup();
+        }
+        if (keyCode === 40 && event.metaKey) {
+          return _this.onCtrlDownKeyup();
+        }
       });
       this.descriptionField.keyup(function(event) {
         var keyCode;
@@ -2030,59 +1972,20 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
-      var isUp, persistUp,
-        _this = this;
-      persistUp = function() {
-        _this.focusDescription();
-        _this.showLoading();
-        return _this.model.save(null, {
-          success: function() {
-            _this.todoButton = _this.$(".todo-button");
-            _this.hideLoading();
-            return _this.saving = false;
-          },
-          error: function() {
-            _this.todoButton = _this.$(".todo-button");
-            alert("An error occured, modifications were not saved.");
-            _this.hideLoading();
-            return _this.saving = false;
-          }
-        });
-      };
-      if (!this.saving) {
-        this.saving = true;
-        isUp = this.model.collection.up(this.model);
-        if ((this.model.collection.listId != null) && !this.model.done && isUp) {
-          return persistUp();
-        }
+      var newIndex;
+      newIndex = (this.list.$el.children('.task').index(this.$el)) - 1;
+      if ((newIndex != null) && newIndex >= 0) {
+        return this.onReorder(this, newIndex);
       }
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      var isDown, persistDown,
-        _this = this;
-      persistDown = function() {
-        _this.showLoading();
-        return _this.model.save(null, {
-          success: function() {
-            _this.todoButton = _this.$(".todo-button");
-            _this.hideLoading();
-            return _this.saving = false;
-          },
-          error: function() {
-            _this.todoButton = _this.$(".todo-button");
-            alert("An error occured, modifications were not saved.");
-            _this.hideLoading();
-            return _this.saving = false;
-          }
-        });
-      };
-      if (!this.saving) {
-        this.saving = true;
-        isDown = this.model.collection.down(this.model);
-        if ((this.model.collection.listId != null) && !this.model.done && isDown) {
-          return persistDown();
-        }
+      var newIndex, taskListLength, tasks;
+      tasks = this.list.$el.children('.task');
+      taskListLength = tasks.length;
+      newIndex = (tasks.index(this.$el)) + 2;
+      if ((newIndex != null) && newIndex <= taskListLength) {
+        return this.onReorder(this, newIndex);
       }
     };
 
@@ -2199,20 +2102,6 @@ window.require.register("views/task_view", function(exports, require, module) {
       return $(this.el).removeClass("done");
     };
 
-    TaskLine.prototype.up = function(previousLineId) {
-      var cursorPosition;
-      cursorPosition = this.descriptionField.getCursorPosition();
-      $(this.el).insertBefore($("#" + previousLineId));
-      return this.descriptionField.setCursorPosition(cursorPosition);
-    };
-
-    TaskLine.prototype.down = function(nextLineId) {
-      var cursorPosition;
-      cursorPosition = this.descriptionField.getCursorPosition();
-      $(this.el).insertAfter($("#" + nextLineId));
-      return this.descriptionField.setCursorPosition(cursorPosition);
-    };
-
     TaskLine.prototype.remove = function() {
       this.unbind();
       return $(this.el).remove();
@@ -2298,6 +2187,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
         id = this.todoListView.model.id;
       }
       this.tasks = new TaskCollection(this, id, options);
+      this.isSaving = false;
     }
 
     TaskList.prototype.addTaskLine = function(task) {
@@ -2329,7 +2219,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     TaskList.prototype.moveUpFocus = function(taskLine, options) {
       var nextDescription, selector;
       selector = "#" + taskLine.model.id;
-      nextDescription = taskLine.list.$(selector).prev().find(".description");
+      nextDescription = taskLine.list.$(selector).prev().prev().find(".description");
       if (nextDescription.length) {
         return this.moveFocus(taskLine.descriptionField, nextDescription, options);
       }
@@ -2338,7 +2228,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     TaskList.prototype.moveDownFocus = function(taskLine, options) {
       var nextDescription, selector;
       selector = "#" + taskLine.model.id;
-      nextDescription = taskLine.list.$(selector).next().find(".description");
+      nextDescription = taskLine.list.$(selector).next().next().find(".description");
       if (nextDescription.length) {
         return this.moveFocus(taskLine.descriptionField, nextDescription, options);
       }
@@ -2409,7 +2299,7 @@ window.require.register("views/templates/task", function(exports, require, modul
   var interp;
   buf.push('<button class="btn btn-info todo-button">todo</button><input');
   buf.push(attrs({ 'type':("text"), 'contenteditable':("true"), 'value':("" + (model.description) + ""), "class": ('description') }, {"type":true,"contenteditable":true,"value":true}));
-  buf.push('/><div class="handle"><i class="icon-move"></i></div><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
+  buf.push('/><div class="handle">&nbsp;</div><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
   if ( model.done)
   {
   buf.push('<span class="task-date">' + escape((interp = model.fullDate) == null ? '' : interp) + '</span>');

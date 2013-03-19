@@ -5,7 +5,7 @@ module.exports = (compound) ->
     Tree = compound.models.Tree
     Task = compound.models.Task
     TodoList = compound.models.TodoList
-
+    
     ## Requests
 
     User.all = (callback) -> User.request "all", callback
@@ -38,6 +38,11 @@ module.exports = (compound) ->
     tags =
         map: ->
             if not doc.done
+    Task.defineRequest "todosTag", todosTag, requests.checkError
+
+    tags =
+        map: ->
+            unless doc.done
                 for tag in doc.tags
                     emit tag, tag
             return

@@ -3,6 +3,7 @@ DataTree = require('../../common/data-tree').DataTree
 
 
 module.exports = (compound, Tree) ->
+    TodoList = compound.models.TodoList
 
     # Return all tree grouped by type.
     Tree.all = (params, callback) -> Tree.request "all", params, callback

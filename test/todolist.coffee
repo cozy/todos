@@ -3,11 +3,16 @@ async = require('async')
 Client = require('request-json').JsonClient
 DataTree = require("../common/data-tree").DataTree
 
-app = require('../server')
+instantiateApp = require('../server')
+app = instantiateApp()
 helpers = require("./helpers")
-
 client = new Client("http://localhost:8888/")
 
+Task = null
+helpers = null
+app.compound.on 'models', (models, compound) ->
+    Task = compound.models.Task
+    helpers = require("./helpers")(app.compound)
 
 describe "/todolists", ->
 
@@ -16,7 +21,7 @@ describe "/todolists", ->
         helpers.cleanDb done
 
     after (done) ->
-        app.close()
+        app.compound.server.close()
         helpers.cleanDb done
 
 

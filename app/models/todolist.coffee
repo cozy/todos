@@ -2,6 +2,9 @@ async = require("async")
 requests = require('../../common/requests')
 
 module.exports = (compound, TodoList) ->
+    Task = compound.models.Task
+    Tree = compound.models.Tree
+
     TodoList.all = (callback) -> TodoList.request "all", callback
 
     ###

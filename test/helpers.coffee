@@ -1,19 +1,21 @@
 Client = require('request-json').JsonClient
-client = new Client("http://localhost:8888/")
+client = new Client "http://localhost:8888/"
 
 module.exports = (compound) ->
     TodoList = compound.models.TodoList
     Task = compound.models.Task
     Tree = compound.models.Tree
 
+    helpers = {}
+
     # Remove all todolists and tree from DB.
-    exports.cleanDb = (callback) ->
+    helpers.cleanDb = (callback) ->
         TodoList.destroyAll ->
             Tree.destroyAll ->
                 Task.destroyAll callback
 
     # Create a new todo list.
-    exports.createTodoListFunction = (title, path) ->
+    helpers.createTodoListFunction = (title, path) ->
         (callback) ->
             todolist =
                 title: title
@@ -21,7 +23,7 @@ module.exports = (compound) ->
 
             TodoList.create todolist, callback
 
-    exports.newTodoListFunction = (title, parentId) ->
+    helpers.newTodoListFunction = (title, parentId) ->
         (callback) ->
             todolist =
                 title: title
@@ -29,7 +31,7 @@ module.exports = (compound) ->
 
         client.post "todolists/", todolist, callback
             
-    exports.createTaskFunction = (list, done, description) ->
+    helpers.createTaskFunction = (list, done, description) ->
         (callback) ->
             task =
                 list: list
@@ -39,4 +41,4 @@ module.exports = (compound) ->
             Task.create task, (err, taskObject) ->
                 Task.setFirstTask taskObject, callback
             
-    exports
+    helpers

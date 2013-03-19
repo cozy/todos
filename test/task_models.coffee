@@ -1,35 +1,39 @@
 should = require('chai').Should()
 async = require('async')
-app = require('../server')
-helpers = require("./helpers")
+instantiateApp = require('../server')
 
-
-
-initDb = (callback) ->
-    async.series [
-        helpers.createTodoListFunction "list 01", "all/list-01"
-        helpers.createTodoListFunction "list 02", "all/list-02"
-    ], ->
-        TodoList.all (err, lists) ->
-            id1 = lists[0].id
-            id2 = lists[1].id
-            async.series [
-                helpers.createTaskFunction id1, false, "task 01"
-                helpers.createTaskFunction id1, false, "task 02"
-                helpers.createTaskFunction id1, true, "task 03"
-                helpers.createTaskFunction id1, false, "task 04"
-                helpers.createTaskFunction id2, false, "task 05"
-                helpers.createTaskFunction id2, false, "task 06"
-                helpers.createTaskFunction id2, true, "task 07"
-                helpers.createTaskFunction id2, true, "task 08"
-            ], ->
-                callback()
-
-
+app = instantiateApp()
+TodoList = null
+Task = null
+helpers = null
+app.compound.on 'models', (models, compound) ->
+    TodoList = compound.models.TodoList
+    Task = compound.models.Task
+    helpers = require("./helpers")(app.compound)
 
 describe "Task Model", ->
 
     before (done) ->
+        initDb = (callback) ->
+            async.series [
+                helpers.createTodoListFunction "list 01", "all/list-01"
+                helpers.createTodoListFunction "list 02", "all/list-02"
+            ], ->
+                TodoList.all (err, lists) ->
+                    id1 = lists[0].id
+                    id2 = lists[1].id
+                    async.series [
+                        helpers.createTaskFunction id1, false, "task 01"
+                        helpers.createTaskFunction id1, false, "task 02"
+                        helpers.createTaskFunction id1, true, "task 03"
+                        helpers.createTaskFunction id1, false, "task 04"
+                        helpers.createTaskFunction id2, false, "task 05"
+                        helpers.createTaskFunction id2, false, "task 06"
+                        helpers.createTaskFunction id2, true, "task 07"
+                        helpers.createTaskFunction id2, true, "task 08"
+                    ], ->
+                        callback()
+
         helpers.cleanDb =>
             initDb =>
                 TodoList.all (err, lists) =>
@@ -83,8 +87,6 @@ describe "Task Model", ->
         it "Then the task links are properly set", (done) ->
             Task.allTodo @listId1, (err, tasks) ->
                 tasks[0].description.should.equal "Task 09"
-                console.log task.description for task in tasks
-                
                 tasks[0].nextTask.should.equal tasks[1].id
                 tasks[1].previousTask.should.equal tasks[0].id
                 done()

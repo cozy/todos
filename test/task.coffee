@@ -18,7 +18,6 @@ describe "/tasks", ->
 
     before (done) ->
         helpers = require("./helpers")(app.compound)
-        console.log helpers
         
         initDb = (callback) ->
             async.series [
@@ -30,8 +29,8 @@ describe "/tasks", ->
         helpers.cleanDb ->
             initDb done
 
-    after (done) ->
-        done()
+    after ->
+        app.compound.server.close()
 
 
     describe "GET /todolists ", ->

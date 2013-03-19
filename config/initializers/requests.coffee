@@ -37,11 +37,6 @@ module.exports = (compound) ->
     Task.defineRequest "todosTag", todosTag, requests.checkError
     tags =
         map: ->
-            if not doc.done
-    Task.defineRequest "todosTag", todosTag, requests.checkError
-
-    tags =
-        map: ->
             unless doc.done
                 for tag in doc.tags
                     emit tag, tag

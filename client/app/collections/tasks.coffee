@@ -108,71 +108,37 @@ class exports.TaskCollection extends Backbone.Collection
         else
             null
 
-    # Change task position, decrement its index position.
-    # Links are updated.
-    # View is changed too.
-    up: (task) =>
+    reorder: (task, newIndex) ->
         index = @toArray().indexOf task
-        return false if index == 0
 
-        oldPreviousTask = @at(index - 1) if index > 0
-        oldNextTask = @at(index + 1)
-        newPreviousTask = @at(index - 2) if index > 1
-
-        if oldNextTask?
-            oldNextTask.setPreviousTask oldPreviousTask
-            oldPreviousTask.setNextTask oldNextTask
-        else
-            oldPreviousTask.setNextTask null
-
-        if newPreviousTask?
-            newPreviousTask.setNextTask task
-            task.setPreviousTask newPreviousTask
-        else
-            task.setPreviousTask null
-        task.setNextTask oldPreviousTask
-
-        @remove task
-        @add task,
-            at: index - 1
-            silent: true
-
-        task.view.up oldPreviousTask.id
-
-        return true
-
-    # Change task position, increment its index position.
-    # Links are updated.
-    # View is changed too.
-    down: (task) =>
-        index = @toArray().indexOf task
-        tasksLength = @size()
-
-        return false if index == tasksLength - 1
-
-        oldNextTask = @at(index + 1) if index < tasksLength - 1
-        newNextTask = @at(index + 2) if index < tasksLength - 2
-        oldPreviousTask = @at(index - 1) if index > 0
+        oldPreviousTask = @getPreviousTask task
+        oldNextTask = @getNextTask task
 
         if oldPreviousTask?
-            oldPreviousTask.setNextTask oldNextTask
-            oldNextTask?.setPreviousTask oldPreviousTask
+            oldPreviousTask.setNextTask(oldNextTask)
         else
-            oldNextTask?.setPreviousTask null
+            oldNextTask.setPreviousTask(oldPreviousTask)
 
-        if newNextTask?
-            newNextTask.setPreviousTask task
-            task.setNextTask newNextTask
+        newPreviousTask = null
+        if newIndex > 0
+            newPreviousTask = @at(newIndex - 1)
+
+        if newIndex >= @length
+            newNextTask = null
         else
-            task.setNextTask null
-        task.setPreviousTask oldNextTask
+            newNextTask = @at(newIndex)
+
+        task.setPreviousTask newPreviousTask
+        task.setNextTask newNextTask
+
+        # avoid error in the index because we make a remove/add
+        if index < newIndex
+            newIndex--
 
         @remove task
         @add task,
-            at: index + 1
+            at: newIndex
             silent: true
-
-        task.view.down oldNextTask.id
 
         return true
 

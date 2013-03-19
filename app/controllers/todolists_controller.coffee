@@ -98,21 +98,22 @@ action 'create', ->
 #   change of the content
 ###
 action 'update', ->
-    cbk = (err) ->
+    callback = (err) ->
         if err
             send error: 'TodoList can not be updated', 400
         else
             send success: 'TodoList updated', 200
 
     dataTreeNode = Tree.dataTree.nodes[params.id]
-    isNewTitle   = body.title? and body.title != dataTreeNode.data
+    isNewTitle   = body.title? and body.title isnt dataTreeNode.data
     isNewParent  = body.parent_id? and \
-                        body.parent_id != dataTreeNode._parent._id
+                        body.parent_id isnt dataTreeNode._parent._id
+
     if isNewTitle or isNewParent
         # update the path of the todoList in the tree.
         # This operation updates the todoList and its children paths and the
         # tree.
-        Tree.moveOrRenameNode params.id, body.title, body.parent_id, (err)->
+        Tree.moveOrRenameNode params.id, body.title, body.parent_id, (err) ->
             newData    = {}
             isToUpdate = false
             if isNewTitle
@@ -126,10 +127,11 @@ action 'update', ->
                 isToUpdate = true
             if isToUpdate
                 newData.id = params.id
+                
                 list = new TodoList newData
-                list.updateAttributes newData, cbk
+                list.updateAttributes newData, callback
             else
-                cbk(null)
+                callback null
 
     # neither title nor path is changed, the todoList can be updated directly.
     else
@@ -141,9 +143,9 @@ action 'update', ->
         if isToUpdate
             newData.id = params.id
             list = new TodoList newData
-            list.updateAttributes newData, cbk
+            list.updateAttributes newData, callback
         else
-            cbk(null)
+            callback null
 
 # Destroy todo list and all tasks linked to that list.
 action 'destroy', ->

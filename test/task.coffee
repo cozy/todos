@@ -1,11 +1,11 @@
 should = require('chai').Should()
 async = require('async')
 Client = require('request-json').JsonClient
-app = require('../server')
-helpers = require("./helpers")
 
 client = new Client("http://localhost:8888/")
 
+instantiateApp = require('../server')
+app = instantiateApp()
 
 ## Helpers
 
@@ -14,25 +14,23 @@ testLength = (body, length) ->
     should.exist body.rows
     body.rows.length.should.equal length
 
-initDb = (callback) ->
-    async.series [
-        helpers.createTodoListFunction "Recipes", ["Recipes"].stringify()
-        helpers.createTodoListFunction
-            "Dessert", ["Recipes", "Dessert"].stringify()
-    ], ->
-        callback()
-
-
 describe "/tasks", ->
 
     before (done) ->
+        helpers = require("./helpers")(app.compound)
+        
+        initDb = (callback) ->
+            async.series [
+                helpers.createTodoListFunction "My Tasks", ["My Tasks"]
+                helpers.createTodoListFunction "", ["Recipes", "Dessert"]
+            ], ->
+                callback()
         app.listen 8888
         helpers.cleanDb ->
             initDb done
 
-    after (done) ->
-        app.close()
-        done()
+    after ->
+        app.compound.server.close()
 
 
     describe "GET /todolists ", ->

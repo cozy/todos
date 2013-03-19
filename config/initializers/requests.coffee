@@ -1,6 +1,11 @@
 module.exports = (compound) ->
     requests = require "../../common/requests"
 
+    User = compound.models.User
+    Tree = compound.models.Tree
+    Task = compound.models.Task
+    TodoList = compound.models.TodoList
+
     ## Requests
 
     User.all = (callback) -> User.request "all", callback

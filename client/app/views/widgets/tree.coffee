@@ -28,8 +28,6 @@ class exports.Tree
         # Create toolbar inside DOM.
         navEl.prepend require('../templates/tree_buttons')
 
-        # data is the json string representing the tree
-        data = JSON.parse data
         # Tree creation
         @widget = @jstreeEl.jstree(
             plugins: [

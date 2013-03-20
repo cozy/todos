@@ -4,7 +4,7 @@
 {TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
 helpers = require "../helpers"
-client = require "../lib/request"
+request = require "../lib/request"
 
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
@@ -31,7 +31,6 @@ class exports.HomeView extends Backbone.View
 
     # Use jquery layout so set main layout of current window.
     setLayout: ->
-
         # some tricks to make design more responsive
         size = $(window).width()
         if size < 700
@@ -62,8 +61,8 @@ class exports.HomeView extends Backbone.View
     # Links callback to tree events (creation, renaming...)
     # Set listeners for other buttons
     loadData: (callback) ->
-        @$("#tree").spin()
-        $.get "tree/", (data) =>
+        @$("#tree").spin "small"
+        request.get "tree/", (err, data) =>
             window.tree = data
             @tree = new Tree @.$("#nav"), data,
                 onCreate: @onTodoListCreated
@@ -81,6 +80,7 @@ class exports.HomeView extends Backbone.View
     ###
 
     # Save todolist creation to backend. Update corresponding node metadata.
+    # Then select todolist
     onTodoListCreated: (parentId, newName, data) =>
         data =
             title: newName
@@ -103,16 +103,16 @@ class exports.HomeView extends Backbone.View
     onTodoListRemoved: (listId) =>
         if @currentTodolist and @currentTodolist.id is listId
             @currentTodolist.destroy()
+            $("#todo-list").html(null)
         else
             TodoList.deleteTodoList listId, ->
-        $("#todo-list").html(null)
 
     # When a todolist is selected, the todolist widget is displayed and fill
     # with todolist data.
     # Route is updated with selected todo list path.
     onTodoListSelected: (path, id, data) =>
         @tagListView?.deselectAll()
-        if id? and id != "tree-node-all"
+        if id? and id isnt "tree-node-all"
             TodoList.getTodoList id, (err, list) =>
                 app.router.navigate "todolist#{path}", trigger: false
                 @renderTodolist list
@@ -133,12 +133,12 @@ class exports.HomeView extends Backbone.View
                     @treeLoadedCallback() if @treeLoadedCallback?
 
         @$("#tree").spin()
-        client.get "tasks/tags",
-            success: (data) =>
+        request.get "tasks/tags", (err, data) =>
+            if err
+                loadLists()
+            else
                 @tagListView = new TagListView data
                 @tagListView.render()
-                loadLists()
-            error: =>
                 loadLists()
 
 
@@ -173,6 +173,7 @@ class exports.HomeView extends Backbone.View
     # and archives for this todolist.
     renderTodolist: (todolist) ->
         todolist.url = "todolists/#{todolist.id}" if todolist?
+        # Save all modified tasks.
         @currentTodolist?.view.blurAllTaskDescriptions()
         @currentTodolist = todolist
         todolistWidget = new TodoListWidget @currentTodolist

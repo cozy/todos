@@ -32,8 +32,11 @@ class exports.TodoList extends BaseModel
 
     @getTodoList = (id, callback) ->
         request.get "todolists/#{id}", (err, data) =>
-            todolist = new TodoList data
-            callback todolist
+            if err
+                callback err
+            else
+                todolist = new TodoList data
+                callback null, todolist
 
     @deleteTodoList = (id, callback) ->
         requet.del "todolists/#{id}", callback

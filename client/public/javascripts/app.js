@@ -345,8 +345,8 @@ window.require.register("helpers", function(exports, require, module) {
           },
           small: {
             lines: 8,
-            length: 4,
-            width: 3,
+            length: 1,
+            width: 2,
             radius: 5
           },
           large: {
@@ -1042,8 +1042,12 @@ window.require.register("models/todolist", function(exports, require, module) {
       var _this = this;
       return request.get("todolists/" + id, function(err, data) {
         var todolist;
-        todolist = new TodoList(data);
-        return callback(todolist);
+        if (err) {
+          return callback(err);
+        } else {
+          todolist = new TodoList(data);
+          return callback(null, todolist);
+        }
       });
     };
 
@@ -1115,7 +1119,7 @@ window.require.register("routers/main_router", function(exports, require, module
   
 });
 window.require.register("views/home_view", function(exports, require, module) {
-  var TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, client, helpers,
+  var TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, helpers, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1132,7 +1136,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
   helpers = require("../helpers");
 
-  client = require("../lib/request");
+  request = require("../lib/request");
 
   exports.HomeView = (function(_super) {
 
@@ -1207,8 +1211,8 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.loadData = function(callback) {
       var _this = this;
-      this.$("#tree").spin();
-      $.get("tree/", function(data) {
+      this.$("#tree").spin("small");
+      request.get("tree/", function(err, data) {
         window.tree = data;
         return _this.tree = new Tree(_this.$("#nav"), data, {
           onCreate: _this.onTodoListCreated,
@@ -1256,10 +1260,10 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.onTodoListRemoved = function(listId) {
       if (this.currentTodolist && this.currentTodolist.id === listId) {
         this.currentTodolist.destroy();
+        return $("#todo-list").html(null);
       } else {
-        TodoList.deleteTodoList(listId, function() {});
+        return TodoList.deleteTodoList(listId, function() {});
       }
-      return $("#todo-list").html(null);
     };
 
     HomeView.prototype.onTodoListSelected = function(path, id, data) {
@@ -1269,7 +1273,7 @@ window.require.register("views/home_view", function(exports, require, module) {
         _ref.deselectAll();
       }
       if ((id != null) && id !== "tree-node-all") {
-        return TodoList.getTodoList(id, function(list) {
+        return TodoList.getTodoList(id, function(err, list) {
           app.router.navigate("todolist" + path, {
             trigger: false
           });
@@ -1303,13 +1307,12 @@ window.require.register("views/home_view", function(exports, require, module) {
         });
       };
       this.$("#tree").spin();
-      return client.get("tasks/tags", {
-        success: function(data) {
+      return request.get("tasks/tags", function(err, data) {
+        if (err) {
+          return loadLists();
+        } else {
           _this.tagListView = new TagListView(data);
           _this.tagListView.render();
-          return loadLists();
-        },
-        error: function() {
           return loadLists();
         }
       });
@@ -1320,8 +1323,8 @@ window.require.register("views/home_view", function(exports, require, module) {
       return TodoList.updateTodoList(nodeId, {
         parent_id: targetNodeId
       }, function() {
-        return TodoList.getTodoList(nodeId, function(body) {
-          _this.currentTodolist.set("path", body.path);
+        return TodoList.getTodoList(nodeId, function(err, list) {
+          _this.currentTodolist.set("path", list.path);
           return _this.currentTodolist.view.refreshBreadcrump();
         });
       });
@@ -2654,7 +2657,6 @@ window.require.register("views/widgets/tree", function(exports, require, module)
       this._getSlugPath = __bind(this._getSlugPath, this);
       this.jstreeEl = $("#tree");
       navEl.prepend(require('../templates/tree_buttons'));
-      data = JSON.parse(data);
       this.widget = this.jstreeEl.jstree({
         plugins: ["themes", "json_data", "ui", "crrm", "unique", "sort", "cookies", "types", "hotkeys", "dnd", "search"],
         json_data: {

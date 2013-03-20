@@ -90,8 +90,6 @@ class exports.TodoListWidget extends Backbone.View
             @tasks.url = "tasks/todo"
             @archiveTasks.url = "tasks/archives"
         else
-            console.log @model
-
             if @model.tag?
                 @tasks.url = "tasks/tags/#{@model.tag}/todo"
                 @archiveTasks.url = "tasks/tags/#{@model.tag}/archives"

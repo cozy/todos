@@ -65,9 +65,9 @@ class exports.TaskCollection extends Backbone.Collection
             success: =>
                 task.url = "#{@url}/#{task.id}/"
                 @add task, { at: (index + 1), silent: true }
-                if previousTask?
+                if previousTask? and @view?
                     @view.insertTask previousTask.view, task
-                else
+                else if @view?
                     @view.insertTask null, task
                 callbacks?.success(task)
             error: =>

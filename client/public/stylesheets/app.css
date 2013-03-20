@@ -5621,6 +5621,7 @@ html {
   display: none;
   background: url("../img/todos-handle.png") no-repeat center center;
   -webkit-background-size: 20px 20px;
+  -moz-background-size: 20px 20px;
   background-size: 20px 20px;
   opacity: 0.5;
   -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);

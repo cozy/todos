@@ -1,9 +1,12 @@
 async = require "async"
 
 module.exports = (compound, Task) ->
+
+    # Requests
+    
     # Delete all tasks.
     Task.destroyAll = (params, callback) ->
-        callback = params if typeof(params) == "function"
+        callback = params if typeof(params) is "function"
         
         Task.requestDestroy "all", params, callback
 
@@ -27,7 +30,6 @@ module.exports = (compound, Task) ->
             descending: true
         Task.request "archiveTag", params, callback
 
-
     # Get all archived tasks for a given list
     Task.archives = (listId, callback) ->
         if not listId?
@@ -44,6 +46,7 @@ module.exports = (compound, Task) ->
                 descending: true
             Task.request "archiveList", params, callback
         
+    # Helpers
 
     Task.retrieveTodoList = (listId, callback) ->
         params =
@@ -51,11 +54,11 @@ module.exports = (compound, Task) ->
             endkey: [listId + "0"]
         Task.request "todosList", params, callback
 
-    # Returns all tasks of which state is todo. Order them following the link
+    # Returns all tasks of which state is todo. Order them following the linked
     # list.
     Task.allTodo = (listId, callback) ->
         orderTasks = (tasks) ->
-            if tasks.length == 0
+            if tasks.length is 0
                 callback null, []
                 return
 
@@ -70,7 +73,7 @@ module.exports = (compound, Task) ->
 
             # Order tasks
             while task? and result.length <= tasks.length
-                result.push(task)
+                result.push task
                 nextTaskId = task.nextTask
                 delete idList[task.id]
                 task = idList[nextTaskId]
@@ -88,14 +91,13 @@ module.exports = (compound, Task) ->
 
             # Save correction if something wrong happened
             if brokenTasks.length > 0
-                # make saving with async.
+                # TODO: make saving with async.
                 for task in brokenTasks
                     attributes =
                         nextTask: task.nextTask
                         previousTask: task.previousTask
                     task.updateAttributes attributes, ->
                         true
-
             callback null, result
 
         if listId?
@@ -107,7 +109,7 @@ module.exports = (compound, Task) ->
         else
             Task.request "todos", callback
 
-    getFirstTask = (tasks) ->
+    Task.getFirstTaskFromList = (tasks) ->
         tasks[tasks.length - 1]
 
         firstTask = null
@@ -118,25 +120,28 @@ module.exports = (compound, Task) ->
     # Set given task as first task of todo task list.
     Task.setFirstTask = (task, callback) ->
         Task.retrieveTodoList task.list, (err, tasks) ->
-            return callback(err, null) if err
+            return callback err, null if err
 
-            if not tasks.length \
-               or (tasks.length == 1 and tasks[0].id == task.id)
+            # Case where the given task is already the first task
+            if not tasks.length or
+            (tasks.length is 1 and tasks[0].id is task.id)
                 callback null, task
+
+            # Case where the given task is not the first task
             else
-                firstTask = getFirstTask(tasks)
+                firstTask = Task.getFirstTaskFromList tasks
                 
                 firstTask.previousTask = task.id
                 task.nextTask = firstTask.id
                 task.previousTask = null
 
                 firstTask.save (err) ->
-                    return callback(err, null) if err
+                    return callback err, null if err
 
                     task.save (err) ->
-                        return callback(err, null) if err
+                        return callback err, null if err
 
-                        callback(null, task)
+                        callback null, task
 
     # Change next task ID of previous task with current task ID.
     Task.setPreviousLink = (task, callback) ->
@@ -169,7 +174,6 @@ module.exports = (compound, Task) ->
     # Change both previous and next links
     Task.updateLinks = (task, callback) ->
         Task.setPreviousLink task, (err) ->
-
             return callback err if err
             Task.setNextLink task, callback
 
@@ -177,6 +181,7 @@ module.exports = (compound, Task) ->
     Task.insertTask = (task, callback) ->
         Task.find task.previousTask, (err, previousTask) ->
             return callback err if err
+            # TODO: better behavior when previous Task does not exist.
             return callback null if not previousTask?
 
             nextTaskId = previousTask.nextTask
@@ -188,6 +193,7 @@ module.exports = (compound, Task) ->
                 if nextTaskId?
                     Task.find nextTaskId, (err, nextTask) ->
                         return callback err if err
+                        # TODO: better behavior when next Task does not exist.
                         return callback null if not nextTask?
 
                         nextTask.previousTask = task.id
@@ -258,16 +264,11 @@ module.exports = (compound, Task) ->
 
     # When task is done, it is removed from todo linked list.
     Task.done = (task, attributes, callback) ->
-        Task.removePreviousLink task, (err) ->
-            return callback err if err
-
-            Task.removeNextLink task, (err) ->
-                return callback err if err
-
-                attributes.previousTask = null
-                attributes.nextTask = null
-                
-                task.updateAttributes attributes, callback
+        Task.removeLinks task, (err) ->
+            attributes.previousTask = null
+            attributes.nextTask = null
+            
+            task.updateAttributes attributes, callback
 
 
     # When task go back to todo, it is added as first task to the todo list.

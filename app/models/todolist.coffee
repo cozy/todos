@@ -1,11 +1,11 @@
-async = require("async")
-requests = require('../../common/requests')
+async = require 'async'
+requests = require '../../common/requests'
 
 module.exports = (compound, TodoList) ->
     Task = compound.models.Task
     Tree = compound.models.Tree
 
-    TodoList.all = (callback) -> TodoList.request "all", callback
+    TodoList.all = (callback) -> TodoList.request 'all', callback
 
     ###
     # Delete all notes.
@@ -13,7 +13,7 @@ module.exports = (compound, TodoList) ->
     # or test writing.
     ###
     TodoList.destroyAll = (callback) ->
-        TodoList.requestDestroy "all", callback
+        TodoList.requestDestroy 'all', callback
 
 
     ###*
@@ -22,37 +22,31 @@ module.exports = (compound, TodoList) ->
      * @param  {function} cbk    cbk(error) is executed at the end returning null
                or the error.
     ###
-    TodoList.destroy = (nodeId, cbk)->
+    TodoList.destroy = (nodeId, callback)->
 
-        # called in parallele to delete each note in the db
-        _deleteTodoList = (listId, cbk) ->
+        # called in parallele to delete each todolist in the db
+        _deleteTodoList = (listId, callback) ->
             TodoList.find listId, (err, list) ->
                 if err
-                    cbk err
+                    callback err
                 else
                     list.destroy (err) ->
                         if err
-                            cbk err
+                            callback err
                         else
                             data =
                                 startkey: [listId]
-                                endkey: [listId + "0"]
-                            Task.requestDestroy "todoslist", data, cbk
+                                endkey: [listId + '0']
+                            Task.requestDestroy 'todoslist', data, callback
 
         
         # vars
         dataTree = Tree.dataTree
 
         # walk through dataTree to remove the node and all its children
-        nodesToDelete = dataTree.removeNode(nodeId)
-        nodesToDelete.push(nodeId)
+        nodesToDelete = dataTree.removeNode nodeId
+        nodesToDelete.push nodeId
 
         # deletion in // of all the notes in the db
         async.forEach nodesToDelete, _deleteTodoList, (err)->
-
-            # then we can save the tree
-            Tree.tree.updateAttributes struct: dataTree.toJson(), (err) ->
-                if err
-                    cbk err
-                else
-                    cbk null
+            Tree.tree.updateAttributes struct: dataTree.toJson(), callback

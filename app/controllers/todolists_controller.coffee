@@ -115,7 +115,6 @@ action 'update', ->
     parent_id = body.parent_id
     title = body.title
     isNewTitle = title? and title isnt dataTreeNode.data
-    
     isNewParent = parent_id? and parent_id isnt dataTreeNode._parent._id
 
     if isNewTitle or isNewParent

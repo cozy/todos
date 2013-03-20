@@ -27,11 +27,7 @@ class exports.Task extends BaseModel
         
         if list?
             @listTitle = list.title
-            path = list.path
-            
-            if path? and typeof(path) == "string"
-                path = JSON.parse path
-            if path?
+            if list.path?
                 @listBreadcrumb = list.breadcrumb
                 @listPath = list.urlPath
     

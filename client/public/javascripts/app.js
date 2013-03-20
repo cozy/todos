@@ -911,15 +911,11 @@ window.require.register("models/task", function(exports, require, module) {
     };
 
     Task.prototype.setListName = function() {
-      var list, path, _ref;
+      var list, _ref;
       list = (_ref = window.app) != null ? _ref.homeView.todolists.get(this.list) : void 0;
       if (list != null) {
         this.listTitle = list.title;
-        path = list.path;
-        if ((path != null) && typeof path === "string") {
-          path = JSON.parse(path);
-        }
-        if (path != null) {
+        if (list.path != null) {
           this.listBreadcrumb = list.breadcrumb;
           return this.listPath = list.urlPath;
         }

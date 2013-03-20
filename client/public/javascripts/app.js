@@ -466,30 +466,42 @@ window.require.register("initialize", function(exports, require, module) {
 });
 window.require.register("lib/request", function(exports, require, module) {
   
-  exports.request = function(type, url, data, callbacks) {
+  exports.request = function(type, url, data, callback) {
     return $.ajax({
       type: type,
       url: url,
-      data: data,
-      success: callbacks.success,
-      error: callbacks.error
+      data: data != null ? JSON.stringify(data) : null,
+      contentType: "application/json",
+      dataType: "json",
+      success: function(data) {
+        if (callback != null) {
+          return callback(null, data);
+        }
+      },
+      error: function() {
+        if ((data != null) && (data.msg != null) && (callback != null)) {
+          return callback(new Error(data.msg));
+        } else if (callback != null) {
+          return callback(new Error("Server error occured"));
+        }
+      }
     });
   };
 
-  exports.get = function(url, callbacks) {
-    return exports.request("GET", url, null, callbacks);
+  exports.get = function(url, callback) {
+    return exports.request("GET", url, null, callback);
   };
 
-  exports.post = function(url, data, callbacks) {
-    return exports.request("POST", url, data, callbacks);
+  exports.post = function(url, data, callback) {
+    return exports.request("POST", url, data, callback);
   };
 
-  exports.put = function(url, data, callbacks) {
-    return exports.request("PUT", url, data, callbacks);
+  exports.put = function(url, data, callback) {
+    return exports.request("PUT", url, data, callback);
   };
 
-  exports.del = function(url, callbacks) {
-    return exports.request("DELETE", url, null, callbacks);
+  exports.del = function(url, callback) {
+    return exports.request("DELETE", url, null, callback);
   };
   
 });
@@ -991,21 +1003,7 @@ window.require.register("models/todolist", function(exports, require, module) {
 
   slugify = require("lib/slug");
 
-  request = function(type, url, data, callback) {
-    return $.ajax({
-      type: type,
-      url: url,
-      data: data,
-      success: callback,
-      error: function(data) {
-        if (data && data.msg) {
-          return alert(data.msg);
-        } else {
-          return alert("Server error occured.");
-        }
-      }
-    });
-  };
+  request = require("lib/request");
 
   exports.TodoList = (function(_super) {
 
@@ -1014,17 +1012,17 @@ window.require.register("models/todolist", function(exports, require, module) {
     TodoList.prototype.url = 'todolists/';
 
     function TodoList(todolist) {
-      var property, slugs, title, _i, _len, _ref;
+      var path, property, slugs, title, _i, _len;
       TodoList.__super__.constructor.call(this, todolist);
       for (property in todolist) {
         this[property] = todolist[property];
       }
-      if (this.path != null) {
-        this.breadcrumb = this.path.join(" > ");
+      path = this.get("path");
+      if (path != null) {
+        this.breadcrumb = path.join(" > ");
         slugs = [];
-        _ref = this.path;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          title = _ref[_i];
+        for (_i = 0, _len = path.length; _i < _len; _i++) {
+          title = path[_i];
           slugs.push(slugify(title));
         }
         this.urlPath = slugs.join("/");
@@ -1032,25 +1030,17 @@ window.require.register("models/todolist", function(exports, require, module) {
       }
     }
 
-    TodoList.prototype.saveContent = function(content) {
-      this.content = content;
-      this.url = "todolists/" + this.id;
-      return this.save({
-        content: this.content
-      });
-    };
-
     TodoList.createTodoList = function(data, callback) {
-      return request("POST", "todolists", data, callback);
+      return request.post("todolists", data, callback);
     };
 
     TodoList.updateTodoList = function(id, data, callback) {
-      return request("PUT", "todolists/" + id, data, callback);
+      return request.put("todolists/" + id, data, callback);
     };
 
     TodoList.getTodoList = function(id, callback) {
       var _this = this;
-      return $.get("todolists/" + id, function(data) {
+      return request.get("todolists/" + id, function(err, data) {
         var todolist;
         todolist = new TodoList(data);
         return callback(todolist);
@@ -1058,7 +1048,7 @@ window.require.register("models/todolist", function(exports, require, module) {
     };
 
     TodoList.deleteTodoList = function(id, callback) {
-      return request("DELETE", "todolists/" + id, callback);
+      return requet.del("todolists/" + id, callback);
     };
 
     return TodoList;
@@ -1239,10 +1229,11 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.onTodoListCreated = function(parentId, newName, data) {
       var _this = this;
-      return TodoList.createTodoList({
+      data = {
         title: newName,
         parent_id: parentId
-      }, function(todolist) {
+      };
+      return TodoList.createTodoList(data, function(err, todolist) {
         data.rslt.obj.data("id", todolist.id);
         data.rslt.obj[0].id = todolist.id;
         data.inst.deselect_all();
@@ -1253,9 +1244,10 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.onTodoListRenamed = function(listId, newName, data) {
       var _this = this;
       if (newName != null) {
-        return TodoList.updateTodoList(listId, {
+        data = {
           title: newName
-        }, function() {
+        };
+        return TodoList.updateTodoList(listId, data, function() {
           return _this.tree.selectNode(listId);
         });
       }

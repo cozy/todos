@@ -82,26 +82,26 @@ class exports.HomeView extends Backbone.View
 
     # Save todolist creation to backend. Update corresponding node metadata.
     onTodoListCreated: (parentId, newName, data) =>
-        TodoList.createTodoList
+        data =
             title: newName
             parent_id: parentId
-            , (todolist) =>
-                data.rslt.obj.data "id", todolist.id
-                data.rslt.obj[0].id = todolist.id
-                data.inst.deselect_all()
-                data.inst.select_node data.rslt.obj
+        TodoList.createTodoList data, (err, todolist) =>
+            data.rslt.obj.data "id", todolist.id
+            data.rslt.obj[0].id = todolist.id
+            data.inst.deselect_all()
+            data.inst.select_node data.rslt.obj
 
     # Persist todolist renaming and update view rendering.
     onTodoListRenamed: (listId, newName, data) =>
         if newName?
-            TodoList.updateTodoList listId,
+            data =
                 title: newName
-            , () =>
+            TodoList.updateTodoList listId, data, =>
                 @tree.selectNode listId
             
     # Persist todo list deletion and remove todo list details from view.
     onTodoListRemoved: (listId) =>
-        if @currentTodolist and @currentTodolist.id == listId
+        if @currentTodolist and @currentTodolist.id is listId
             @currentTodolist.destroy()
         else
             TodoList.deleteTodoList listId, ->
@@ -113,7 +113,7 @@ class exports.HomeView extends Backbone.View
     onTodoListSelected: (path, id, data) =>
         @tagListView?.deselectAll()
         if id? and id != "tree-node-all"
-            TodoList.getTodoList id, (list) =>
+            TodoList.getTodoList id, (err, list) =>
                 app.router.navigate "todolist#{path}", trigger: false
                 @renderTodolist list
                 @todolist.show()
@@ -145,9 +145,9 @@ class exports.HomeView extends Backbone.View
     # When todolist is dropped, its old path and its new path are sent to server
     # for persistence.
     onTodoListDropped: (nodeId, targetNodeId) =>
-        TodoList.updateTodoList nodeId, {parent_id:targetNodeId} , () =>
-            TodoList.getTodoList nodeId, (body) =>
-                @currentTodolist.set "path", body.path
+        TodoList.updateTodoList nodeId, parent_id: targetNodeId , =>
+            TodoList.getTodoList nodeId, (err, list) =>
+                @currentTodolist.set "path", list.path
                 @currentTodolist.view.refreshBreadcrump()
 
     # Check for new tag if a task changed.

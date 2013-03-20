@@ -1,6 +1,11 @@
 basecolor = #34A6FF
 contrastcolor = #5C5
 actioncolor = #fe8800
+lightgrey = #FAFAFA
+bggrey = #F4F4F4
+whitegrey = #FCFCFC
+darkgrey = #333
+grey = #E8E8E8
 
 @font-face
     font-family: main
@@ -16,42 +21,68 @@ actioncolor = #fe8800
     font-family: main
 
 #tree
-    font-size 14px
-    background-color transparent
-    margin-top 15px
-    outline none
-    padding-left 8px
+    outline: none
+    margin-top: 10px
+    border-top: 1px solid grey
+    border-bottom: 1px solid grey
+    background-color: transparent
+    padding: 20px 0
 
-#tree li
-    padding 0
-    position relative
+    .jstree
+        ul
+            padding: 20px 0
+
+    li
+        position: relative
+        margin-left: 10px
+        padding: 0
+
+    li:last-child
+        border-bottom: 1px solid whitegrey
+
+    ul > li > ul > li:last-child
+        border-bottom: 0
+        
+    ins
+        width: 14px
+        margin-left: 0px
+
+    a
+        padding: 1px 0 0 3px
+        margin: 0
+        border: 0
+        left: 23px
+        right: 0px
+        position: absolute
+        color: darkgrey
+        font-size: 14px
+
+    .jstree-clicked
+        border: 0
+        background #CBE4FB
+
+    .jstree-leaf ins.jstree-icon
+        background-image: url('../img/icon-list.png')
+        background-repeat: no-repeat
+
+    a.jstree-hovered
+        border: 0
+        font-size: 14px
+        background actioncolor + 50%
+        font-weight: normal
+        font-family: main
+
+    .jstree-rename-input
+        margin-left: -18px
+        margin-top: 0px
+    
+.title
+    padding: 20px
+    border-bottom: 1px solid whitegrey
 
 #tree ins
     width 14px
 
-#tree a
-    padding 0px 0px 0px 0px
-    margin  0px 0px 0px 0px
-    border  0px 0px 0px 0px solid transparent
-    color treelinkcolor
-    left 15px
-    right 0px
-    position absolute
-    font-weight: normal
-
-#tree a.jstree-clicked
-    background #CBE4FB
-    border 0
-
-#tree a.jstree-hovered
-    border 0
-    background actioncolor + 50%
-    font-weight: normal
-    font-size: 13.5px
-
-.jstree-rename-input
-    margin-left: -18px
-    
 #tree-buttons-root
     display none
     top 0
@@ -77,11 +108,19 @@ actioncolor = #fe8800
     padding-left 3px
 
 #tags
+    border-bottom: 0
+    border-top: 1px solid grey
+    margin-left: 0
+    padding-left: 20px
     
     a
+        line-height: 14px
+        color: #333
+        cursor: pointer
         width: 100%
 
     a:hover
+        font-weight: normal
         background-color: actioncolor + 50%
         text-decoration: none
         font-family: main

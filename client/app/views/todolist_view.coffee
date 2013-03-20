@@ -140,6 +140,7 @@ class exports.TodoListWidget extends Backbone.View
     # Refresh breadcrump with data from current model.
     refreshBreadcrump: ->
         @$(".breadcrumb a").unbind()
+
         if @model? and @model.id?
             @breadcrumb.html @createBreadcrumb()
             @$(".breadcrumb a").click (event) ->
@@ -148,8 +149,8 @@ class exports.TodoListWidget extends Backbone.View
                 path = hash.split("/")
                 id = path[1]
                 app.homeView.selectList id
-
             @title.html @model.title
+
         else
             @breadcrumb.html ""
             if @model?.tag?

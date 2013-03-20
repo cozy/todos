@@ -5827,7 +5827,6 @@ html {
 #tags {
   margin-left: 20px;
   padding: 10px 0;
-  border-bottom: 1px solid #999;
 }
 #tags a {
   line-height: 14px;
@@ -5836,9 +5835,6 @@ html {
 }
 #tags a:hover {
   font-weight: normal;
-}
-#tags a.selected {
-  background: #c5ebf9;
 }
 /* responsive */
 @media (max-width: 700px) {
@@ -5875,41 +5871,66 @@ html {
   font-family: main;
 }
 #tree {
-  font-size: 14px;
-  background-color: transparent;
-  margin-top: 15px;
   outline: none;
-  padding-left: 8px;
+  margin-top: 10px;
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+  background-color: transparent;
+  padding: 20px 0;
+}
+#tree .jstree ul {
+  padding: 20px 0;
 }
 #tree li {
-  padding: 0;
   position: relative;
+  margin-left: 10px;
+  padding: 0;
+}
+#tree li:last-child {
+  border-bottom: 1px solid #fcfcfc;
+}
+#tree ul > li > ul > li:last-child {
+  border-bottom: 0;
 }
 #tree ins {
   width: 14px;
+  margin-left: 0px;
 }
 #tree a {
-  padding: 0px 0px 0px 0px;
-  margin: 0px 0px 0px 0px;
-  border: 0px 0px 0px 0px solid transparent;
-  color: treelinkcolor;
-  left: 15px;
+  padding: 1px 0 0 3px;
+  margin: 0;
+  border: 0;
+  left: 23px;
   right: 0px;
   position: absolute;
-  font-weight: normal;
+  color: #333;
+  font-size: 14px;
 }
-#tree a.jstree-clicked {
-  background: #cbe4fb;
+#tree .jstree-clicked {
   border: 0;
+  background: #cbe4fb;
+}
+#tree .jstree-leaf ins.jstree-icon {
+  background-image: url("../img/icon-list.png");
+  background-repeat: no-repeat;
 }
 #tree a.jstree-hovered {
   border: 0;
+  font-size: 14px;
   background: #ffc47f;
   font-weight: normal;
-  font-size: 13.5px;
+  font-family: main;
 }
-.jstree-rename-input {
+#tree .jstree-rename-input {
   margin-left: -18px;
+  margin-top: 0px;
+}
+.title {
+  padding: 20px;
+  border-bottom: 1px solid #fcfcfc;
+}
+#tree ins {
+  width: 14px;
 }
 #tree-buttons-root {
   display: none;
@@ -5935,10 +5956,20 @@ html {
   cursor: pointer;
   padding-left: 3px;
 }
+#tags {
+  border-bottom: 0;
+  border-top: 1px solid #e8e8e8;
+  margin-left: 0;
+  padding-left: 20px;
+}
 #tags a {
+  line-height: 14px;
+  color: #333;
+  cursor: pointer;
   width: 100%;
 }
 #tags a:hover {
+  font-weight: normal;
   background-color: #ffc47f;
   text-decoration: none;
   font-family: main;

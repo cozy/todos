@@ -56,11 +56,11 @@ class exports.BrunchApplication
 
 # Select all content of an input field.
 exports.selectAll = (input) ->
-    input.setSelection(0, input.val().length)
+    input.setSelection 0, input.val().length
 
 
 # Change a string into its slug shape (only alphanumeric char and hyphens
-# instead of spaces.
+# instead of spaces).
 exports.slugify = require "./lib/slug"
 
 

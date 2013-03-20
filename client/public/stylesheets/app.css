@@ -5872,7 +5872,6 @@ html {
 }
 #tree {
   outline: none;
-  margin-top: 10px;
   border-top: 1px solid #e8e8e8;
   border-bottom: 1px solid #e8e8e8;
   background-color: transparent;
@@ -5926,7 +5925,8 @@ html {
   margin-top: 0px;
 }
 .title {
-  padding: 20px;
+  padding: 15px;
+  border-top: 1px solid #e8e8e8;
   border-bottom: 1px solid #fcfcfc;
 }
 #tree ins {
@@ -5957,16 +5957,22 @@ html {
   padding-left: 3px;
 }
 #tags {
-  border-bottom: 0;
   border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #fcfcfc;
   margin-left: 0;
   padding-left: 20px;
+}
+#tags div {
+  padding: 2px 0;
+  margin: 2px 0;
 }
 #tags a {
   line-height: 14px;
   color: #333;
   cursor: pointer;
   width: 100%;
+  padding: 2px 0;
+  margin: 2px 0;
 }
 #tags a:hover {
   font-weight: normal;
@@ -5974,8 +5980,21 @@ html {
   text-decoration: none;
   font-family: main;
 }
+#tags a:active,
+#tags a:focus {
+  font-weight: normal;
+  background-color: #ffc47f;
+  text-decoration: none;
+  font-family: main;
+  outline: none;
+}
 #tags .selected {
   background: #c5ebf9;
+}
+.tags-title {
+  font-weight: lighter;
+  font-style: italic;
+  padding: 2px 10px;
 }
 .ui-layout-west {
   border: 0px;

@@ -1723,7 +1723,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       var _this = this;
       template = require('./templates/task');
       $(this.el).html(template({
-        "model": this.model
+        model: this.model
       }));
       this.el.id = this.model.id;
       if (this.model.done) {

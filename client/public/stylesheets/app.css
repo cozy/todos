@@ -6002,7 +6002,6 @@ html {
   background: #fcfcfc;
 }
 #home-view .ui-layout-resizer {
-  width: 20px;
   border-right: 1px solid #e8e8e8;
   border-left: 1px solid #e8e8e8;
   background-color: #fcfcfc;

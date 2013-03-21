@@ -39,36 +39,36 @@ class exports.TaskLine extends Backbone.View
 
     # Render wiew and bind it to model.
     render: ->
-        template = require('./templates/task')
-        $(@el).html template("model": @model)
+        template = require './templates/task'
+        $(@el).html template(model: @model)
         @el.id = @model.id
         @done() if @model.done
 
-        @descriptionField = @.$(".description")
-        @buttons = @.$(".task-buttons")
+        @descriptionField = @$ ".description"
+        @buttons = @$ ".task-buttons"
         @setListeners()
 
-        @.$(".task-buttons").hide()
+        @$(".task-buttons").hide()
         @descriptionField.data 'before', @descriptionField.val()
-        @todoButton = @$(".todo-button")
+        @todoButton = @$ ".todo-button"
 
         @todoButton.hover =>
             if @model.done
-                @todoButton.html("todo?")
+                @todoButton.html "todo?"
             else
-                @todoButton.html("done?")
+                @todoButton.html "done?"
         @todoButton.mouseout =>
             if @model.done
-                @todoButton.html("done")
+                @todoButton.html "done"
             else
-                @todoButton.html("todo")
+                @todoButton.html "todo"
 
-        if !@list.tasks.listId?
-            @$el.unbind('dragstart')
-            @$el.unbind('dragover')
-            @$el.unbind('drop')
-            @$el.unbind('dragend')
-            @$el.unbind('hover')
+        if not @list.tasks.listId?
+            @$el.unbind 'dragstart'
+            @$el.unbind 'dragover'
+            @$el.unbind 'drop'
+            @$el.unbind 'dragend'
+            @$el.unbind 'hover'
         else
             @$el.prop 'draggable', true
 
@@ -179,7 +179,7 @@ class exports.TaskLine extends Backbone.View
         # Do nothing when tab or enter is pressed.
         @descriptionField.keypress (event) ->
             keyCode = event.which | event.keyCode
-            keyCode != 13 and keyCode != 9
+            keyCode isnt 13 and keyCode isnt 9
 
         # to detect the "CMD" key on OSX
         @descriptionField.keydown (event) =>

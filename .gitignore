@@ -14,5 +14,5 @@ results
 node_modules
 npm-debug.log
 
-log/test.log
+log/
 client/xunit.xml

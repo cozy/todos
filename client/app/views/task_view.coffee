@@ -70,7 +70,13 @@ class exports.TaskLine extends Backbone.View
             @$el.unbind 'dragend'
             @$el.unbind 'hover'
         else
-            @$el.prop 'draggable', true
+            @$(".handle").prop 'draggable', true
+
+        @$('.handle').tooltip
+            placement: "left"
+            title: "You can sort the tasks by dragging and dropping them. " + \
+                   "Hint: if you press shift, you can move a task " + \
+                   "to another list."
 
         @el
 
@@ -88,7 +94,6 @@ class exports.TaskLine extends Backbone.View
         event.originalEvent.dataTransfer.setData 'text/plain', @model.id
 
     onDragOver: (event) ->
-
         event.preventDefault() if event.preventDefault
         event.originalEvent.dataTransfer.dropEffect = 'move'
         $('.separator').css 'visibility', 'hidden'
@@ -100,8 +105,7 @@ class exports.TaskLine extends Backbone.View
         y = pageY - targetOffsetTop | offsetY
         limit = @$el.height() / 2
 
-
-        if(y <= limit)
+        if y <= limit
             $(@list.$el.children()[index - 1]).css 'visibility', 'visible'
         else
             $(@list.$el.children()[index + 1]).css 'visibility', 'visible'
@@ -109,8 +113,7 @@ class exports.TaskLine extends Backbone.View
         return false
 
     onDrop: (event) ->
-        if event.stopPropagation
-            event.stopPropagation()
+        event.stopPropagation() if event.stopPropagation
 
         pageY = event.originalEvent.pageY
         targetOffsetTop = event.target.offsetTop
@@ -144,12 +147,12 @@ class exports.TaskLine extends Backbone.View
         @list.draggedItem = null
 
     onReorder: (draggedItem, newIndex) ->
-        #console.debug newIndex
         if not @list.isSaving
             isReordered = @model.collection.reorder draggedItem.model, newIndex
 
             if @model.collection.listId? and isReordered
                 @list.isSaving = true
+                draggedItem.saving = true
                 draggedItem.showLoading()
                 childrenTasks = @list.$el.children('.task')
                 oldIndex = childrenTasks.index(draggedItem.$el)
@@ -167,10 +170,12 @@ class exports.TaskLine extends Backbone.View
                 draggedItem.model.save null,
                 success: =>
                     @list.isSaving = false
+                    draggedItem.saving = false
                     draggedItem.hideLoading()
                 error: =>
                     console.log "An error while saving the task."
                     @list.isSaving = false
+                    draggedItem.saving = false
                     draggedItem.hideLoading()
 
 
@@ -205,7 +210,7 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.bind 'blur paste beforeunload', (event) =>
             el = @descriptionField
 
-            if el.data('before') != el.val() and not @isDeleting
+            if el.data('before') != el.val() and not @isDeleting and not @saving
                 el.data 'before', el.val()
                 @onDescriptionChanged event, event.which | event.keyCode
             return el
@@ -216,11 +221,9 @@ class exports.TaskLine extends Backbone.View
 
     onMouseOver: (event) ->
         if event.type is 'mouseenter'
-            @$el.find('.handle').css('display', 'inline-block')
             @$el.children('.description').addClass('hovered')
         else
             @$el.children('.description').removeClass('hovered')
-            @$el.find('.handle').hide()
 
     # On todo button clicked, update task state and send modifications to
     # backend.
@@ -248,18 +251,23 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        newIndex = (@list.$el.children('.task').index @$el) - 1
-        @onReorder @, newIndex if newIndex? and newIndex >= 0
+        @onDescriptionChanged null, -1,
+            success: =>
+                newIndex = (@list.$el.children('.task').index @$el) - 1
+                @onReorder @, newIndex if newIndex? and newIndex >= 0
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        tasks = @list.$el.children('.task')
-        taskListLength = tasks.length
-        newIndex = (tasks.index @$el) + 2
-        @onReorder @, newIndex if newIndex? and newIndex <= taskListLength
+        @onDescriptionChanged null, -1,
+            success: =>
+                tasks = @list.$el.children('.task')
+                taskListLength = tasks.length
+                newIndex = (tasks.index @$el) + 2
+                @onReorder @, newIndex if newIndex? and \
+                                          newIndex <= taskListLength
 
     # When description is changed, model is saved to backend.
-    onDescriptionChanged: (event, keyCode) =>
+    onDescriptionChanged: (event, keyCode, callback) =>
         unless keyCode == 8 or @descriptionField.val().length == 0
             @saving = true
             @model.description = @descriptionField.val()
@@ -271,6 +279,7 @@ class exports.TaskLine extends Backbone.View
                     @model.set 'tags', tags
                     @hideLoading()
                     @saving = false
+                    callback?.success()
                 error: =>
                     alert "An error occured, modifications were not saved."
                     @hideLoading()

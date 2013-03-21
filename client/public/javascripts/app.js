@@ -171,9 +171,9 @@ window.require.register("collections/tasks", function(exports, require, module) 
             at: index + 1,
             silent: true
           });
-          if (previousTask != null) {
+          if ((previousTask != null) && (_this.view != null)) {
             _this.view.insertTask(previousTask.view, task);
-          } else {
+          } else if (_this.view != null) {
             _this.view.insertTask(null, task);
           }
           return callbacks != null ? callbacks.success(task) : void 0;
@@ -1119,7 +1119,7 @@ window.require.register("routers/main_router", function(exports, require, module
   
 });
 window.require.register("views/home_view", function(exports, require, module) {
-  var TagListView, TodoList, TodoListCollection, TodoListWidget, Tree, helpers, request,
+  var TagListView, Task, TodoList, TodoListCollection, TodoListWidget, Tree, helpers, request,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -1133,6 +1133,8 @@ window.require.register("views/home_view", function(exports, require, module) {
   TodoListCollection = require("../collections/todolists").TodoListCollection;
 
   TodoListWidget = require("./todolist_view").TodoListWidget;
+
+  Task = require("../models/task").Task;
 
   helpers = require("../helpers");
 
@@ -1152,6 +1154,8 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.initialize = function() {};
 
     function HomeView() {
+      this.onTaskMoved = __bind(this.onTaskMoved, this);
+
       this.onTaskChanged = __bind(this.onTaskChanged, this);
 
       this.onTodoListDropped = __bind(this.onTodoListDropped, this);
@@ -1167,6 +1171,7 @@ window.require.register("views/home_view", function(exports, require, module) {
       this.onTodoListCreated = __bind(this.onTodoListCreated, this);
       this.todolists = new TodoListCollection();
       Backbone.Mediator.subscribe('task:changed', this.onTaskChanged);
+      this.todoViews = {};
       HomeView.__super__.constructor.call(this);
     }
 
@@ -1222,7 +1227,8 @@ window.require.register("views/home_view", function(exports, require, module) {
           onRemove: _this.onTodoListRemoved,
           onSelect: _this.onTodoListSelected,
           onLoaded: _this.onTreeLoaded,
-          onDrop: _this.onTodoListDropped
+          onDrop: _this.onTodoListDropped,
+          onTaskMoved: _this.onTaskMoved
         });
       });
       return this.treeLoadedCallback = callback;
@@ -1233,17 +1239,17 @@ window.require.register("views/home_view", function(exports, require, module) {
     */
 
 
-    HomeView.prototype.onTodoListCreated = function(parentId, newName, data) {
-      var _this = this;
+    HomeView.prototype.onTodoListCreated = function(parentId, newName, dataTree) {
+      var data;
       data = {
         title: newName,
         parent_id: parentId
       };
       return TodoList.createTodoList(data, function(err, todolist) {
-        data.rslt.obj.data("id", todolist.id);
-        data.rslt.obj[0].id = todolist.id;
-        data.inst.deselect_all();
-        return data.inst.select_node(data.rslt.obj);
+        dataTree.rslt.obj.data("id", todolist.id);
+        dataTree.rslt.obj[0].id = todolist.id;
+        dataTree.inst.deselect_all();
+        return dataTree.inst.select_node(dataTree.rslt.obj);
       });
     };
 
@@ -1296,7 +1302,15 @@ window.require.register("views/home_view", function(exports, require, module) {
         _this = this;
       loadLists = function() {
         return _this.todolists.fetch({
-          success: function() {
+          success: function(data) {
+            var list, listView, _i, _len, _ref;
+            _ref = data.models;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              list = _ref[_i];
+              listView = new TodoListWidget(list);
+              listView.render();
+              _this.todoViews[list.id] = listView;
+            }
             if (_this.treeLoadedCallback != null) {
               return _this.treeLoadedCallback();
             }
@@ -1337,6 +1351,27 @@ window.require.register("views/home_view", function(exports, require, module) {
       return (_ref = this.tagListView) != null ? _ref.addTags(tags) : void 0;
     };
 
+    HomeView.prototype.onTaskMoved = function(taskID, sourceID, targetID) {
+      var newList, newTask, oldList, task;
+      oldList = this.todoViews[sourceID].tasks;
+      newList = this.todoViews[targetID].tasks;
+      task = oldList.get(taskID);
+      newTask = new Task({
+        done: task.get("done"),
+        description: task.get("description")
+      });
+      task.view.showLoading();
+      return oldList.removeTask(task, {
+        success: function() {
+          newList.insertTask(null, newTask);
+          return task.view.hideLoading();
+        },
+        error: function() {
+          return task.view.hideLoading();
+        }
+      });
+    };
+
     /*
         # Functions
     */
@@ -1361,17 +1396,21 @@ window.require.register("views/home_view", function(exports, require, module) {
     };
 
     HomeView.prototype.renderTodolist = function(todolist) {
-      var todolistWidget, _ref;
-      if (todolist != null) {
-        todolist.url = "todolists/" + todolist.id;
+      var todoView, _ref;
+      if (this.todoViews[todolist != null ? todolist.id : void 0] != null) {
+        todoView = this.todoViews[todolist.id];
+      } else {
+        if (todolist != null) {
+          todolist.url = "todolists/" + todolist.id;
+        }
+        if ((_ref = this.currentTodolist) != null) {
+          _ref.view.blurAllTaskDescriptions();
+        }
+        this.currentTodolist = todolist;
+        todoView = new TodoListWidget(this.currentTodolist);
       }
-      if ((_ref = this.currentTodolist) != null) {
-        _ref.view.blurAllTaskDescriptions();
-      }
-      this.currentTodolist = todolist;
-      todolistWidget = new TodoListWidget(this.currentTodolist);
-      todolistWidget.render();
-      return todolistWidget.loadData();
+      todoView.render();
+      return todoView.loadData();
     };
 
     return HomeView;
@@ -1491,7 +1530,8 @@ window.require.register("views/new_task_form", function(exports, require, module
         success: function(data) {
           _this.clearNewTaskInput();
           _this.newTaskFormButton.html('new');
-          return _this.newTaskFormButton.spin();
+          _this.newTaskFormButton.spin();
+          return _this.newTaskFormInput.focus();
         },
         error: function(data) {
           _this.newTaskFormButton.html('new');
@@ -1756,8 +1796,12 @@ window.require.register("views/task_view", function(exports, require, module) {
         this.$el.unbind('dragend');
         this.$el.unbind('hover');
       } else {
-        this.$el.prop('draggable', true);
+        this.$(".handle").prop('draggable', true);
       }
+      this.$('.handle').tooltip({
+        placement: "left",
+        title: "You can sort the tasks by dragging and dropping them. " + "Hint: if you press shift, you can move a task " + "to another list."
+      });
       return this.el;
     };
 
@@ -1835,6 +1879,7 @@ window.require.register("views/task_view", function(exports, require, module) {
         isReordered = this.model.collection.reorder(draggedItem.model, newIndex);
         if ((this.model.collection.listId != null) && isReordered) {
           this.list.isSaving = true;
+          draggedItem.saving = true;
           draggedItem.showLoading();
           childrenTasks = this.list.$el.children('.task');
           oldIndex = childrenTasks.index(draggedItem.$el);
@@ -1851,11 +1896,13 @@ window.require.register("views/task_view", function(exports, require, module) {
           return draggedItem.model.save(null, {
             success: function() {
               _this.list.isSaving = false;
+              draggedItem.saving = false;
               return draggedItem.hideLoading();
             },
             error: function() {
               console.log("An error while saving the task.");
               _this.list.isSaving = false;
+              draggedItem.saving = false;
               return draggedItem.hideLoading();
             }
           });
@@ -1917,7 +1964,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       return this.descriptionField.bind('blur paste beforeunload', function(event) {
         var el;
         el = _this.descriptionField;
-        if (el.data('before') !== el.val() && !_this.isDeleting) {
+        if (el.data('before') !== el.val() && !_this.isDeleting && !_this.saving) {
           el.data('before', el.val());
           _this.onDescriptionChanged(event, event.which | event.keyCode);
         }
@@ -1932,11 +1979,9 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onMouseOver = function(event) {
       if (event.type === 'mouseenter') {
-        this.$el.find('.handle').css('display', 'inline-block');
         return this.$el.children('.description').addClass('hovered');
       } else {
-        this.$el.children('.description').removeClass('hovered');
-        return this.$el.find('.handle').hide();
+        return this.$el.children('.description').removeClass('hovered');
       }
     };
 
@@ -1968,24 +2013,34 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
-      var newIndex;
-      newIndex = (this.list.$el.children('.task').index(this.$el)) - 1;
-      if ((newIndex != null) && newIndex >= 0) {
-        return this.onReorder(this, newIndex);
-      }
+      var _this = this;
+      return this.onDescriptionChanged(null, -1, {
+        success: function() {
+          var newIndex;
+          newIndex = (_this.list.$el.children('.task').index(_this.$el)) - 1;
+          if ((newIndex != null) && newIndex >= 0) {
+            return _this.onReorder(_this, newIndex);
+          }
+        }
+      });
     };
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
-      var newIndex, taskListLength, tasks;
-      tasks = this.list.$el.children('.task');
-      taskListLength = tasks.length;
-      newIndex = (tasks.index(this.$el)) + 2;
-      if ((newIndex != null) && newIndex <= taskListLength) {
-        return this.onReorder(this, newIndex);
-      }
+      var _this = this;
+      return this.onDescriptionChanged(null, -1, {
+        success: function() {
+          var newIndex, taskListLength, tasks;
+          tasks = _this.list.$el.children('.task');
+          taskListLength = tasks.length;
+          newIndex = (tasks.index(_this.$el)) + 2;
+          if ((newIndex != null) && newIndex <= taskListLength) {
+            return _this.onReorder(_this, newIndex);
+          }
+        }
+      });
     };
 
-    TaskLine.prototype.onDescriptionChanged = function(event, keyCode) {
+    TaskLine.prototype.onDescriptionChanged = function(event, keyCode, callback) {
       var _this = this;
       if (!(keyCode === 8 || this.descriptionField.val().length === 0)) {
         this.saving = true;
@@ -2000,7 +2055,8 @@ window.require.register("views/task_view", function(exports, require, module) {
             Backbone.Mediator.publish('task:changed', tags);
             _this.model.set('tags', tags);
             _this.hideLoading();
-            return _this.saving = false;
+            _this.saving = false;
+            return callback != null ? callback.success() : void 0;
           },
           error: function() {
             alert("An error occured, modifications were not saved.");
@@ -2189,22 +2245,22 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     TaskList.prototype.addTaskLine = function(task) {
       var taskLine;
       taskLine = new TaskLine(task, this);
-      $(this.el).append(taskLine.render());
+      this.$el.append(taskLine.render());
       return this.$el.append($('<div class="separator"></div>'));
     };
 
     TaskList.prototype.addDateLine = function(date) {
-      return $(this.el).append('<div class="completion-date">' + date + '</div>');
+      return this.$el.append('<div class="completion-date">' + date + '</div>');
     };
 
     TaskList.prototype.addTaskLineAsFirstRow = function(task) {
       var taskLine;
       taskLine = new TaskLine(task, this);
-      return $(this.el).prepend(taskLine.render());
+      return this.$el.prepend(taskLine.render());
     };
 
     TaskList.prototype.isArchive = function() {
-      return $(this.el).attr("id") === "archive-list";
+      return this.$el.attr("id") === "archive-list";
     };
 
     TaskList.prototype.moveToTaskList = function(task) {
@@ -2242,12 +2298,13 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     };
 
     TaskList.prototype.insertTask = function(previousTaskLine, task) {
-      var taskLine, taskLineEl, _ref;
+      var previousSeparator, taskLine, taskLineEl, _ref;
       taskLine = new TaskLine(task);
       taskLine.list = this;
       taskLineEl = $(taskLine.render());
       if (previousTaskLine != null) {
-        taskLineEl.insertAfter($(previousTaskLine.el));
+        previousSeparator = $(previousTaskLine.el).next(".separator");
+        taskLineEl.insertAfter(previousSeparator);
         taskLineEl.after($('<div class="separator"></div>'));
       } else {
         this.$el.prepend(taskLineEl);
@@ -2365,8 +2422,6 @@ window.require.register("views/todolist_view", function(exports, require, module
 
     TodoListWidget.prototype.el = "#todo-list";
 
-    TodoListWidget.prototype.isEditMode = false;
-
     /* Constructor
     */
 
@@ -2378,10 +2433,6 @@ window.require.register("views/todolist_view", function(exports, require, module
       this.displayCreationInfos = __bind(this.displayCreationInfos, this);
 
       this.creationInfosRequired = __bind(this.creationInfosRequired, this);
-
-      this.onEditClicked = __bind(this.onEditClicked, this);
-
-      this.onAddClicked = __bind(this.onAddClicked, this);
 
       TodoListWidget.__super__.constructor.call(this);
       if (this.model != null) {
@@ -2408,49 +2459,21 @@ window.require.register("views/todolist_view", function(exports, require, module
       this.archiveTasks = this.archiveList.tasks;
       this.refreshBreadcrump();
       this.newTaskForm = new NewTaskForm(this.taskList);
-      return this.el;
-    };
-
-    /*
-        # Listeners
-    */
-
-
-    TodoListWidget.prototype.onAddClicked = function(event) {
-      var task,
-        _this = this;
-      task = new Task({
-        done: false,
-        description: "new task",
-        list: this.model.id
-      });
-      return task.save(null, {
-        success: function(data) {
-          data.url = "tasks/" + data.id + "/";
-          console.debug(data);
-          _this.tasks.add(data);
-          $(".task:first .description").focus();
-          helpers.selectAll($(".task:first .description"));
-          return _this.displayCreationInfos();
-        },
-        error: function() {
-          return alert("An error occured while saving data");
+      $(document).unbind('keydown').keydown(function(event) {
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 16) {
+          return $('.handle').addClass('jstree-draggable');
         }
       });
-    };
-
-    TodoListWidget.prototype.onEditClicked = function(event) {
-      if (!this.isEditMode) {
-        this.$(".task:not(.done) .task-buttons").show();
-        this.newButton.show();
-        this.isEditMode = true;
-        return this.showButtonsButton.html("hide buttons");
-      } else {
-        this.$(".task-buttons").hide();
-        this.newButton.hide();
-        this.isEditMode = false;
-        return this.showButtonsButton.html("show buttons");
-      }
+      $(document).unbind('keyup').keyup(function(event) {
+        var keyCode;
+        keyCode = event.which | event.keyCode;
+        if (keyCode === 16) {
+          return $('.handle').removeClass('jstree-draggable');
+        }
+      });
+      return this.el;
     };
 
     /*
@@ -2464,7 +2487,6 @@ window.require.register("views/todolist_view", function(exports, require, module
         this.tasks.url = "tasks/todo";
         this.archiveTasks.url = "tasks/archives";
       } else {
-        console.log(this.model);
         if (this.model.tag != null) {
           this.tasks.url = "tasks/tags/" + this.model.tag + "/todo";
           this.archiveTasks.url = "tasks/tags/" + this.model.tag + "/archives";
@@ -2472,8 +2494,8 @@ window.require.register("views/todolist_view", function(exports, require, module
           this.archiveTasks.url += "/archives";
         }
       }
-      $(this.archiveTasks.view.el).spin();
-      $(this.tasks.view.el).spin();
+      $(this.archiveTasks.view.el).spin("small");
+      $(this.tasks.view.el).spin("small");
       this.archiveTasks.fetch({
         success: function() {
           return $(_this.archiveTasks.view.el).spin();
@@ -2487,10 +2509,6 @@ window.require.register("views/todolist_view", function(exports, require, module
           if (_this.$(".task:not(.done)").length > 0) {
             _this.$(".task:first .description").focus();
             _this.displayCreationInfos();
-          } else {
-            if ((_this.model != null) && (_this.model.id != null)) {
-              _this.onAddClicked();
-            }
           }
           return _this.$(_this.tasks.view.el).spin();
         },
@@ -2559,7 +2577,7 @@ window.require.register("views/todolist_view", function(exports, require, module
       parent = app.homeView.tree.getSelectedNode();
       while (paths.length > 0) {
         parent = app.homeView.tree.getParent(parent);
-        if (parent != null) {
+        if ((parent != null) && (parent[0] != null)) {
           href = "#todolist/" + parent[0].id + "/" + (slugs.join("/"));
           slugs.pop();
           listName = paths.pop();
@@ -2660,6 +2678,8 @@ window.require.register("views/widgets/tree", function(exports, require, module)
 
     function Tree(navEl, data, homeViewCbk) {
       this._getSlugPath = __bind(this._getSlugPath, this);
+
+      var _this = this;
       this.jstreeEl = $("#tree");
       navEl.prepend(require('../templates/tree_buttons'));
       this.widget = this.jstreeEl.jstree({
@@ -2711,6 +2731,31 @@ window.require.register("views/widgets/tree", function(exports, require, module)
         search: {
           search_method: "jstree_contains_multi",
           show_only_matches: true
+        },
+        dnd: {
+          "drag_finish": function(data) {
+            var draggedTaskID, sourceID, targetID;
+            draggedTaskID = $(data.o.parentNode).prop('id');
+            targetID = data.r[0].id;
+            sourceID = _this.getSelectedNode().prop('id');
+            return homeViewCbk.onTaskMoved(draggedTaskID, sourceID, targetID);
+          },
+          "drag_check": function(data) {
+            var canDrop, draggedTask, isSameList, sourceID, targetID;
+            draggedTask = $(data.o.parentNode);
+            targetID = data.r[0].id;
+            sourceID = _this.getSelectedNode().prop('id');
+            canDrop = {
+              after: false,
+              before: false,
+              inside: false
+            };
+            isSameList = sourceID === targetID;
+            if (!isSameList && draggedTask.hasClass('task')) {
+              canDrop.inside = true;
+            }
+            return canDrop;
+          }
         }
       });
       this.setListeners(homeViewCbk);

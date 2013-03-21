@@ -144,12 +144,12 @@ class exports.TaskLine extends Backbone.View
         @list.draggedItem = null
 
     onReorder: (draggedItem, newIndex) ->
-        #console.debug newIndex
         if not @list.isSaving
             isReordered = @model.collection.reorder draggedItem.model, newIndex
 
             if @model.collection.listId? and isReordered
                 @list.isSaving = true
+                draggedItem.saving = true
                 draggedItem.showLoading()
                 childrenTasks = @list.$el.children('.task')
                 oldIndex = childrenTasks.index(draggedItem.$el)
@@ -167,10 +167,12 @@ class exports.TaskLine extends Backbone.View
                 draggedItem.model.save null,
                 success: =>
                     @list.isSaving = false
+                    draggedItem.saving = false
                     draggedItem.hideLoading()
                 error: =>
                     console.log "An error while saving the task."
                     @list.isSaving = false
+                    draggedItem.saving = false
                     draggedItem.hideLoading()
 
 
@@ -205,7 +207,7 @@ class exports.TaskLine extends Backbone.View
         @descriptionField.bind 'blur paste beforeunload', (event) =>
             el = @descriptionField
 
-            if el.data('before') != el.val() and not @isDeleting
+            if el.data('before') != el.val() and not @isDeleting and not @saving
                 el.data 'before', el.val()
                 @onDescriptionChanged event, event.which | event.keyCode
             return el
@@ -248,18 +250,23 @@ class exports.TaskLine extends Backbone.View
 
     # Move line to one row up by modifying model collection.
     onUpButtonClicked: (event) =>
-        newIndex = (@list.$el.children('.task').index @$el) - 1
-        @onReorder @, newIndex if newIndex? and newIndex >= 0
+        @onDescriptionChanged null, -1,
+            success: =>
+                newIndex = (@list.$el.children('.task').index @$el) - 1
+                @onReorder @, newIndex if newIndex? and newIndex >= 0
 
     # Move line to one row down by modifying model collection.
     onDownButtonClicked: (event) =>
-        tasks = @list.$el.children('.task')
-        taskListLength = tasks.length
-        newIndex = (tasks.index @$el) + 2
-        @onReorder @, newIndex if newIndex? and newIndex <= taskListLength
+        @onDescriptionChanged null, -1,
+            success: =>
+                tasks = @list.$el.children('.task')
+                taskListLength = tasks.length
+                newIndex = (tasks.index @$el) + 2
+                @onReorder @, newIndex if newIndex? and \
+                                          newIndex <= taskListLength
 
     # When description is changed, model is saved to backend.
-    onDescriptionChanged: (event, keyCode) =>
+    onDescriptionChanged: (event, keyCode, callback) =>
         unless keyCode == 8 or @descriptionField.val().length == 0
             @saving = true
             @model.description = @descriptionField.val()
@@ -271,6 +278,7 @@ class exports.TaskLine extends Backbone.View
                     @model.set 'tags', tags
                     @hideLoading()
                     @saving = false
+                    callback?.success()
                 error: =>
                     alert "An error occured, modifications were not saved."
                     @hideLoading()
@@ -383,6 +391,7 @@ class exports.TaskLine extends Backbone.View
 
     # Display loading indicator inside todo/done button and hide button text.
     showLoading: ->
+        #@hideLoading()
         @todoButton.html "&nbsp;"
         @todoButton.spin "tiny"
 

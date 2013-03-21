@@ -1239,17 +1239,17 @@ window.require.register("views/home_view", function(exports, require, module) {
     */
 
 
-    HomeView.prototype.onTodoListCreated = function(parentId, newName, data) {
-      var _this = this;
+    HomeView.prototype.onTodoListCreated = function(parentId, newName, dataTree) {
+      var data;
       data = {
         title: newName,
         parent_id: parentId
       };
       return TodoList.createTodoList(data, function(err, todolist) {
-        data.rslt.obj.data("id", todolist.id);
-        data.rslt.obj[0].id = todolist.id;
-        data.inst.deselect_all();
-        return data.inst.select_node(data.rslt.obj);
+        dataTree.rslt.obj.data("id", todolist.id);
+        dataTree.rslt.obj[0].id = todolist.id;
+        dataTree.inst.deselect_all();
+        return dataTree.inst.select_node(dataTree.rslt.obj);
       });
     };
 
@@ -1303,16 +1303,14 @@ window.require.register("views/home_view", function(exports, require, module) {
       loadLists = function() {
         return _this.todolists.fetch({
           success: function(data) {
-            var list, tview, _i, _len, _ref;
+            var list, listView, _i, _len, _ref;
             _ref = data.models;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               list = _ref[_i];
-              console.debug(list);
-              tview = new TodoListWidget(list);
-              tview.render();
-              _this.todoViews[list.id] = tview;
+              listView = new TodoListWidget(list);
+              listView.render();
+              _this.todoViews[list.id] = listView;
             }
-            console.debug(_this.todoViews);
             if (_this.treeLoadedCallback != null) {
               return _this.treeLoadedCallback();
             }
@@ -1410,7 +1408,6 @@ window.require.register("views/home_view", function(exports, require, module) {
         }
         this.currentTodolist = todolist;
         todoView = new TodoListWidget(this.currentTodolist);
-        this.todoViews[todolist.id] = todoView;
       }
       todoView.render();
       return todoView.loadData();
@@ -1981,11 +1978,9 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onMouseOver = function(event) {
       if (event.type === 'mouseenter') {
-        this.$el.find('.handle').css('display', 'inline-block');
         return this.$el.children('.description').addClass('hovered');
       } else {
-        this.$el.children('.description').removeClass('hovered');
-        return this.$el.find('.handle').hide();
+        return this.$el.children('.description').removeClass('hovered');
       }
     };
 
@@ -2585,7 +2580,7 @@ window.require.register("views/todolist_view", function(exports, require, module
       parent = app.homeView.tree.getSelectedNode();
       while (paths.length > 0) {
         parent = app.homeView.tree.getParent(parent);
-        if (parent != null) {
+        if ((parent != null) && (parent[0] != null)) {
           href = "#todolist/" + parent[0].id + "/" + (slugs.join("/"));
           slugs.pop();
           listName = paths.pop();

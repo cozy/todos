@@ -145,7 +145,7 @@ class exports.TodoListWidget extends Backbone.View
         while paths.length > 0
             parent = app.homeView.tree.getParent parent
 
-            if parent?
+            if parent? and parent[0]?
                 href = "#todolist/#{parent[0].id}/#{slugs.join("/")}"
                 slugs.pop()
                 listName = paths.pop()

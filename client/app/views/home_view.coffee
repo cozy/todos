@@ -87,15 +87,15 @@ class exports.HomeView extends Backbone.View
 
     # Save todolist creation to backend. Update corresponding node metadata.
     # Then select todolist
-    onTodoListCreated: (parentId, newName, data) =>
+    onTodoListCreated: (parentId, newName, dataTree) =>
         data =
             title: newName
             parent_id: parentId
-        TodoList.createTodoList data, (err, todolist) =>
-            data.rslt.obj.data "id", todolist.id
-            data.rslt.obj[0].id = todolist.id
-            data.inst.deselect_all()
-            data.inst.select_node data.rslt.obj
+        TodoList.createTodoList data, (err, todolist) ->
+            dataTree.rslt.obj.data "id", todolist.id
+            dataTree.rslt.obj[0].id = todolist.id
+            dataTree.inst.deselect_all()
+            dataTree.inst.select_node dataTree.rslt.obj
 
     # Persist todolist renaming and update view rendering.
     onTodoListRenamed: (listId, newName, data) =>
@@ -136,12 +136,9 @@ class exports.HomeView extends Backbone.View
             @todolists.fetch
                 success: (data) =>
                     for list in data.models
-                        console.debug list
-                        #list.url = "todolists/#{list.id}"
-                        tview = new TodoListWidget list
-                        tview.render()
-                        @todoViews[list.id] = tview
-                    console.debug @todoViews
+                        listView = new TodoListWidget list
+                        listView.render()
+                        @todoViews[list.id] = listView
                     @treeLoadedCallback() if @treeLoadedCallback?
                 error: =>
                     @treeLoadedCallback() if @treeLoadedCallback?
@@ -208,7 +205,6 @@ class exports.HomeView extends Backbone.View
             @currentTodolist?.view.blurAllTaskDescriptions()
             @currentTodolist = todolist
             todoView = new TodoListWidget @currentTodolist
-            @todoViews[todolist.id] = todoView
 
         todoView.render()
         todoView.loadData()

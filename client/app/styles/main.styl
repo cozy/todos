@@ -66,6 +66,16 @@ html
         color: #333
 
 .task
+    .handle
+        width: 25px
+        height: 32px
+        line-height: 35px
+        text-align: center
+        display: none
+        background: url('../img/todos-handle.png') no-repeat center center
+        background-size: 20px 20px
+        opacity: 0.5
+
     input:focus
     input:active
         padding-left: 1%
@@ -74,34 +84,36 @@ html
         shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
         color: #333
 
+        .handle
+            display: inline-block
+
+.task:hover
+.task:focus
+.task:active
+    .handle
+        display: inline-block
+
 .task button
-  float left
+    float left
 
 /* Drag'N'Drop handling */
 .task.jstree-draggable
-  -webkit-user-select all
-.task .handle
-  width: 25px
-  height: 32px
-  line-height: 35px
-  text-align: center
-  display: none
-  background: url('../img/todos-handle.png') no-repeat center center
-  background-size: 20px 20px
-  opacity: 0.5
+    -webkit-user-select all
+
 .task .handle.jstree-draggable
-  opacity: 1
+    opacity: 1
 
 .separator
-  width: 100%
-  height: 0
-  display: block
-  visibility: hidden
-  border-bottom: 1px solid #CCC
+    width: 100%
+    height: 0
+    display: block
+    visibility: hidden
+    border-bottom: 1px solid #CCC
 
 [draggable]
-  user-select none
-  /* end Drag'N'Drop */
+    user-select none
+
+/* end Drag'N'Drop */
 
 .done button
     background: contrastcolor
@@ -114,110 +126,108 @@ html
     border-color: actioncolor
 
 .done .description
-  color #AAA
-  text-decoration line-through
-  margin-top: 0px
+    color #AAA
+    text-decoration line-through
+    margin-top: 0px
 
 
 .task .description
-  margin-left: 1%
-  font-size: 16px
-  height:22px
-  width: 88%
-  padding: 4px 1%
-  background-color: #FCFCFC
-  margin-top: 2px
-  margin-bottom: 4px
+    margin-left: 1%
+    font-size: 16px
+    height:22px
+    width: 88%
+    padding: 4px 1%
+    background-color: #FCFCFC
+    margin-top: 2px
+    margin-bottom: 4px
 
 .info
-    font-size: 10px
-    color: #777
-    padding-left: 20px
+        font-size: 10px
+        color: #777
+        padding-left: 20px
 
 .todo-button
-  width: 6%
-
-.add-button
-  width: 6%
-
-.task.new-task
-  position: relative
-  display: none
-
-  button.add-task
-    background: actioncolor
-    border-color: actioncolor
     width: 6%
 
-  input
-    border: 1px solid #ccc
-    color: #ccc
-  input:focus
-    color: #333
+.add-button
+    width: 6%
 
+#todo-list
+    .add-task.disabled
+        background: #777
+        border-color: #777
+
+.task.new-task
+    position: relative
+    display: none
+
+    .add-task
+        width: 6%
+
+    input
+        border: 1px solid #ccc
+        color: #ccc
+    input:focus
+        color: #333
 
 .task-buttons
-  float right
-  margin-top: 6px
-  margin-right: 2%
+    float right
+    margin-top: 6px
+    margin-right: 2%
 
 #todo-list
     header
         margin-top: 20px
         position: relative
 
-        button.toggle-task-form
-          opacity: 0.2
-          position: absolute
-          right: 18px
-          bottom: 0
-          background: #FFB866 !important
-          border-color: #FFB866
-          &:hover
-            font-weight: normal
+        .toggle-task-form
+            position: absolute
+            right: 18px
+            bottom: 0
+            opacity: 0.2
 
 .todo-list-title
-  border-bottom 1px solid #CCC
-  padding-left: 1%
-  margin-bottom: 3%
-  margin-top: 1%
-  margin-left: 1%
-  margin-right: 1%
+    border-bottom 1px solid #CCC
+    padding-left: 1%
+    margin-bottom: 3%
+    margin-top: 1%
+    margin-left: 1%
+    margin-right: 1%
 
 .todo-list-title .description
-  font-weight bold
-  font-size 30px
-  font-variant small-caps
-  line-height 40px
-  margin-left 0
+    font-weight bold
+    font-size 30px
+    font-variant small-caps
+    line-height 40px
+    margin-left 0
 
 .todo-list-title button
-  float right
+    float right
 
 
 .archive-title
-  font-size: 16px
-  border-bottom: 1px solid #CCC
-  margin: 3% 1% 2% 1%
+    font-size: 16px
+    border-bottom: 1px solid #CCC
+    margin: 3% 1% 2% 1%
 
 .todo-list-title .description
-  margin-bottom: 2px
+    margin-bottom: 2px
 
 .breadcrumb
-  background: none
-  border: none
-  font-size: 12px
-  padding: 2px
-  margin: 0
-  text-transform: lowercase
-
-  a
-    color: basecolor
-
-  a:hover
+    background: none
+    border: none
     font-size: 12px
-    font-weight: normal
-    color: actioncolor
+    padding: 2px
+    margin: 0
+    text-transform: lowercase
+
+    a
+        color: basecolor
+
+    a:hover
+        font-size: 12px
+        font-weight: normal
+        color: actioncolor
 
 .task-infos
     font-size: 12px
@@ -250,6 +260,7 @@ html
     text-shadow: none
     border-radius: 0
     font-family: main
+    font-weight: bold
 
 .btn:hover
     background: #45C7F5
@@ -261,16 +272,17 @@ html
     color: white
 
 .btn-info
-    margin-top: 2px
     background: basecolor
     border: 1px solid basecolor
     box-shadow: none
+    margin-top: 2px
     padding: 6px
 
 .btn-info:hover
-    background: actioncolor + 20%
-    border-color: actioncolor + 20%
+    background: actioncolor
+    border-color: actioncolor
     font-weight: bold
+    text-shadow: none
 
 .btn-info:active
     background: actioncolor -20%

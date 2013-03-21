@@ -5598,25 +5598,6 @@ html {
   box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
   color: #333;
 }
-.task input:focus,
-.task input:active {
-  padding-left: 1%;
-  border: 1px solid rgba(82,168,236,0.8);
-  -webkit-border-radius: 0px;
-  border-radius: 0px;
-  -moz-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  color: #333;
-}
-.task button {
-  float: left;
-}
-/* Drag'N'Drop handling */
-.task.jstree-draggable {
-  -webkit-user-select: all;
-}
 .task .handle {
   width: 25px;
   height: 32px;
@@ -5630,6 +5611,34 @@ html {
   opacity: 0.5;
   -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
   filter: alpha(opacity=50);
+}
+.task input:focus,
+.task input:active {
+  padding-left: 1%;
+  border: 1px solid rgba(82,168,236,0.8);
+  -webkit-border-radius: 0px;
+  border-radius: 0px;
+  -moz-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
+  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
+  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
+  box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
+  color: #333;
+}
+.task input:focus .handle,
+.task input:active .handle {
+  display: inline-block;
+}
+.task:hover .handle,
+.task:focus .handle,
+.task:active .handle {
+  display: inline-block;
+}
+.task button {
+  float: left;
+}
+/* Drag'N'Drop handling */
+.task.jstree-draggable {
+  -webkit-user-select: all;
 }
 .task .handle.jstree-draggable {
   opacity: 1;
@@ -5648,8 +5657,8 @@ html {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-/* end Drag'N'Drop */
 }
+/* end Drag'N'Drop */
 .done button {
   background: #5c5;
   border-color: #5c5;
@@ -5686,13 +5695,15 @@ html {
 .add-button {
   width: 6%;
 }
+#todo-list .add-task.disabled {
+  background: #777;
+  border-color: #777;
+}
 .task.new-task {
   position: relative;
   display: none;
 }
-.task.new-task button.add-task {
-  background: #fe8800;
-  border-color: #fe8800;
+.task.new-task .add-task {
   width: 6%;
 }
 .task.new-task input {
@@ -5711,18 +5722,13 @@ html {
   margin-top: 20px;
   position: relative;
 }
-#todo-list header button.toggle-task-form {
-  opacity: 0.2;
-  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=20);
-  filter: alpha(opacity=20);
+#todo-list header .toggle-task-form {
   position: absolute;
   right: 18px;
   bottom: 0;
-  background: #ffb866 !important;
-  border-color: #ffb866;
-}
-#todo-list header button.toggle-task-form:hover {
-  font-weight: normal;
+  opacity: 0.2;
+  -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=20);
+  filter: alpha(opacity=20);
 }
 .todo-list-title {
   border-bottom: 1px solid #ccc;
@@ -5797,6 +5803,7 @@ html {
   -webkit-border-radius: 0;
   border-radius: 0;
   font-family: main;
+  font-weight: bold;
 }
 .btn:hover {
   background: #45c7f5;
@@ -5811,17 +5818,18 @@ html {
   color: #fff;
 }
 .btn-info {
-  margin-top: 2px;
   background: #34a6ff;
   border: 1px solid #34a6ff;
   -webkit-box-shadow: none;
   box-shadow: none;
+  margin-top: 2px;
   padding: 6px;
 }
 .btn-info:hover {
-  background: #ffa032;
-  border-color: #ffa032;
+  background: #fe8800;
+  border-color: #fe8800;
   font-weight: bold;
+  text-shadow: none;
 }
 .btn-info:active {
   background: #fe8800 -20%;
@@ -5931,7 +5939,7 @@ html {
   font-family: main;
 }
 #tree .jstree-rename-input {
-  margin-left: -18px;
+  margin-left: -12px;
   margin-top: 0px;
 }
 .title {
@@ -6001,6 +6009,13 @@ html {
 }
 #tags .selected {
   background: #c5ebf9;
+}
+#tags .selected:focus,
+#tags .selected:active {
+  background: #c5ebf9;
+}
+#tags .selected:hover {
+  background-color: #ffc47f;
 }
 #tags i {
   padding-top: 4px;

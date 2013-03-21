@@ -94,7 +94,6 @@ class exports.TaskLine extends Backbone.View
         event.originalEvent.dataTransfer.setData 'text/plain', @model.id
 
     onDragOver: (event) ->
-
         event.preventDefault() if event.preventDefault
         event.originalEvent.dataTransfer.dropEffect = 'move'
         $('.separator').css 'visibility', 'hidden'
@@ -106,8 +105,7 @@ class exports.TaskLine extends Backbone.View
         y = pageY - targetOffsetTop | offsetY
         limit = @$el.height() / 2
 
-
-        if(y <= limit)
+        if y <= limit
             $(@list.$el.children()[index - 1]).css 'visibility', 'visible'
         else
             $(@list.$el.children()[index + 1]).css 'visibility', 'visible'
@@ -115,8 +113,7 @@ class exports.TaskLine extends Backbone.View
         return false
 
     onDrop: (event) ->
-        if event.stopPropagation
-            event.stopPropagation()
+        event.stopPropagation() if event.stopPropagation
 
         pageY = event.originalEvent.pageY
         targetOffsetTop = event.target.offsetTop
@@ -224,11 +221,9 @@ class exports.TaskLine extends Backbone.View
 
     onMouseOver: (event) ->
         if event.type is 'mouseenter'
-            @$el.find('.handle').css('display', 'inline-block')
             @$el.children('.description').addClass('hovered')
         else
             @$el.children('.description').removeClass('hovered')
-            @$el.find('.handle').hide()
 
     # On todo button clicked, update task state and send modifications to
     # backend.
@@ -397,7 +392,6 @@ class exports.TaskLine extends Backbone.View
 
     # Display loading indicator inside todo/done button and hide button text.
     showLoading: ->
-        #@hideLoading()
         @todoButton.html "&nbsp;"
         @todoButton.spin "tiny"
 

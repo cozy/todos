@@ -19,6 +19,7 @@ grey = #E8E8E8
     left 10px
     margin-bottom 0
     font-family: main
+    border: 0
 
 #tree
     outline: none
@@ -121,8 +122,9 @@ grey = #E8E8E8
         color: #333
         cursor: pointer
         width: 100%
-        padding: 2px 0
-        margin: 2px 0
+        padding: 2px 4px
+        margin: 2px 4px
+        font-size: 14px
 
     a:hover
         font-weight: normal
@@ -141,31 +143,31 @@ grey = #E8E8E8
     .selected
         background: #C5EBF9
 
-.tags-title
-    font-weight: lighter
-    font-style: italic
-    padding: 2px 10px
+    i
+        padding-top: 4px
+        background-position: 0px -44px
 
-// separator between nav-pane and content-pane
-.ui-layout-west
-  border: 0px  
+#home-view
+    .ui-layout-resizer-open:hover
+        background whitegrey
+          
+    .ui-layout-resizer
+        border-right: 1px solid grey
+        border-left: 1px solid grey
+        background-color: whitegrey
 
-.ui-layout-center
-  border: 0px  
-  
-.ui-layout-resizer-open:hover
-  background white
-    
-.ui-layout-resizer
-  background-color: white
-  width: 10px
+    .ui-layout-resizer:hover
+        border-right: 1px solid actioncolor
+        border-left: 1px solid actioncolor
 
-.ui-layout-pane
-  border-right: 0px
-  
-.ui-layout-toggler
-  background-color: #CCC
-  border: 0px
-  position: absolute
-  right: 0px
+    .ui-layout-pane
+        border-right: 0px
+        
+    .ui-layout-toggler
+        position: absolute
+        right: 0px
+        border: 0px
+        background-color: grey
 
+    .ui-layout-toggler:hover
+        background-color: actioncolor

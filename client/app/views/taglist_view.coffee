@@ -13,7 +13,9 @@ class exports.TagListView extends Backbone.View
 
     # Add tag to the DOM tag list.
     addTagLine: (tag) ->
-        @el.append("<div><a href=\"#tag/#{tag}\">#{tag}</a></div>")
+        rendering = "<div><i class=\"icon-tag\">&nbsp;</i>"
+        rendering += "<a href=\"#tag/#{tag}\">#{tag}</a></div>"
+        @el.append rendering
 
     # Mark visually selected tag
     selectTag: (tag) ->

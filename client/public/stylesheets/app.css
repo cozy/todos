@@ -5570,6 +5570,7 @@ html {
 }
 #content {
   padding: 0;
+  border: 0;
 }
 .task {
   padding: 0 2%;
@@ -5869,6 +5870,7 @@ html {
   left: 10px;
   margin-bottom: 0;
   font-family: main;
+  border: 0;
 }
 #tree {
   outline: none;
@@ -5971,8 +5973,9 @@ html {
   color: #333;
   cursor: pointer;
   width: 100%;
-  padding: 2px 0;
-  margin: 2px 0;
+  padding: 2px 4px;
+  margin: 2px 4px;
+  font-size: 14px;
 }
 #tags a:hover {
   font-weight: normal;
@@ -5991,32 +5994,34 @@ html {
 #tags .selected {
   background: #c5ebf9;
 }
-.tags-title {
-  font-weight: lighter;
-  font-style: italic;
-  padding: 2px 10px;
+#tags i {
+  padding-top: 4px;
+  background-position: 0px -44px;
 }
-.ui-layout-west {
-  border: 0px;
+#home-view .ui-layout-resizer-open:hover {
+  background: #fcfcfc;
 }
-.ui-layout-center {
-  border: 0px;
+#home-view .ui-layout-resizer {
+  width: 20px;
+  border-right: 1px solid #e8e8e8;
+  border-left: 1px solid #e8e8e8;
+  background-color: #fcfcfc;
 }
-.ui-layout-resizer-open:hover {
-  background: #fff;
+#home-view .ui-layout-resizer:hover {
+  border-right: 1px solid #fe8800;
+  border-left: 1px solid #fe8800;
 }
-.ui-layout-resizer {
-  background-color: #fff;
-  width: 10px;
-}
-.ui-layout-pane {
+#home-view .ui-layout-pane {
   border-right: 0px;
 }
-.ui-layout-toggler {
-  background-color: #ccc;
-  border: 0px;
+#home-view .ui-layout-toggler {
   position: absolute;
   right: 0px;
+  border: 0px;
+  background-color: #e8e8e8;
+}
+#home-view .ui-layout-toggler:hover {
+  background-color: #fe8800;
 }
 /* ==|== non-semantic helper classes ========================================
    Please define your styles before this section.

@@ -46,6 +46,8 @@ class exports.HomeView extends Backbone.View
                 size: "250"
                 minSize: "250"
                 resizable: true
+                spacing_open: 10
+                spacing_closed: 10
         @previousSize = size
 
         # Update layout when windows size is changed

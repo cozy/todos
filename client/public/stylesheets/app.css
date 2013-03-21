@@ -5435,7 +5435,7 @@ body {
 }
 body {
   color: #444;
-  background-color: #9999ad;
+  background-color: #fcfcfc;
   padding: 0px;
 }
 a,
@@ -5491,7 +5491,7 @@ body {
 }
 body {
   color: #444;
-  background-color: #9999ad;
+  background-color: #fcfcfc;
   padding: 0px;
 }
 a,
@@ -5553,6 +5553,7 @@ html {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: #fcfcfc;
 }
 #nav {
   margin: 0;
@@ -5571,6 +5572,7 @@ html {
 #content {
   padding: 0;
   border: 0;
+  background-color: #fcfcfc;
 }
 .task {
   padding: 0 2%;

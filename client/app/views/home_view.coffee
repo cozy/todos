@@ -3,13 +3,14 @@
 {TagListView} = require "./taglist_view"
 {TodoListCollection} = require "../collections/todolists"
 {TodoListWidget} = require "./todolist_view"
+{Task} = require "../models/task"
 helpers = require "../helpers"
 request = require "../lib/request"
 
 # Main view that manages all widgets displayed inside application.
 class exports.HomeView extends Backbone.View
     id: 'home-view'
- 
+
     ###
     # Initializers
     ###
@@ -19,6 +20,8 @@ class exports.HomeView extends Backbone.View
     constructor: ->
         @todolists = new TodoListCollection()
         Backbone.Mediator.subscribe 'task:changed', @onTaskChanged
+
+        @todoViews = {}
 
         super()
 
@@ -55,7 +58,7 @@ class exports.HomeView extends Backbone.View
             isBig = size > 700 and @previousSize < 700
             @layout.toggle "west" if isSmall or isBig
             @previousSize = size
-            
+
 
     # Grab tree data, then build and display it.
     # Links callback to tree events (creation, renaming...)
@@ -71,6 +74,7 @@ class exports.HomeView extends Backbone.View
                 onSelect: @onTodoListSelected
                 onLoaded: @onTreeLoaded
                 onDrop: @onTodoListDropped
+                onTaskMoved: @onTaskMoved
 
         @treeLoadedCallback = callback
 
@@ -98,7 +102,7 @@ class exports.HomeView extends Backbone.View
                 title: newName
             TodoList.updateTodoList listId, data, =>
                 @tree.selectNode listId
-            
+
     # Persist todo list deletion and remove todo list details from view.
     onTodoListRemoved: (listId) =>
         if @currentTodolist and @currentTodolist.id is listId
@@ -111,6 +115,7 @@ class exports.HomeView extends Backbone.View
     # with todolist data.
     # Route is updated with selected todo list path.
     onTodoListSelected: (path, id, data) =>
+
         @tagListView?.deselectAll()
         if id? and id isnt "tree-node-all"
             TodoList.getTodoList id, (err, list) =>
@@ -127,7 +132,14 @@ class exports.HomeView extends Backbone.View
     onTreeLoaded: =>
         loadLists = =>
             @todolists.fetch
-                success: =>
+                success: (data) =>
+                    for list in data.models
+                        console.debug list
+                        #list.url = "todolists/#{list.id}"
+                        tview = new TodoListWidget list
+                        tview.render()
+                        @todoViews[list.id] = tview
+                    console.debug @todoViews
                     @treeLoadedCallback() if @treeLoadedCallback?
                 error: =>
                     @treeLoadedCallback() if @treeLoadedCallback?
@@ -154,6 +166,21 @@ class exports.HomeView extends Backbone.View
     onTaskChanged: (tags) =>
         @tagListView?.addTags tags
 
+    onTaskMoved: (taskID, sourceID, targetID) =>
+        oldList = @todoViews[sourceID].tasks
+        newList = @todoViews[targetID].tasks
+        task = oldList.get taskID
+        newTask = new Task
+            done: task.get "done"
+            description: task.get "description"
+        task.view.showLoading()
+        oldList.removeTask task,
+            success: () ->
+                newList.insertTask null, newTask
+                task.view.hideLoading()
+            error: () ->
+                task.view.hideLoading()
+
     ###
     # Functions
     ###
@@ -172,10 +199,14 @@ class exports.HomeView extends Backbone.View
     # Fill todolist widget with todolist data. Then load todo task list
     # and archives for this todolist.
     renderTodolist: (todolist) ->
-        todolist.url = "todolists/#{todolist.id}" if todolist?
-        # Save all modified tasks.
-        @currentTodolist?.view.blurAllTaskDescriptions()
-        @currentTodolist = todolist
-        todolistWidget = new TodoListWidget @currentTodolist
-        todolistWidget.render()
-        todolistWidget.loadData()
+        if @todoViews[todolist?.id]?
+            todoView = @todoViews[todolist.id]
+        else
+            todolist.url = "todolists/#{todolist.id}" if todolist?
+            @currentTodolist?.view.blurAllTaskDescriptions()
+            @currentTodolist = todolist
+            todoView = new TodoListWidget @currentTodolist
+            @todoViews[todolist.id] = todoView
+
+        todoView.render()
+        todoView.loadData()

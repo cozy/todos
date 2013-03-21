@@ -14,14 +14,14 @@ Properties :
 ###
 
 class exports.Tree
-    
-        
+
+
     ###*
     # Initialize jsTree tree with options : sorting, create/rename/delete,
     # unique children and json data for loading.
     ###
     constructor: (navEl, data, homeViewCbk) ->
-        
+
         # Var
         @jstreeEl = $("#tree")
 
@@ -70,8 +70,32 @@ class exports.Tree
             search:
                 search_method: "jstree_contains_multi"
                 show_only_matches: true
+            dnd:
+                "drag_finish": (data) =>
+                    draggedTaskID = $(data.o.parentNode).prop 'id'
+                    targetID = data.r[0].id
+                    sourceID = @getSelectedNode().prop 'id'
+                    homeViewCbk.onTaskMoved draggedTaskID, sourceID, targetID
+
+                "drag_check": (data) =>
+                    draggedTask = $(data.o.parentNode)
+                    targetID = data.r[0].id
+                    sourceID = @getSelectedNode().prop 'id'
+
+                    canDrop =
+                        after: false
+                        before: false
+                        inside: false
+
+                    isSameList = sourceID is targetID
+
+                    # if the action is: drag task to list
+                    if not isSameList and draggedTask.hasClass 'task'
+                        canDrop.inside = true
+
+                    return canDrop
         )
-    
+
         @setListeners homeViewCbk
 
     ###*
@@ -116,7 +140,7 @@ class exports.Tree
             $(this).tooltip('hide')
             e.preventDefault()
             e.stopPropagation()
-        
+
         $("#tree-remove").tooltip
             placement: "bottom"
             title: "Remove a list"
@@ -161,7 +185,7 @@ class exports.Tree
         #when the suppression
         # button is used
         textPrompt = $(".text-prompt")
-        
+
         # Tree
         @widget.on "create.jstree", (e, data) =>
             nodeName = data.inst.get_text data.rslt.obj
@@ -223,7 +247,7 @@ class exports.Tree
 
     #Returns path to a node for a given node.
     #data.inst is the jstree instance
-    
+
     _getPath: (parent, nodeName) ->
         nodes = [slugify nodeName] if nodeName?
 
@@ -233,8 +257,8 @@ class exports.Tree
             nodes.unshift slugify(name)
             parent = parent.parent().parent()
         nodes
-    
+
     #Return path for a node at string format.
     _getSlugPath: (parent, nodeName) =>
         @_getPath(parent, nodeName).join("/")
-       
+

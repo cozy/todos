@@ -29,11 +29,11 @@ class exports.TodoListWidget extends Backbone.View
     render: ->
         $(@el).html require('./templates/todolist')
 
-        @title = @.$(".todo-list-title .description")
-        @breadcrumb = @.$(".todo-list-title .breadcrumb")
+        @title = @$(".todo-list-title .description")
+        @breadcrumb = @$(".todo-list-title .breadcrumb")
 
-        @taskList = new TaskList @, @.$("#task-list")
-        @archiveList = new TaskList @, @.$("#archive-list")
+        @taskList = new TaskList @, @$("#task-list")
+        @archiveList = new TaskList @, @$("#archive-list")
         @tasks = @taskList.tasks
         @archiveTasks = @archiveList.tasks
         @refreshBreadcrump()
@@ -52,16 +52,14 @@ class exports.TodoListWidget extends Backbone.View
         @el
 
     ###
-    # Listeners
-    ###
-
-    ###
     # Functions
     ###
 
     # Load data then focus on first task loaded.
     # If list is empty a new task is automatically created.
     loadData: ->
+
+        # Configure collections
         if not @model?
             @tasks.url = "tasks/todo"
             @archiveTasks.url = "tasks/archives"
@@ -72,13 +70,17 @@ class exports.TodoListWidget extends Backbone.View
             else
                 @archiveTasks.url += "/archives"
 
-        $(@archiveTasks.view.el).spin()
-        $(@tasks.view.el).spin()
+        # Show laoding indicators
+        $(@archiveTasks.view.el).spin "small"
+        $(@tasks.view.el).spin "small"
+
+        # Load data
         @archiveTasks.fetch
             success: =>
                 $(@archiveTasks.view.el).spin()
             error: =>
                 $(@archiveTasks.view.el).spin()
+
         @tasks.fetch
             success: =>
                 if @$(".task:not(.done)").length > 0

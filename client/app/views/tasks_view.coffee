@@ -23,21 +23,21 @@ class exports.TaskList extends Backbone.View
     # in listing.
     addTaskLine: (task) ->
         taskLine = new TaskLine task, @
-        $(@el).append taskLine.render()
+        @$el.append taskLine.render()
         @$el.append $('<div class="separator"></div>')
 
     # Add a date line that just display date of all following tasks
     addDateLine: (date) ->
-        $(@el).append('<div class="completion-date">' + date + '</div>')
+        @$el.append('<div class="completion-date">' + date + '</div>')
 
     # Add a line at the top of the list.
     addTaskLineAsFirstRow: (task) ->
         taskLine = new TaskLine task, @
-        $(@el).prepend taskLine.render()
+        @$el.prepend taskLine.render()
 
     # Return true if it is an archive list.
     isArchive: ->
-        $(@el).attr("id") == "archive-list"
+        @$el.attr("id") == "archive-list"
 
     # Remove a task from its current position then add it to todo task list.
     moveToTaskList: (task) ->
@@ -77,7 +77,8 @@ class exports.TaskList extends Backbone.View
         taskLine.list = @
         taskLineEl = $(taskLine.render())
         if previousTaskLine?
-            taskLineEl.insertAfter($(previousTaskLine.el))
+            previousSeparator = $(previousTaskLine.el).next(".separator")
+            taskLineEl.insertAfter previousSeparator
             taskLineEl.after $('<div class="separator"></div>')
         else
             @$el.prepend(taskLineEl)

@@ -70,7 +70,7 @@ class exports.TaskLine extends Backbone.View
             @$el.unbind 'dragend'
             @$el.unbind 'hover'
         else
-            @$el.prop 'draggable', true
+            @$(".handle").prop 'draggable', true
 
         @$('.handle').tooltip
             placement: "left"

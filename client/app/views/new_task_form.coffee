@@ -47,7 +47,6 @@ class exports.NewTaskForm extends Backbone.View
 
     # Form input behaviour management
     inputHandler: () ->
-
         @newTaskFormInput.keyup (event) =>
             @hasUserTyped = true
             @newTaskButtonHandler()
@@ -94,6 +93,7 @@ class exports.NewTaskForm extends Backbone.View
                 @clearNewTaskInput()
                 @newTaskFormButton.html 'new'
                 @newTaskFormButton.spin()
+                @newTaskFormInput.focus()
             error: (data) =>
                 @newTaskFormButton.html 'new'
                 @newTaskFormButton.spin()
@@ -125,7 +125,6 @@ class exports.NewTaskForm extends Backbone.View
             @toggleTaskForm(true)
 
     handleDefaultFormState: () ->
-
         show_form = $.cookie 'todos_prefs:show_form'
 
         # The collection must fire "reset" before the value is relevant
@@ -140,14 +139,12 @@ class exports.NewTaskForm extends Backbone.View
             @hideTaskForm()
 
     toggleTaskForm: (updatePreferences, mustFade) ->
-
         if @newTaskForm.is ':visible'
             @hideTaskForm updatePreferences, mustFade
         else
             @showTaskForm updatePreferences, mustFade
 
     showTaskForm: (updatePreferences, mustFade) ->
-
         if mustFade? && mustFade
             @newTaskForm.fadeIn 1000
         else
@@ -158,7 +155,6 @@ class exports.NewTaskForm extends Backbone.View
             $.cookie 'todos_prefs:show_form', 'true'
 
     hideTaskForm: (updatePreferences, mustFade) ->
-
         if mustFade? && mustFade
             @newTaskForm.fadeOut 1000
         else

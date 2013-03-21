@@ -1530,7 +1530,8 @@ window.require.register("views/new_task_form", function(exports, require, module
         success: function(data) {
           _this.clearNewTaskInput();
           _this.newTaskFormButton.html('new');
-          return _this.newTaskFormButton.spin();
+          _this.newTaskFormButton.spin();
+          return _this.newTaskFormInput.focus();
         },
         error: function(data) {
           _this.newTaskFormButton.html('new');
@@ -1795,7 +1796,7 @@ window.require.register("views/task_view", function(exports, require, module) {
         this.$el.unbind('dragend');
         this.$el.unbind('hover');
       } else {
-        this.$el.prop('draggable', true);
+        this.$(".handle").prop('draggable', true);
       }
       this.$('.handle').tooltip({
         placement: "left",
@@ -2244,22 +2245,22 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     TaskList.prototype.addTaskLine = function(task) {
       var taskLine;
       taskLine = new TaskLine(task, this);
-      $(this.el).append(taskLine.render());
+      this.$el.append(taskLine.render());
       return this.$el.append($('<div class="separator"></div>'));
     };
 
     TaskList.prototype.addDateLine = function(date) {
-      return $(this.el).append('<div class="completion-date">' + date + '</div>');
+      return this.$el.append('<div class="completion-date">' + date + '</div>');
     };
 
     TaskList.prototype.addTaskLineAsFirstRow = function(task) {
       var taskLine;
       taskLine = new TaskLine(task, this);
-      return $(this.el).prepend(taskLine.render());
+      return this.$el.prepend(taskLine.render());
     };
 
     TaskList.prototype.isArchive = function() {
-      return $(this.el).attr("id") === "archive-list";
+      return this.$el.attr("id") === "archive-list";
     };
 
     TaskList.prototype.moveToTaskList = function(task) {
@@ -2297,12 +2298,13 @@ window.require.register("views/tasks_view", function(exports, require, module) {
     };
 
     TaskList.prototype.insertTask = function(previousTaskLine, task) {
-      var taskLine, taskLineEl, _ref;
+      var previousSeparator, taskLine, taskLineEl, _ref;
       taskLine = new TaskLine(task);
       taskLine.list = this;
       taskLineEl = $(taskLine.render());
       if (previousTaskLine != null) {
-        taskLineEl.insertAfter($(previousTaskLine.el));
+        previousSeparator = $(previousTaskLine.el).next(".separator");
+        taskLineEl.insertAfter(previousSeparator);
         taskLineEl.after($('<div class="separator"></div>'));
       } else {
         this.$el.prepend(taskLineEl);
@@ -2475,11 +2477,6 @@ window.require.register("views/todolist_view", function(exports, require, module
     };
 
     /*
-        # Listeners
-    */
-
-
-    /*
         # Functions
     */
 
@@ -2497,8 +2494,8 @@ window.require.register("views/todolist_view", function(exports, require, module
           this.archiveTasks.url += "/archives";
         }
       }
-      $(this.archiveTasks.view.el).spin();
-      $(this.tasks.view.el).spin();
+      $(this.archiveTasks.view.el).spin("small");
+      $(this.tasks.view.el).spin("small");
       this.archiveTasks.fetch({
         success: function() {
           return $(_this.archiveTasks.view.el).spin();

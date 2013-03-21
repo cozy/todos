@@ -15,10 +15,6 @@ returnTasks = (err, tasks) ->
     else
         send number: tasks.length, rows: tasks
 
-###
-# Preprocessor
-###
-
 # If action is an instance action, it loads corresponding task
 before 'load task', ->
     Task.find params.id, (err, task) =>
@@ -31,10 +27,10 @@ before 'load task', ->
             next()
 , only: ['update', 'destroy', 'show']
 
-# Get current list from params (operations occurs always on a list).
 before 'set list id', ->
     @listId = params.listId
     next()
+
 
 ###
 # Controllers
@@ -91,7 +87,8 @@ action 'update', ->
     else if body.done? and not body.done
         body.completionDate = null
 
-    callback = (err) ->
+    # Save task function
+    answer = (err) ->
         if err
             console.log err
             send error: true, msg: 'Task cannot be updated', 500
@@ -99,24 +96,24 @@ action 'update', ->
             send success: true, msg: 'Task updated'
 
     # Task move from todo to done
-    if body.done? and body.done and @task.done isnt body.done
-        Task.done @task, body, callback
+    if body.done? and body.done and @task.done != body.done
+        Task.done @task, body, answer
 
     # Task move from done to todo
-    else if body.done? and not body.done and @task.done isnt body.done
-        Task.todo @task, body, callback
+    else if body.done? and not body.done and @task.done != body.done
+        Task.todo @task, body, answer
 
     # When link changes previous and next task are updated.
-    else if body.previousTask isnt undefined \
-            and body.previousTask isnt @task.previousTask
-        Task.move @task, body, callback
+    else if body.previousTask != undefined \
+            and body.previousTask != @task.previousTask
+        Task.move @task, body, answer
 
     else
         @task.description = body.description
         @task.extractTags()
         body.tags = @task.tags
 
-        @task.updateAttributes body, callback
+        @task.updateAttributes body, answer
 
 # Destroy given task and remove it from todo linked list.
 action 'destroy', ->
@@ -126,7 +123,7 @@ action 'destroy', ->
                 console.log err
                 send error: 'Cannot destroy task', 500
             else
-                send success: 'Task succesfuly deleted'
+            send success: 'Task succesfuly deleted'
 
 # Returns a given task
 action 'show', ->
@@ -140,7 +137,8 @@ action 'tags', ->
             send error: "Server error", 500
         else
             results = []
-            results.push tag.key for tag in tags
+            for tag in tags
+                results.push tag.key
             send results
 
 # Get all not done tasks for a given tag

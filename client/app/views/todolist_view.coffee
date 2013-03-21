@@ -10,7 +10,6 @@ class exports.TodoListWidget extends Backbone.View
     id: "todo-list"
     tagName: "div"
     el: "#todo-list"
-    isEditMode: false
 
     ### Constructor ####
 
@@ -47,38 +46,6 @@ class exports.TodoListWidget extends Backbone.View
     # Listeners
     ###
 
-    # When add is clicked a new task is added to the top of the task list.
-    # Adding task is done after task was created on the server.
-    onAddClicked: (event) =>
-        task = new Task done: false, description: "new task", list: @model.id
-        task.save null,
-            success: (data) =>
-                data.url = "tasks/#{data.id}/"
-                console.debug data
-                @tasks.add data
-                $(".task:first .description").focus()
-                helpers.selectAll($(".task:first .description"))
-
-                @displayCreationInfos()
-
-            error: ->
-                alert "An error occured while saving data"
-
-    # When edit is clicked, edition widgets are displayed (editions widgets are
-    # better for touch interfaces).
-    onEditClicked: (event) =>
-        if not @isEditMode
-            @.$(".task:not(.done) .task-buttons").show()
-            @newButton.show()
-            @isEditMode = true
-            @showButtonsButton.html "hide buttons"
-        else
-            @.$(".task-buttons").hide()
-            @newButton.hide()
-            @isEditMode = false
-            @showButtonsButton.html "show buttons"
-
-
     ###
     # Functions
     ###
@@ -109,8 +76,6 @@ class exports.TodoListWidget extends Backbone.View
                     @$(".task:first .description").focus()
 
                     @displayCreationInfos()
-                else
-                    @onAddClicked() if @model? and @model.id?
 
                 @$(@tasks.view.el).spin()
             error: =>

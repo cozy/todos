@@ -72,6 +72,12 @@ class exports.TaskLine extends Backbone.View
         else
             @$el.prop 'draggable', true
 
+        @$('.handle').tooltip
+            placement: "left"
+            title: "You can sort the tasks by dragging and dropping them. " + \
+                   "Hint: if you press shift, you can move a task " + \
+                   "to another list."
+
         @el
 
     ###

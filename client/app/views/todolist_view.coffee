@@ -40,6 +40,15 @@ class exports.TodoListWidget extends Backbone.View
 
         @newTaskForm = new NewTaskForm @taskList
 
+        $(document).unbind('keydown').keydown (event) ->
+            keyCode = event.which | event.keyCode
+            if keyCode is 16
+                $('.handle').addClass('jstree-draggable')
+
+        $(document).unbind('keyup').keyup (event) ->
+            keyCode = event.which | event.keyCode
+            $('.handle').removeClass('jstree-draggable') if keyCode is 16
+
         @el
 
     ###

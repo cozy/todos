@@ -313,21 +313,33 @@ html
 
 /* responsive */
 
+@media (max-width: 1200px)
+    .task .description
+        width: 86%
+
+@media (max-width: 960px)
+    .task .description
+        width: 82%
+
 @media (max-width: 700px)
-  .modal
-    position absolute
-    margin 0
-    left 0
-    top 0
-    width: 100%
-    height: 100%
-    overflow scroll
+    .modal
+        position absolute
+        margin 0
+        left 0
+        top 0
+        width: 100%
+        height: 100%
+        overflow scroll
 
-  .todo-button
-    width: 20%
+    .todo-button
+        width: 16%
 
-  .task .description
-    width: 75%
+    .task.new-task .add-task
+        width: 16%
+        
 
-  .ui-layout-toggler
-      display: none
+    .task .description
+        width: 75%
+
+    .ui-layout-toggler
+         display: none

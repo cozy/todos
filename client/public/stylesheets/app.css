@@ -5856,6 +5856,16 @@ html {
   font-weight: normal;
 }
 /* responsive */
+@media (max-width: 1200px) {
+  .task .description {
+    width: 86%;
+  }
+}
+@media (max-width: 960px) {
+  .task .description {
+    width: 82%;
+  }
+}
 @media (max-width: 700px) {
   .modal {
     position: absolute;
@@ -5867,7 +5877,10 @@ html {
     overflow: scroll;
   }
   .todo-button {
-    width: 20%;
+    width: 16%;
+  }
+  .task.new-task .add-task {
+    width: 16%;
   }
   .task .description {
     width: 75%;

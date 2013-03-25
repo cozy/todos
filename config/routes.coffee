@@ -13,6 +13,10 @@ exports.routes = (map) ->
     map.get '/tasks/tags/:tag/todo', 'tasks#tagTodo'
     map.get '/tasks/tags/:tag/archives', 'tasks#tagArchives'
 
+    # routes for tasks interaction (non-prefixed)
+    map.put '/tasks/:id', 'tasks#update'
+    map.del '/tasks/:id', 'tasks#destroy'
+
     # routes for todolists interactions
     map.get  '/todolists', 'todolists#all'
     map.post '/todolists', 'todolists#create'

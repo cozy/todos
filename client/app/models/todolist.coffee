@@ -39,4 +39,4 @@ class exports.TodoList extends BaseModel
                 callback null, todolist
 
     @deleteTodoList = (id, callback) ->
-        requet.del "todolists/#{id}", callback
+        request.del "todolists/#{id}", callback

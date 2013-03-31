@@ -31,8 +31,7 @@ module.exports = (compound, TodoList) ->
                     callback err
                 else
                     list.destroy (err) ->
-                        if err
-                            callback err
+                        if err then callback err
                         else
                             data =
                                 startkey: [listId]

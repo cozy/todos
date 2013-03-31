@@ -1052,7 +1052,7 @@ window.require.register("models/todolist", function(exports, require, module) {
     };
 
     TodoList.deleteTodoList = function(id, callback) {
-      return requet.del("todolists/" + id, callback);
+      return request.del("todolists/" + id, callback);
     };
 
     return TodoList;

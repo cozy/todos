@@ -467,11 +467,11 @@ window.require.register("initialize", function(exports, require, module) {
 window.require.register("lib/request", function(exports, require, module) {
   
   exports.request = function(type, url, data, callback) {
-    return $.ajax({
+    var options;
+    options = {
       type: type,
       url: url,
       data: data != null ? JSON.stringify(data) : null,
-      contentType: "application/json",
       dataType: "json",
       success: function(data) {
         if (callback != null) {
@@ -485,7 +485,11 @@ window.require.register("lib/request", function(exports, require, module) {
           return callback(new Error("Server error occured"));
         }
       }
-    });
+    };
+    if (type === "POST" || type === "PUT") {
+      options.contentType = "application/json";
+    }
+    return $.ajax(options);
   };
 
   exports.get = function(url, callback) {

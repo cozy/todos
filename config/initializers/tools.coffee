@@ -1,7 +1,7 @@
-async = require "async"
-DataTree = require("./common/data-tree").DataTree
 
 module.exports = (compound) ->
+    async = require "async"
+    DataTree = require("../../common/data-tree").DataTree
 
     {TodoList, Task, Tree} = compound.models
 

@@ -410,7 +410,7 @@ window.require.register("helpers", function(exports, require, module) {
   };
 
   exports.extractTags = function(description) {
-    var hashTags, tag, tags, _i, _len;
+    var hashTags, tag, tagSlug, tags, _i, _len;
     hashTags = description.match(/#(\w)*/g);
     tags = [];
     if (hashTags != null) {
@@ -425,9 +425,10 @@ window.require.register("helpers", function(exports, require, module) {
         if (tag === "#m") {
           tag = "#month";
         }
-        console.log("tag: " + tag);
         if (tag !== "#") {
-          tags.push(tag.substring(1));
+          tagSlug = tag.substring(1);
+          tagSlug = this.slugify(tagSlug);
+          tags.push(tagSlug);
         }
       }
     }
@@ -1367,7 +1368,10 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.onTaskChanged = function(tags) {
       var _ref;
-      return (_ref = this.tagListView) != null ? _ref.addTags(tags) : void 0;
+      if ((_ref = this.tagListView) != null) {
+        _ref.addTags(tags);
+      }
+      return this.tagListView.checkForDeletion();
     };
 
     HomeView.prototype.onTaskMoved = function(taskID, sourceID, targetID) {
@@ -1615,8 +1619,12 @@ window.require.register("views/new_task_form", function(exports, require, module
   
 });
 window.require.register("views/taglist_view", function(exports, require, module) {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  var request,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+  request = require('../lib/request');
 
   exports.TagListView = (function(_super) {
 
@@ -1631,7 +1639,7 @@ window.require.register("views/taglist_view", function(exports, require, module)
 
     TagListView.prototype.render = function() {
       var tag, _i, _len, _ref, _results;
-      this.el = $("#tags");
+      this.$el = this.el = $("#tags");
       this.el.html(null);
       _ref = this.tagList;
       _results = [];
@@ -1643,24 +1651,18 @@ window.require.register("views/taglist_view", function(exports, require, module)
     };
 
     TagListView.prototype.addTagLine = function(tag) {
-      var rendering;
-      rendering = "<div><i class=\"icon-tag\">&nbsp;</i>";
-      rendering += "<a href=\"#tag/" + tag + "\">" + tag + "</a></div>";
-      return this.el.append(rendering);
+      return this.el.append(require('./templates/tag')({
+        tag: tag
+      }));
     };
 
     TagListView.prototype.selectTag = function(tag) {
-      return $("#tags a").each(function(index, el) {
-        if ($(el).html() === tag) {
-          return $(el).addClass("selected");
-        } else {
-          return $(el).removeClass("selected");
-        }
-      });
+      this.$("a").removeClass("selected");
+      return this.$(".tag-" + tag + " a").addClass("selected");
     };
 
     TagListView.prototype.deselectAll = function() {
-      return $("#tags a").removeClass("selected");
+      return this.$("a").removeClass("selected");
     };
 
     TagListView.prototype.addTags = function(tags) {
@@ -1678,6 +1680,24 @@ window.require.register("views/taglist_view", function(exports, require, module)
         }
       }
       return _results;
+    };
+
+    TagListView.prototype.checkForDeletion = function() {
+      var _this = this;
+      return request.get('tasks/tags', function(err, remoteTags) {
+        var tag, _i, _len, _ref, _results;
+        _ref = _this.tagList;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          tag = _ref[_i];
+          if (__indexOf.call(remoteTags, tag) < 0) {
+            _results.push(_this.$(".tag-" + tag).remove());
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      });
     };
 
     return TagListView;
@@ -2341,6 +2361,21 @@ window.require.register("views/templates/home", function(exports, require, modul
   with (locals || {}) {
   var interp;
   buf.push('<div id="nav" class="ui-layout-west"><div id="tags"></div><div class="title"><img src="img/my-tasks.png"/></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="content" class="ui-layout-center"><div id="todo-list"></div></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="btn btn-info">No</button></div></div>');
+  }
+  return buf.join("");
+  };
+});
+window.require.register("views/templates/tag", function(exports, require, module) {
+  module.exports = function anonymous(locals, attrs, escape, rethrow, merge) {
+  attrs = attrs || jade.attrs; escape = escape || jade.escape; rethrow = rethrow || jade.rethrow; merge = merge || jade.merge;
+  var buf = [];
+  with (locals || {}) {
+  var interp;
+  buf.push('<div');
+  buf.push(attrs({ "class": ("tag-" + (tag) + "") }, {"class":true}));
+  buf.push('><i class="icon-tag">&nbsp;</i><a');
+  buf.push(attrs({ 'href':("#tag/" + (tag) + "") }, {"href":true}));
+  buf.push('>' + escape((interp = tag) == null ? '' : interp) + '</a></div>');
   }
   return buf.join("");
   };

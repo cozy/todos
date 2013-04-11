@@ -164,6 +164,7 @@ class exports.HomeView extends Backbone.View
     # Check for new tag if a task changed.
     onTaskChanged: (tags) =>
         @tagListView?.addTags tags
+        @tagListView.checkForDeletion()
 
     onTaskMoved: (taskID, sourceID, targetID) =>
         oldList = @todoViews[sourceID].tasks

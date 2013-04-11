@@ -80,8 +80,9 @@ exports.extractTags = (description) ->
             tag = "#today" if tag is "#t"
             tag = "#week" if tag is "#w"
             tag = "#month" if tag is "#m"
-            console.log "tag: " + tag
 
-            tags.push tag.substring(1) if tag isnt "#"
-
+            if tag isnt "#"
+                tagSlug = tag.substring(1)
+                tagSlug = @slugify tagSlug
+                tags.push tagSlug
     tags

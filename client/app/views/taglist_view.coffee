@@ -1,3 +1,5 @@
+request = require '../lib/request'
+
 # Simple widget used to display tag lists
 class exports.TagListView extends Backbone.View
     id: 'tags'
@@ -6,28 +8,23 @@ class exports.TagListView extends Backbone.View
         super()
 
     render: ->
-        @el = $("#tags")
+        @$el = @el = $("#tags")
         @el.html null
         for tag in @tagList
             @addTagLine tag
 
     # Add tag to the DOM tag list.
     addTagLine: (tag) ->
-        rendering = "<div><i class=\"icon-tag\">&nbsp;</i>"
-        rendering += "<a href=\"#tag/#{tag}\">#{tag}</a></div>"
-        @el.append rendering
+        @el.append require('./templates/tag')(tag: tag)
 
     # Mark visually selected tag
     selectTag: (tag) ->
-        $("#tags a").each (index, el) ->
-            if $(el).html() is tag
-                $(el).addClass "selected"
-            else
-                $(el).removeClass "selected"
+        @$("a").removeClass "selected"
+        @$(".tag-#{tag} a").addClass "selected"
 
     # Remove selected style from all tags
     deselectAll: ->
-        $("#tags a").removeClass "selected"
+        @$("a").removeClass "selected"
 
     # Add given tags if it does not appear in the list
     addTags: (tags) ->
@@ -35,3 +32,10 @@ class exports.TagListView extends Backbone.View
             if not _.find(@tagList, (ctag) -> tag is ctag)?
                 @tagList.push tag
                 @addTagLine tag
+
+    # Check if a tag is no more listed.
+    checkForDeletion: ->
+        request.get 'tasks/tags', (err, remoteTags) =>
+            for tag in @tagList
+                if tag not in remoteTags
+                    @$(".tag-#{tag}").remove()

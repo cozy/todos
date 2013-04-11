@@ -475,5 +475,3 @@ window.require.register("test/test-helpers", function(exports, require, module) 
   };
   
 });
-window.require('test/task_collection_test');
-window.require('test/task_model_test');

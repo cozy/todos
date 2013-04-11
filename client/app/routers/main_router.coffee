@@ -9,10 +9,11 @@ class exports.MainRouter extends Backbone.Router
         @route(/^todolist\/(.*?)\/(.*?)$/, 'list')
 
     # Entry point, render app and select last selected list.
-    home: (callback) ->
+    home: ->
         $('body').html app.homeView.render().el
         app.homeView.setLayout()
-        app.homeView.loadData callback
+        app.homeView.loadData ->
+            app.homeView.selectList 'all'
 
     # Select given list (represented by its path), if tree is already
     # rendered, list is directly selected else it loads tree then it selects

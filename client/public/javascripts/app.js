@@ -1087,10 +1087,12 @@ window.require.register("routers/main_router", function(exports, require, module
       return this.route(/^todolist\/(.*?)\/(.*?)$/, 'list');
     };
 
-    MainRouter.prototype.home = function(callback) {
+    MainRouter.prototype.home = function() {
       $('body').html(app.homeView.render().el);
       app.homeView.setLayout();
-      return app.homeView.loadData(callback);
+      return app.homeView.loadData(function() {
+        return app.homeView.selectList('all');
+      });
     };
 
     MainRouter.prototype.list = function(id) {

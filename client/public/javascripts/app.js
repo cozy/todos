@@ -1535,7 +1535,7 @@ window.require.register("views/new_task_form", function(exports, require, module
       this.hasUserTyped = false;
       task = new Task({
         done: false,
-        description: ""
+        description: this.newTaskFormInput.val()
       });
       return this.taskList.tasks.insertTask(null, task, {
         success: function(data) {

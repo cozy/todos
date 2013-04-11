@@ -87,7 +87,7 @@ class exports.NewTaskForm extends Backbone.View
 
         task = new Task
             done: false
-            description: ""
+            description: @newTaskFormInput.val()
 
         @taskList.tasks.insertTask null, task,
             success: (data) =>

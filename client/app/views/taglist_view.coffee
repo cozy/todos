@@ -10,8 +10,7 @@ class exports.TagListView extends Backbone.View
     render: ->
         @$el = @el = $("#tags")
         @el.html null
-        for tag in @tagList
-            @addTagLine tag
+        @addTagLine tag for tag in @tagList
 
     # Add tag to the DOM tag list.
     addTagLine: (tag) ->
@@ -37,5 +36,4 @@ class exports.TagListView extends Backbone.View
     checkForDeletion: ->
         request.get 'tasks/tags', (err, remoteTags) =>
             for tag in @tagList
-                if tag not in remoteTags
-                    @$(".tag-#{tag}").remove()
+                @$(".tag-#{tag}").remove() if tag not in remoteTags

@@ -74,12 +74,14 @@ exports.getPathRegExp = (path) ->
 exports.extractTags = (description) ->
     hashTags =  description.match(/#(\w)*/g)
     tags = []
-        
+
     if hashTags?
         for tag in hashTags
             tag = "#today" if tag is "#t"
             tag = "#week" if tag is "#w"
             tag = "#month" if tag is "#m"
-            tags.push tag.substring(1)
+            console.log "tag: " + tag
+
+            tags.push tag.substring(1) if tag isnt "#"
 
     tags

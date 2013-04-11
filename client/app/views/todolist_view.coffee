@@ -93,7 +93,7 @@ class exports.TodoListWidget extends Backbone.View
                 @$(@tasks.view.el).spin()
 
     creationInfosRequired: =>
-        @tasks.length is 1 and @model.get("id")?
+        @tasks.length is 1 and @model? and @model.get("id")?
 
     displayCreationInfos: =>
         if @creationInfosRequired()

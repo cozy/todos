@@ -2525,7 +2525,7 @@ window.require.register("views/todolist_view", function(exports, require, module
     };
 
     TodoListWidget.prototype.creationInfosRequired = function() {
-      return this.tasks.length === 1 && (this.model.get("id") != null);
+      return this.tasks.length === 1 && (this.model != null) && (this.model.get("id") != null);
     };
 
     TodoListWidget.prototype.displayCreationInfos = function() {

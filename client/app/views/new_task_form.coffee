@@ -94,6 +94,8 @@ class exports.NewTaskForm extends Backbone.View
                 @clearNewTaskInput()
                 @newTaskFormButton.html 'new'
                 @newTaskFormButton.spin()
+                tags = task.extractTags()
+                Backbone.Mediator.publish 'task:changed', tags
                 @newTaskFormInput.focus()
             error: (data) =>
                 @newTaskFormButton.html 'new'

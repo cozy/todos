@@ -1176,6 +1176,8 @@ window.require.register("views/home_view", function(exports, require, module) {
     function HomeView() {
       this.onTaskMoved = __bind(this.onTaskMoved, this);
 
+      this.onTaskDeleted = __bind(this.onTaskDeleted, this);
+
       this.onTaskChanged = __bind(this.onTaskChanged, this);
 
       this.onTodoListDropped = __bind(this.onTodoListDropped, this);
@@ -1191,6 +1193,7 @@ window.require.register("views/home_view", function(exports, require, module) {
       this.onTodoListCreated = __bind(this.onTodoListCreated, this);
       this.todolists = new TodoListCollection();
       Backbone.Mediator.subscribe('task:changed', this.onTaskChanged);
+      Backbone.Mediator.subscribe('task:deleted', this.onTaskDeleted);
       this.todoViews = {};
       HomeView.__super__.constructor.call(this);
     }
@@ -1374,6 +1377,10 @@ window.require.register("views/home_view", function(exports, require, module) {
       return this.tagListView.checkForDeletion();
     };
 
+    HomeView.prototype.onTaskDeleted = function() {
+      return this.tagListView.checkForDeletion();
+    };
+
     HomeView.prototype.onTaskMoved = function(taskID, sourceID, targetID) {
       var newList, newTask, oldList, task;
       oldList = this.todoViews[sourceID].tasks;
@@ -1539,9 +1546,12 @@ window.require.register("views/new_task_form", function(exports, require, module
       });
       return this.taskList.tasks.insertTask(null, task, {
         success: function(data) {
+          var tags;
           _this.clearNewTaskInput();
           _this.newTaskFormButton.html('new');
           _this.newTaskFormButton.spin();
+          tags = task.extractTags();
+          Backbone.Mediator.publish('task:changed', tags);
           return _this.newTaskFormInput.focus();
         },
         error: function(data) {
@@ -2182,6 +2192,7 @@ window.require.register("views/task_view", function(exports, require, module) {
           if (callback) {
             callback();
           }
+          Backbone.Mediator.publish('task:deleted', _this.model);
           return _this.hideLoading();
         },
         error: function() {

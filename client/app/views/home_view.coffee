@@ -20,6 +20,7 @@ class exports.HomeView extends Backbone.View
     constructor: ->
         @todolists = new TodoListCollection()
         Backbone.Mediator.subscribe 'task:changed', @onTaskChanged
+        Backbone.Mediator.subscribe 'task:deleted', @onTaskDeleted
 
         @todoViews = {}
 
@@ -164,6 +165,9 @@ class exports.HomeView extends Backbone.View
     # Check for new tag if a task changed.
     onTaskChanged: (tags) =>
         @tagListView?.addTags tags
+        @tagListView.checkForDeletion()
+
+    onTaskDeleted: =>
         @tagListView.checkForDeletion()
 
     onTaskMoved: (taskID, sourceID, targetID) =>

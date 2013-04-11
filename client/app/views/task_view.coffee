@@ -377,6 +377,7 @@ class exports.TaskLine extends Backbone.View
         @model.collection.removeTask @model,
             success: =>
                 callback() if callback
+                Backbone.Mediator.publish 'task:deleted', @model
                 @hideLoading()
             error: =>
                 alert "An error occured, deletion was not saved."

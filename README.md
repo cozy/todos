@@ -6,6 +6,12 @@ editor, but UI is explicit as it should be in a web app.
 
 # Installation
 
+Insall it on your Cozy via the Apps section of your Cozy. Enter the
+following URL: https://github.com/mycozycloud/cozy-todos or select the
+application directly from the app registry.
+
+# Set up development environment
+
 To setup the application and all its dependencies, run the following commands:
 ```
 git clone https://github.com/mycozycloud/cozy-todos.git

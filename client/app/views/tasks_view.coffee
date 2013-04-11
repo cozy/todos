@@ -50,6 +50,10 @@ class exports.TaskList extends Backbone.View
                             .find(".description")
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
+        else
+            console.log @todoListView
+
+            @todoListView.focusNewTask()
 
     # Set focus on next task. Preserve focus position.
     moveDownFocus: (taskLine, options) ->
@@ -69,6 +73,13 @@ class exports.TaskList extends Backbone.View
             nextField.setCursorPosition nextField.val().length
         else
             nextField.setCursorPosition cursorPosition
+
+    # Set focus on the first task of the list.
+    focusFirstTask: ->
+        if @tasks.length > 0
+            firstTask = @tasks.at 0
+            @$("##{firstTask.get 'id'} .description").focus()
+
 
     # Insert a task line represented by task after previousTaskLine, then put
     # focus on it.

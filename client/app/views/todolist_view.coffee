@@ -111,6 +111,10 @@ class exports.TodoListWidget extends Backbone.View
     blurAllTaskDescriptions: ->
         @$(".task .description").trigger("blur")
 
+    # Set focus on add task input
+    focusNewTask: ->
+        @newTaskForm.newTaskFormInput.focus()
+
     # Refresh breadcrump with data from current model.
     refreshBreadcrump: ->
         @$(".breadcrumb a").unbind()

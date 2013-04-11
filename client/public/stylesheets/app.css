@@ -5714,6 +5714,7 @@ html {
 }
 .task.new-task input:focus {
   color: #333;
+  border-color: #34a6ff;
 }
 .task-buttons {
   float: right;

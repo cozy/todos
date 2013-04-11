@@ -268,13 +268,13 @@ class exports.TaskLine extends Backbone.View
 
     # When description is changed, model is saved to backend.
     onDescriptionChanged: (event, keyCode, callback) =>
-        unless keyCode == 8 or @descriptionField.val().length == 0
+        unless keyCode is 8 or @descriptionField.val().length is 0
             @saving = true
             @model.description = @descriptionField.val()
             @showLoading()
             @model.save { description: @model.description },
                 success: =>
-                    tags = helpers.extractTags(@model.description)
+                    tags = @model.extractTags()
                     Backbone.Mediator.publish 'task:changed', tags
                     @model.set 'tags', tags
                     @hideLoading()

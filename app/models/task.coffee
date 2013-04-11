@@ -3,11 +3,11 @@ async = require "async"
 module.exports = (compound, Task) ->
 
     # Requests
-    
+
     # Delete all tasks.
     Task.destroyAll = (params, callback) ->
         callback = params if typeof(params) is "function"
-        
+
         Task.requestDestroy "all", params, callback
 
     # Retrieve all tags
@@ -45,7 +45,7 @@ module.exports = (compound, Task) ->
                 limit: 30
                 descending: true
             Task.request "archiveList", params, callback
-        
+
     # Helpers
 
     Task.retrieveTodoList = (listId, callback) ->
@@ -130,7 +130,7 @@ module.exports = (compound, Task) ->
             # Case where the given task is not the first task
             else
                 firstTask = Task.getFirstTaskFromList tasks
-                
+
                 firstTask.previousTask = task.id
                 task.nextTask = firstTask.id
                 task.previousTask = null
@@ -206,13 +206,13 @@ module.exports = (compound, Task) ->
                 else
                     task.nextTask = null
                     callback null
-                    
+
     # Create a new task and add it to the todo task list if its state is not
     # done.
     Task.createNew = (task, callback) ->
         task.nextTask = null
         task.extractTags()
-        
+
         Task.create task, (err, task) ->
             return callback err if err
 
@@ -267,7 +267,7 @@ module.exports = (compound, Task) ->
         Task.removeLinks task, (err) ->
             attributes.previousTask = null
             attributes.nextTask = null
-            
+
             task.updateAttributes attributes, callback
 
 
@@ -318,12 +318,12 @@ module.exports = (compound, Task) ->
         if @description?
             desc = @description + " "
             tags =  desc.match(/#(\w)*/g)
-            
+
             @tags = []
-            
+
             if tags?
                 for tag in tags
                     tag = "#today" if tag is "#t"
                     tag = "#week" if tag is "#w"
                     tag = "#month" if tag is "#m"
-                    @tags.push tag.substring(1)
+                    @tags.push tag.substring(1) if tag isnt "#"

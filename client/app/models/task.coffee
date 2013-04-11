@@ -1,4 +1,5 @@
 BaseModel = require("./models").BaseModel
+helpers = require "../helpers"
 
 # Define a task inside a todo list.
 class exports.Task extends BaseModel
@@ -11,26 +12,26 @@ class exports.Task extends BaseModel
 
         @url = "todolists/#{task.list}/tasks/"
         @url += "#{@id}/" if @id?
-        
+
         @setSimpleDate task.completionDate
         @setListName()
 
     # Format completionDate into a simple format. Store in simpleDate field.
     setSimpleDate: (date) ->
-        date = new Date()if not date?
+        date = new Date() if not date?
         @simpleDate = moment(date).format "DD/MM/YYYY"
         @fullDate = moment(date).format "DD/MM/YYYY HH:mm"
 
     # Store list data into model (for display outside list widget).
     setListName: ->
         list = window.app?.homeView.todolists.get(@list)
-        
+
         if list?
             @listTitle = list.title
             if list.path?
                 @listBreadcrumb = list.breadcrumb
                 @listPath = list.urlPath
-    
+
     setNextTask: (task) ->
         @set "nextTask", task?.id ? null
         task?.set "previousTask", @id
@@ -83,3 +84,7 @@ class exports.Task extends BaseModel
 
         @setPreviousTask null
         @setNextTask null
+
+
+    extractTags: ->
+        helpers.extractTags @get 'description'

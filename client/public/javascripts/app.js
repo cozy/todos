@@ -425,7 +425,10 @@ window.require.register("helpers", function(exports, require, module) {
         if (tag === "#m") {
           tag = "#month";
         }
-        tags.push(tag.substring(1));
+        console.log("tag: " + tag);
+        if (tag !== "#") {
+          tags.push(tag.substring(1));
+        }
       }
     }
     return tags;
@@ -894,11 +897,13 @@ window.require.register("models/models", function(exports, require, module) {
   
 });
 window.require.register("models/task", function(exports, require, module) {
-  var BaseModel,
+  var BaseModel, helpers,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   BaseModel = require("./models").BaseModel;
+
+  helpers = require("../helpers");
 
   exports.Task = (function(_super) {
 
@@ -991,6 +996,10 @@ window.require.register("models/task", function(exports, require, module) {
       }
       this.setPreviousTask(null);
       return this.setNextTask(null);
+    };
+
+    Task.prototype.extractTags = function() {
+      return helpers.extractTags(this.get('description'));
     };
 
     return Task;
@@ -2057,7 +2066,7 @@ window.require.register("views/task_view", function(exports, require, module) {
         }, {
           success: function() {
             var tags;
-            tags = helpers.extractTags(_this.model.description);
+            tags = _this.model.extractTags();
             Backbone.Mediator.publish('task:changed', tags);
             _this.model.set('tags', tags);
             _this.hideLoading();

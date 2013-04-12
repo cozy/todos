@@ -2734,7 +2734,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
       this.jstreeEl = $("#tree");
       navEl.prepend(require('../templates/tree_buttons'));
       this.widget = this.jstreeEl.jstree({
-        plugins: ["themes", "json_data", "ui", "crrm", "unique", "sort", "cookies", "types", "hotkeys", "dnd", "search"],
+        plugins: ["themes", "json_data", "ui", "crrm", "sort", "cookies", "types", "hotkeys", "dnd", "search"],
         json_data: {
           data: data
         },

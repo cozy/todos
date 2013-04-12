@@ -32,11 +32,11 @@ class exports.Tree
         @widget = @jstreeEl.jstree(
             plugins: [
                 "themes", "json_data", "ui", "crrm",
-                "unique", "sort", "cookies", "types",
+                "sort", "cookies", "types",
                 "hotkeys", "dnd", "search"
             ]
             json_data:
-                data:data
+                data: data
             types:
                 default:
                     valid_children: "default"
@@ -49,7 +49,7 @@ class exports.Tree
             crrm:
                 move:
                     check_move: (data)->  # Drop over root is forbidden
-                        if data.r.attr("id") == "tree-node-all"
+                        if data.r.attr("id") is "tree-node-all"
                             return false
                         else
                             return true

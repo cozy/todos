@@ -1680,9 +1680,9 @@ window.require.register("views/taglist_view", function(exports, require, module)
       _results = [];
       for (_i = 0, _len = tags.length; _i < _len; _i++) {
         tag = tags[_i];
-        if (!(_.find(this.tagList, function(ctag) {
+        if (!(tag === "" || (_.find(this.tagList, function(ctag) {
           return tag === ctag;
-        }) != null)) {
+        }) != null))) {
           this.tagList.push(tag);
           _results.push(this.addTagLine(tag));
         } else {

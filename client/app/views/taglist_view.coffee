@@ -28,7 +28,7 @@ class exports.TagListView extends Backbone.View
     # Add given tags if it does not appear in the list
     addTags: (tags) ->
         for tag in tags
-            if not _.find(@tagList, (ctag) -> tag is ctag)?
+            unless tag is "" or _.find(@tagList, (ctag) -> tag is ctag)?
                 @tagList.push tag
                 @addTagLine tag
 

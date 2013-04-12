@@ -236,7 +236,7 @@ module.exports = (compound, Task) ->
                     previousTask.save callback
                 else
                     task.previousTask = null
-                    task.save()
+                    task.save callback
         else
             callback null
 

@@ -247,8 +247,12 @@ module.exports = (compound, Task) ->
             Task.find task.nextTask, (err, nextTask) =>
                 return callback err if err
 
-                nextTask.previousTask = task.previousTask
-                nextTask.save callback
+                if nextTask?
+                    nextTask.previousTask = task.previousTask
+                    nextTask.save callback
+                else
+                    task.nextTask = null
+                    task.save callback
         else
             callback null
 

@@ -5843,6 +5843,12 @@ html {
   width: 150px;
   margin-left: 20px;
 }
+#yes-button {
+  padding: 6px;
+}
+.no-button {
+  margin: 0;
+}
 /* tags */
 #tags {
   margin-left: 20px;

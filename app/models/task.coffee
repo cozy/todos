@@ -119,12 +119,8 @@ module.exports = (compound, Task) ->
 
     # Set given task as first task of todo task list.
     Task.setFirstTask = (task, callback) ->
-        compound.logger.write "first task"
-        compound.logger.write task.list
-        compound.logger.write task.id
         Task.retrieveTodoList task.list, (err, tasks) ->
             return callback err, null if err
-            compound.logger.write tasks.length
 
             # Case where the given task is already the first task
             if not tasks.length or
@@ -135,10 +131,6 @@ module.exports = (compound, Task) ->
             # Case where the given task is not the first task
             else
                 firstTask = Task.getFirstTaskFromList tasks
-                compound.logger.write firstTask.id
-                compound.logger.write task.id
-
-
                 updateLinks = (task) ->
                     firstTask.previousTask = task.id
                     task.nextTask = firstTask.id

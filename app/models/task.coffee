@@ -119,29 +119,46 @@ module.exports = (compound, Task) ->
 
     # Set given task as first task of todo task list.
     Task.setFirstTask = (task, callback) ->
+        compound.logger.write "first task"
+        compound.logger.write task.list
+        compound.logger.write task.id
         Task.retrieveTodoList task.list, (err, tasks) ->
             return callback err, null if err
+            compound.logger.write tasks.length
 
             # Case where the given task is already the first task
             if not tasks.length or
             (tasks.length is 1 and tasks[0].id is task.id)
-                callback null, task
+                if task.id? then callback null, task
+                else task.save (err) -> callback err, task
 
             # Case where the given task is not the first task
             else
                 firstTask = Task.getFirstTaskFromList tasks
+                compound.logger.write firstTask.id
+                compound.logger.write task.id
 
-                firstTask.previousTask = task.id
-                task.nextTask = firstTask.id
-                task.previousTask = null
 
-                firstTask.save (err) ->
-                    return callback err, null if err
+                updateLinks = (task) ->
+                    firstTask.previousTask = task.id
+                    task.nextTask = firstTask.id
+                    task.previousTask = null
 
-                    task.save (err) ->
+                    firstTask.save (err) ->
                         return callback err, null if err
 
-                        callback null, task
+                        task.save (err) ->
+                            return callback err, null if err
+
+                            callback null, task
+
+                if task.id?
+                    updateLinks task
+                else
+                    task.save (err) ->
+                        return callback err, null if err
+                        updateLinks task
+
 
     # Change next task ID of previous task with current task ID.
     Task.setPreviousLink = (task, callback) ->
@@ -213,16 +230,19 @@ module.exports = (compound, Task) ->
         task.nextTask = null
         task.extractTags()
 
-        Task.create task, (err, task) ->
-            return callback err if err
-
-            if not task.done
-                if not task.previousTask?
-                    Task.setFirstTask task, callback
-                else
+        if not task.done
+            if not task.previousTask?
+                Task.setFirstTask task, (err, task) ->
+                    return callback err if err
+                    callback err, task
+            else
+                Task.create task, (err, task) ->
+                    return callback err if err
                     Task.insertTask task, (err) ->
                         callback err, task
-            else
+        else
+            Task.create task, (err, task) ->
+                return callback err if err
                 callback err, task
 
     # Change next task ID of previous task with next task ID of current task.
@@ -293,7 +313,7 @@ module.exports = (compound, Task) ->
 
         # If now new link are set task become first task
         else
-            Task.setFirstTask task, (err) ->
+            Task.setFirstTask task, (err, task) ->
                 return callback err if err
 
                 attributes.nextTask = task.nextTask
@@ -302,6 +322,7 @@ module.exports = (compound, Task) ->
     # Moving a task is doing in two steps: remove links, then insert it inside
     # todo linked list.
     Task.move = (task, attributes, callback) ->
+
         Task.removeLinks task, (err) ->
             return callback err if err
 
@@ -315,7 +336,7 @@ module.exports = (compound, Task) ->
 
                     task.updateAttributes attributes, callback
             else
-                Task.setFirstTask task, (err) ->
+                Task.setFirstTask task, (err, task) ->
                     return callback err if err
 
                     attributes.nextTask = task.nextTask

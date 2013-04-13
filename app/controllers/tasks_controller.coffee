@@ -96,16 +96,16 @@ action 'update', ->
             send success: true, msg: 'Task updated'
 
     # Task move from todo to done
-    if body.done? and body.done and @task.done != body.done
+    if body.done? and body.done and @task.done isnt body.done
         Task.done @task, body, answer
 
     # Task move from done to todo
-    else if body.done? and not body.done and @task.done != body.done
+    else if body.done? and not body.done and @task.done isnt body.done
         Task.todo @task, body, answer
 
     # When link changes previous and next task are updated.
-    else if body.previousTask != undefined \
-            and body.previousTask != @task.previousTask
+    else if body.previousTask isnt undefined and
+    body.previousTask isnt @task.previousTask
         Task.move @task, body, answer
 
     else

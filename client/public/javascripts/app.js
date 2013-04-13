@@ -150,23 +150,35 @@ window.require.register("collections/tasks", function(exports, require, module) 
       var firstTask, index, nextTask,
         _this = this;
       index = this.toArray().indexOf(previousTask);
-      if ((previousTask != null) && (previousTask.get("nextTask") != null)) {
+      nextTask = null;
+      if ((previousTask != null) && index > -1 && index < this.length - 1) {
         nextTask = this.at(index + 1);
         if (nextTask != null) {
           nextTask.set("previousTask", task.id);
         }
-      } else if ((firstTask = this.at(0)) != null) {
-        nextTask = firstTask;
       } else {
-        nextTask = null;
+        firstTask = this.at(0);
+        if (firstTask != null) {
+          nextTask = firstTask;
+        }
       }
-      task.set("nextTask", nextTask);
-      task.setPreviousTask(previousTask);
+      if (nextTask != null) {
+        task.set("nextTask", nextTask.id);
+      }
+      if (previousTask != null) {
+        task.set("previousTask", previousTask.id);
+      }
       task.collection = this;
       task.url = "" + this.url + "/";
       return task.save(task.attributes, {
-        success: function() {
+        success: function(data) {
           task.url = "" + _this.url + "/" + task.id + "/";
+          if (previousTask != null) {
+            previousTask.set("nextTask", task.id);
+          }
+          if (nextTask != null) {
+            nextTask.set("previousTask", task.id);
+          }
           _this.add(task, {
             at: index + 1,
             silent: true

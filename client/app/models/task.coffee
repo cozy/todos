@@ -7,8 +7,8 @@ class exports.Task extends BaseModel
     # Copy task properties to current model.
     constructor: (task) ->
         super(task)
-        for property of task
-            @[property] = task[property]
+
+        @[property] = task[property] for property of task
 
         @url = "todolists/#{task.list}/tasks/"
         @url += "#{@id}/" if @id?

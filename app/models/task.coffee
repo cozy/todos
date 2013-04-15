@@ -334,6 +334,20 @@ module.exports = (compound, Task) ->
                     attributes.nextTask = task.nextTask
                     task.updateAttributes attributes, callback
 
+
+    # To change a task to another list, we unlink it from the first, then
+    # update its list, then set it at first position in new list
+    Task.changeList = (task, list, callback) ->
+
+        Task.removeLinks task, (err) ->
+            return callback err if err
+
+            task.updateAttributes list: list, (err) ->
+                return callback err if err
+
+                Task.setFirstTask task, callback
+
+
     # Extract string prefixed with a # from the description and set them as tags
     Task::extractTags = () ->
         if @description?

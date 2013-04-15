@@ -174,15 +174,13 @@ class exports.HomeView extends Backbone.View
         oldList = @todoViews[sourceID].tasks
         newList = @todoViews[targetID].tasks
         task = oldList.get taskID
-        newTask = new Task
-            done: task.get "done"
-            description: task.get "description"
         task.view.showLoading()
-        oldList.removeTask task,
-            success: () ->
-                newList.insertTask null, newTask
-                task.view.hideLoading()
-            error: () ->
+        task.save list: newList.listId,
+            success: ->
+                oldList.remove task
+                task.view.remove()
+                newList.add task
+            error: ->
                 task.view.hideLoading()
 
     ###

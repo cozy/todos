@@ -168,15 +168,16 @@ class exports.TaskLine extends Backbone.View
                 draggedItem.descriptionField.focus()
 
                 draggedItem.model.save null,
-                success: =>
-                    @list.isSaving = false
-                    draggedItem.saving = false
-                    draggedItem.hideLoading()
-                error: =>
-                    console.log "An error while saving the task."
-                    @list.isSaving = false
-                    draggedItem.saving = false
-                    draggedItem.hideLoading()
+                    ignoreMySocketNotification: true
+                    success: =>
+                        @list.isSaving = false
+                        draggedItem.saving = false
+                        draggedItem.hideLoading()
+                    error: =>
+                        console.log "An error while saving the task."
+                        @list.isSaving = false
+                        draggedItem.saving = false
+                        draggedItem.hideLoading()
 
 
     # Listen for description modification
@@ -233,6 +234,7 @@ class exports.TaskLine extends Backbone.View
         @model.done = not @model.done
 
         @model.save { done: @model.done },
+            ignoreMySocketNotification: true
             success: =>
                 @hideLoading()
                 if not @model.done
@@ -273,6 +275,9 @@ class exports.TaskLine extends Backbone.View
             @model.description = @descriptionField.val()
             @showLoading()
             @model.save { description: @model.description },
+                patch: true
+                type: 'PUT'
+                ignoreMySocketNotification: true
                 success: =>
                     tags = @model.extractTags()
                     Backbone.Mediator.publish 'task:changed', tags

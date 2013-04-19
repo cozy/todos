@@ -10,11 +10,17 @@ class exports.Task extends BaseModel
 
         @[property] = task[property] for property of task
 
-        @url = "todolists/#{task.list}/tasks/"
-        @url += "#{@id}/" if @id?
-
         @setSimpleDate task.completionDate
         @setListName()
+
+    url: ->
+        if @isNew() then "todolists/#{@get 'list'}"
+        else "tasks/#{@id}"
+
+    # because the server send a list on tasks/:id
+    parse: (data) ->
+        return data.rows[0] if data.rows
+        return data
 
     # Format completionDate into a simple format. Store in simpleDate field.
     setSimpleDate: (date) ->

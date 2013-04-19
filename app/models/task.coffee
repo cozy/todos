@@ -78,19 +78,19 @@ module.exports = (compound, Task) ->
                 delete idList[task.id]
                 task = idList[nextTaskId]
 
-            # Rebuild linked list if there are unlinked tasks
-            lastTask = result[result.length - 1]
-            brokenTasks = [lastTask]
-            for taskId of idList
-                task = idList[taskId]
-                task.previousTask = lastTask.id
-                lastTask.nextTask = task.id
-                result.push task
-                lastTask = task
-                brokenTasks.push task
+            if Object.keys(idList).length > 0
+                console.log 'LL is broken'
+                # Rebuild linked list if there are unlinked tasks
+                lastTask = result[result.length - 1]
+                brokenTasks = [lastTask]
+                for taskId of idList
+                    task = idList[taskId]
+                    task.previousTask = lastTask.id
+                    lastTask.nextTask = task.id
+                    result.push task
+                    lastTask = task
+                    brokenTasks.push task
 
-            # Save correction if something wrong happened
-            if brokenTasks.length > 0
                 # TODO: make saving with async.
                 for task in brokenTasks
                     attributes =

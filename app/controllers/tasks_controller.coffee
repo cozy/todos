@@ -103,6 +103,10 @@ action 'update', ->
     else if body.done? and not body.done and @task.done isnt body.done
         Task.todo @task, body, answer
 
+    # Task move to another list
+    else if body.list? and body.list isnt @task.list
+        Task.changeList @task, body.list, answer
+
     # When link changes previous and next task are updated.
     else if body.previousTask isnt undefined and
     body.previousTask isnt @task.previousTask

@@ -1394,19 +1394,18 @@ window.require.register("views/home_view", function(exports, require, module) {
     };
 
     HomeView.prototype.onTaskMoved = function(taskID, sourceID, targetID) {
-      var newList, newTask, oldList, task;
+      var newList, oldList, task;
       oldList = this.todoViews[sourceID].tasks;
       newList = this.todoViews[targetID].tasks;
       task = oldList.get(taskID);
-      newTask = new Task({
-        done: task.get("done"),
-        description: task.get("description")
-      });
       task.view.showLoading();
-      return oldList.removeTask(task, {
+      return task.save({
+        list: newList.listId
+      }, {
         success: function() {
-          newList.insertTask(null, newTask);
-          return task.view.hideLoading();
+          oldList.remove(task);
+          task.view.remove();
+          return newList.add(task);
         },
         error: function() {
           return task.view.hideLoading();

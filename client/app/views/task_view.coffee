@@ -327,12 +327,11 @@ class exports.TaskLine extends Backbone.View
         description = @descriptionField.val()
         if description.length is 0 and @firstDel
             @isDeleting = true
-
-            if @list.$("##{@model.id}").prev().find(".description").length
+            previous = $("##{@model.id}").prev().prev()
+            if previous.find(".description").length
                 @list.moveUpFocus @, maxPosition: true
             else
                 @list.moveDownFocus @, maxPosition: true
-
             @delTask()
 
         else if description.length is 0 and not @firstDel
@@ -364,7 +363,9 @@ class exports.TaskLine extends Backbone.View
     # Remove object from view and unbind listeners.
     remove: ->
         @unbind()
-        $(@el).remove()
+        console.log @$el.prev()
+        @$el.prev().remove() if @$el.prev().hasClass 'separator'
+        @$el.remove()
 
     # Put mouse focus on description field.
     focusDescription: ->

@@ -48,11 +48,10 @@ class exports.TaskList extends Backbone.View
         selector = "##{taskLine.model.id}"
         nextDescription = taskLine.list.$(selector).prev().prev()
                             .find(".description")
+
         if nextDescription.length
             @moveFocus taskLine.descriptionField, nextDescription, options
         else
-            console.log @todoListView
-
             @todoListView.focusNewTask()
 
     # Set focus on next task. Preserve focus position.

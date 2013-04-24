@@ -2143,11 +2143,12 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     TaskLine.prototype.onBackspaceKeyup = function() {
-      var description;
+      var description, previous;
       description = this.descriptionField.val();
       if (description.length === 0 && this.firstDel) {
         this.isDeleting = true;
-        if (this.list.$("#" + this.model.id).prev().find(".description").length) {
+        previous = $("#" + this.model.id).prev().prev();
+        if (previous.find(".description").length) {
           this.list.moveUpFocus(this, {
             maxPosition: true
           });
@@ -2188,7 +2189,11 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.remove = function() {
       this.unbind();
-      return $(this.el).remove();
+      console.log(this.$el.prev());
+      if (this.$el.prev().hasClass('separator')) {
+        this.$el.prev().remove();
+      }
+      return this.$el.remove();
     };
 
     TaskLine.prototype.focusDescription = function() {
@@ -2308,7 +2313,6 @@ window.require.register("views/tasks_view", function(exports, require, module) {
       if (nextDescription.length) {
         return this.moveFocus(taskLine.descriptionField, nextDescription, options);
       } else {
-        console.log(this.todoListView);
         return this.todoListView.focusNewTask();
       }
     };

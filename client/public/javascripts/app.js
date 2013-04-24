@@ -1604,8 +1604,7 @@ window.require.register("views/new_task_form", function(exports, require, module
     NewTaskForm.prototype.handleDefaultFormState = function() {
       var isListEmpty;
       isListEmpty = this.taskList.tasks.length === 0;
-      console.log(this.taskList.id);
-      if (this.taskList.todoListView.model != null) {
+      if (this.taskList.todoListView.model.get('id') != null) {
         return this.showTaskForm();
       } else {
         return this.hideTaskForm();

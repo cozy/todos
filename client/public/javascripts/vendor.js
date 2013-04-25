@@ -6659,7 +6659,7 @@ function handler(event) {
       return true;
     };
 
-    CozySocketListener.prototype.onRemoteCreation = function(model) {};
+    CozySocketListener.prototype.onRemoteCreate = function(model) {};
 
     CozySocketListener.prototype.onRemoteUpdate = function(model, collection) {};
 
@@ -6680,7 +6680,6 @@ function handler(event) {
         console.log(err.stack);
       }
       this.collections = [];
-      this.watch(this.tmpcollection = new Backbone.Collection());
       this.stack = [];
       this.ignore = [];
       this.paused = 0;
@@ -6703,12 +6702,12 @@ function handler(event) {
     };
 
     CozySocketListener.prototype.watch = function(collection) {
+      if (this.collections.length === 0) {
+        this.collection = collection;
+      }
       this.collections.push(collection);
       collection.socketListener = this;
-      collection.on('request', this.pause);
-      collection.on('sync', this.resume);
-      collection.on('destroy', this.resume);
-      return collection.on('error', this.resume);
+      return this.watchOne(collection);
     };
 
     CozySocketListener.prototype.stopWatching = function(toRemove) {
@@ -6723,7 +6722,10 @@ function handler(event) {
     };
 
     CozySocketListener.prototype.watchOne = function(model) {
-      return this.collections[0].add(model);
+      model.on('request', this.pause);
+      model.on('sync', this.resume);
+      model.on('destroy', this.resume);
+      return model.on('error', this.resume);
     };
 
     CozySocketListener.prototype.pause = function(model, xhr, options) {
@@ -6801,7 +6803,6 @@ function handler(event) {
           doctype: doctype,
           operation: operation
         };
-        console.log('event', fullevent);
         _this.stack.push(fullevent);
         if (_this.paused === 0) {
           return _this.processStack();
@@ -6823,7 +6824,6 @@ function handler(event) {
       var doctype, id, model, operation,
         _this = this;
       doctype = event.doctype, operation = event.operation, id = event.id;
-      console.log('process', event);
       switch (operation) {
         case 'create':
           if (!this.shouldFetchCreated(id)) {
@@ -6833,7 +6833,9 @@ function handler(event) {
             id: id
           });
           return model.fetch({
-            success: this.onRemoteCreation
+            success: function(fetched) {
+              return _this.onRemoteCreate(fetched);
+            }
           });
         case 'update':
           return this.collections.forEach(function(collection) {

@@ -904,7 +904,7 @@ window.require.register("lib/socket_listener", function(exports, require, module
 
     function SocketListener() {
       this.onRemoteUpdate = __bind(this.onRemoteUpdate, this);
-      this.onRemoteCreation = __bind(this.onRemoteCreation, this);    _ref = SocketListener.__super__.constructor.apply(this, arguments);
+      this.onRemoteCreate = __bind(this.onRemoteCreate, this);    _ref = SocketListener.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
@@ -914,7 +914,7 @@ window.require.register("lib/socket_listener", function(exports, require, module
 
     SocketListener.prototype.events = ['task.create', 'task.update', 'task.delete'];
 
-    SocketListener.prototype.onRemoteCreation = function(task) {
+    SocketListener.prototype.onRemoteCreate = function(task) {
       var k, v, _ref1,
         _this = this;
 

@@ -88,7 +88,6 @@ window.require.register("collections/tasks", function(exports, require, module) 
   Task = require("../models/task").Task;
 
   exports.TaskCollection = (function(_super) {
-
     __extends(TaskCollection, _super);
 
     TaskCollection.prototype.model = Task;
@@ -100,9 +99,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
       this.listId = listId;
       this.options = options;
       this.onTaskAdded = __bind(this.onTaskAdded, this);
-
       this.onReset = __bind(this.onReset, this);
-
       TaskCollection.__super__.constructor.call(this);
       this.url = "todolists/" + this.listId + "/tasks";
       this.bind("add", this.onTaskAdded);
@@ -116,9 +113,11 @@ window.require.register("collections/tasks", function(exports, require, module) 
     TaskCollection.prototype.onReset = function(tasks) {
       var previousTask,
         _this = this;
+
       previousTask = null;
       tasks.forEach(function(task) {
         var _ref, _ref1;
+
         task.collection = _this;
         if (previousTask != null) {
           task.setPreviousTask(previousTask);
@@ -149,6 +148,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
     TaskCollection.prototype.insertTask = function(previousTask, task, callbacks) {
       var firstTask, index, nextTask,
         _this = this;
+
       index = this.toArray().indexOf(previousTask);
       nextTask = null;
       if ((previousTask != null) && index > -1 && index < this.length - 1) {
@@ -170,7 +170,9 @@ window.require.register("collections/tasks", function(exports, require, module) 
       }
       task.collection = this;
       task.url = "" + this.url + "/";
+      this.socketListener.watchOne(task);
       return task.save(task.attributes, {
+        ignoreMySocketNotification: true,
         success: function(data) {
           task.url = "" + _this.url + "/" + task.id + "/";
           if (previousTask != null) {
@@ -206,6 +208,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
 
     TaskCollection.prototype.getPreviousTodoTask = function(task) {
       var index;
+
       index = this.indexOf(task);
       if (index > 0) {
         index--;
@@ -222,6 +225,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
 
     TaskCollection.prototype.getNextTodoTask = function(task) {
       var index;
+
       index = this.indexOf(task);
       if (index < this.length - 2) {
         index++;
@@ -238,6 +242,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
 
     TaskCollection.prototype.reorder = function(task, newIndex) {
       var index, newNextTask, newPreviousTask, oldNextTask, oldPreviousTask;
+
       index = this.toArray().indexOf(task);
       oldPreviousTask = this.getPreviousTask(task);
       oldNextTask = this.getNextTask(task);
@@ -271,6 +276,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
     TaskCollection.prototype.removeTask = function(task, callbacks) {
       var nextTask, previousTask,
         _this = this;
+
       previousTask = this.getPreviousTask(task);
       nextTask = this.getNextTask(task);
       if (previousTask) {
@@ -292,6 +298,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
         }
       }
       return task.destroy({
+        ignoreMySocketNotification: true,
         success: function() {
           task.view.remove();
           return callbacks != null ? callbacks.success() : void 0;
@@ -313,7 +320,6 @@ window.require.register("collections/todolists", function(exports, require, modu
   TodoList = require("../models/todolist").TodoList;
 
   exports.TodoListCollection = (function(_super) {
-
     __extends(TodoListCollection, _super);
 
     TodoListCollection.prototype.model = TodoList;
@@ -334,11 +340,10 @@ window.require.register("collections/todolists", function(exports, require, modu
   
 });
 window.require.register("helpers", function(exports, require, module) {
-  
   exports.BrunchApplication = (function() {
-
     function BrunchApplication() {
       var _this = this;
+
       $(function() {
         _this.initialize(_this);
         return Backbone.history.start();
@@ -348,6 +353,7 @@ window.require.register("helpers", function(exports, require, module) {
     BrunchApplication.prototype.initializeJQueryExtensions = function() {
       return $.fn.spin = function(opts, color) {
         var presets;
+
         presets = {
           tiny: {
             lines: 8,
@@ -371,6 +377,7 @@ window.require.register("helpers", function(exports, require, module) {
         if (Spinner) {
           return this.each(function() {
             var $this, spinner;
+
             $this = $(this);
             spinner = $this.data("spinner");
             if (spinner != null) {
@@ -417,12 +424,14 @@ window.require.register("helpers", function(exports, require, module) {
 
   exports.getPathRegExp = function(path) {
     var slashReg;
+
     slashReg = new RegExp("/", "g");
     return "^" + (path.replace(slashReg, "\/"));
   };
 
   exports.extractTags = function(description) {
     var hashTags, tag, tagSlug, tags, _i, _len;
+
     hashTags = description.match(/#(\w)*/g);
     tags = [];
     if (hashTags != null) {
@@ -449,7 +458,7 @@ window.require.register("helpers", function(exports, require, module) {
   
 });
 window.require.register("initialize", function(exports, require, module) {
-  var BrunchApplication, HomeView, MainRouter,
+  var BrunchApplication, HomeView, MainRouter, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -460,11 +469,11 @@ window.require.register("initialize", function(exports, require, module) {
   HomeView = require('views/home_view').HomeView;
 
   exports.Application = (function(_super) {
-
     __extends(Application, _super);
 
     function Application() {
-      return Application.__super__.constructor.apply(this, arguments);
+      _ref = Application.__super__.constructor.apply(this, arguments);
+      return _ref;
     }
 
     Application.prototype.initialize = function() {
@@ -481,9 +490,9 @@ window.require.register("initialize", function(exports, require, module) {
   
 });
 window.require.register("lib/request", function(exports, require, module) {
-  
   exports.request = function(type, url, data, callback) {
     var options;
+
     options = {
       type: type,
       url: url,
@@ -532,6 +541,7 @@ window.require.register("lib/slug", function(exports, require, module) {
 
   removelist = (function() {
     var _i, _len, _results;
+
     _results = [];
     for (_i = 0, _len = removelist.length; _i < _len; _i++) {
       word = removelist[_i];
@@ -867,6 +877,7 @@ window.require.register("lib/slug", function(exports, require, module) {
 
   module.exports = slug = function(string, replacement) {
     var char, code, i, result, _i, _len;
+
     if (replacement == null) {
       replacement = '-';
     }
@@ -888,20 +899,145 @@ window.require.register("lib/slug", function(exports, require, module) {
   };
   
 });
+window.require.register("lib/socket_listener", function(exports, require, module) {
+  var SocketListener, Task, _ref,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Task = require('models/task').Task;
+
+  SocketListener = (function(_super) {
+    __extends(SocketListener, _super);
+
+    function SocketListener() {
+      this.onRemoteUpdate = __bind(this.onRemoteUpdate, this);
+      this.onRemoteCreate = __bind(this.onRemoteCreate, this);    _ref = SocketListener.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    SocketListener.prototype.models = {
+      'task': Task
+    };
+
+    SocketListener.prototype.events = ['task.create', 'task.update', 'task.delete'];
+
+    SocketListener.prototype.onRemoteCreate = function(task) {
+      var k, v, _ref1,
+        _this = this;
+
+      _ref1 = task.attributes;
+      for (k in _ref1) {
+        v = _ref1[k];
+        task[k] = v;
+      }
+      return this.collections.forEach(function(collection) {
+        var index, nextTask, previousTask;
+
+        if (collection === _this.tmpcollection) {
+          return;
+        }
+        if (_this.shouldBeAdded(task, collection)) {
+          previousTask = collection.getPreviousTask(task);
+          nextTask = collection.getNextTask(task);
+          index = collection.toArray().indexOf(previousTask);
+          collection.add(task, {
+            at: index + 1,
+            silent: true
+          });
+          if (previousTask != null) {
+            previousTask.set("nextTask", task.id);
+          }
+          if (nextTask != null) {
+            nextTask.set("previousTask", task.id);
+          }
+          return collection.view.insertTask(previousTask != null ? previousTask.view : void 0, task);
+        }
+      });
+    };
+
+    SocketListener.prototype.onRemoteUpdate = function(task, collection) {
+      var changed, nextTask, previousTask;
+
+      if (collection === this.tmpcollection) {
+        return null;
+      }
+      changed = task.changedAttributes();
+      if (changed.done != null) {
+        if (changed.done) {
+          task.view.done();
+        } else {
+          task.view.undone();
+        }
+      }
+      if (changed.description != null) {
+        task.view.descriptionField.val(changed.description);
+      }
+      if (changed.list != null) {
+        previousTask = collection.getPreviousTask(task);
+        nextTask = collection.getNextTask(task);
+        if (nextTask != null) {
+          nextTask.setPreviousTask(previousTask || null);
+        }
+        if (previousTask != null) {
+          previousTask.setNextTask(nextTask || null);
+        }
+        collection.remove(task);
+        return task.view.remove();
+      }
+    };
+
+    SocketListener.prototype.onRemoteDelete = function(id) {
+      return this.collections.forEach(function(collection) {
+        var nextTask, previousTask, task;
+
+        task = collection.get(id);
+        if (task != null) {
+          previousTask = collection.getPreviousTask(task);
+          nextTask = collection.getNextTask(task);
+          if (nextTask != null) {
+            nextTask.setPreviousTask(previousTask || null);
+          }
+          if (previousTask != null) {
+            previousTask.setNextTask(nextTask || null);
+          }
+          collection.remove(task);
+          return task.view.remove();
+        }
+      });
+    };
+
+    SocketListener.prototype.shouldBeAdded = function(task, collection) {
+      var doesnotexist, samedone, samelist, _ref1;
+
+      doesnotexist = !collection.get(task.id);
+      samelist = collection.listId === task.get('list');
+      samedone = ((_ref1 = collection.view) != null ? _ref1.isArchive() : void 0) === task.get('done');
+      return doesnotexist && samelist && samedone;
+    };
+
+    return SocketListener;
+
+  })(CozySocketListener);
+
+  module.exports = new SocketListener();
+  
+});
 window.require.register("models/models", function(exports, require, module) {
-  var __hasProp = {}.hasOwnProperty,
+  var _ref,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   exports.BaseModel = (function(_super) {
-
     __extends(BaseModel, _super);
 
     function BaseModel() {
-      return BaseModel.__super__.constructor.apply(this, arguments);
+      _ref = BaseModel.__super__.constructor.apply(this, arguments);
+      return _ref;
     }
 
     BaseModel.prototype.isNew = function() {
-      return !(this.id != null);
+      return this.id == null;
     };
 
     return BaseModel;
@@ -919,25 +1055,36 @@ window.require.register("models/task", function(exports, require, module) {
   helpers = require("../helpers");
 
   exports.Task = (function(_super) {
-
     __extends(Task, _super);
 
     function Task(task) {
       var property;
+
       Task.__super__.constructor.call(this, task);
       for (property in task) {
         this[property] = task[property];
-      }
-      this.url = "todolists/" + task.list + "/tasks/";
-      if (this.id != null) {
-        this.url += "" + this.id + "/";
       }
       this.setSimpleDate(task.completionDate);
       this.setListName();
     }
 
+    Task.prototype.url = function() {
+      if (this.isNew()) {
+        return "todolists/" + (this.get('list'));
+      } else {
+        return "tasks/" + this.id;
+      }
+    };
+
+    Task.prototype.parse = function(data) {
+      if (data.rows) {
+        return data.rows[0];
+      }
+      return data;
+    };
+
     Task.prototype.setSimpleDate = function(date) {
-      if (!(date != null)) {
+      if (date == null) {
         date = new Date();
       }
       this.simpleDate = moment(date).format("DD/MM/YYYY");
@@ -946,6 +1093,7 @@ window.require.register("models/task", function(exports, require, module) {
 
     Task.prototype.setListName = function() {
       var list, _ref;
+
       list = (_ref = window.app) != null ? _ref.homeView.todolists.get(this.list) : void 0;
       if (list != null) {
         this.listTitle = list.title;
@@ -958,12 +1106,14 @@ window.require.register("models/task", function(exports, require, module) {
 
     Task.prototype.setNextTask = function(task) {
       var _ref;
+
       this.set("nextTask", (_ref = task != null ? task.id : void 0) != null ? _ref : null);
       return task != null ? task.set("previousTask", this.id) : void 0;
     };
 
     Task.prototype.setPreviousTask = function(task) {
       var _ref;
+
       this.set("previousTask", (_ref = task != null ? task.id : void 0) != null ? _ref : null);
       return task != null ? task.set("nextTask", this.id) : void 0;
     };
@@ -985,6 +1135,7 @@ window.require.register("models/task", function(exports, require, module) {
 
     Task.prototype.setLink = function() {
       var nextTask, previousTask;
+
       if (this.collection.view.isArchive()) {
         this.view.remove();
         this.collection.view.moveToTaskList(this);
@@ -999,6 +1150,7 @@ window.require.register("models/task", function(exports, require, module) {
 
     Task.prototype.cleanLinks = function() {
       var nextTask, previousTask;
+
       previousTask = this.collection.getPreviousTask(this);
       nextTask = this.collection.getNextTask(this);
       if (previousTask != null) {
@@ -1032,13 +1184,13 @@ window.require.register("models/todolist", function(exports, require, module) {
   request = require("lib/request");
 
   exports.TodoList = (function(_super) {
-
     __extends(TodoList, _super);
 
     TodoList.prototype.url = 'todolists/';
 
     function TodoList(todolist) {
       var path, property, slugs, title, _i, _len;
+
       TodoList.__super__.constructor.call(this, todolist);
       for (property in todolist) {
         this[property] = todolist[property];
@@ -1066,8 +1218,10 @@ window.require.register("models/todolist", function(exports, require, module) {
 
     TodoList.getTodoList = function(id, callback) {
       var _this = this;
+
       return request.get("todolists/" + id, function(err, data) {
         var todolist;
+
         if (err) {
           return callback(err);
         } else {
@@ -1087,15 +1241,16 @@ window.require.register("models/todolist", function(exports, require, module) {
   
 });
 window.require.register("routers/main_router", function(exports, require, module) {
-  var __hasProp = {}.hasOwnProperty,
+  var _ref,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   exports.MainRouter = (function(_super) {
-
     __extends(MainRouter, _super);
 
     function MainRouter() {
-      return MainRouter.__super__.constructor.apply(this, arguments);
+      _ref = MainRouter.__super__.constructor.apply(this, arguments);
+      return _ref;
     }
 
     MainRouter.prototype.routes = {
@@ -1173,13 +1328,12 @@ window.require.register("views/home_view", function(exports, require, module) {
   request = require("../lib/request");
 
   exports.HomeView = (function(_super) {
-
     __extends(HomeView, _super);
 
     HomeView.prototype.id = 'home-view';
 
     /*
-        # Initializers
+    # Initializers
     */
 
 
@@ -1187,23 +1341,14 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     function HomeView() {
       this.onTaskMoved = __bind(this.onTaskMoved, this);
-
       this.onTaskDeleted = __bind(this.onTaskDeleted, this);
-
       this.onTaskChanged = __bind(this.onTaskChanged, this);
-
       this.onTodoListDropped = __bind(this.onTodoListDropped, this);
-
       this.onTreeLoaded = __bind(this.onTreeLoaded, this);
-
       this.onTodoListSelected = __bind(this.onTodoListSelected, this);
-
       this.onTodoListRemoved = __bind(this.onTodoListRemoved, this);
-
       this.onTodoListRenamed = __bind(this.onTodoListRenamed, this);
-
-      this.onTodoListCreated = __bind(this.onTodoListCreated, this);
-      this.todolists = new TodoListCollection();
+      this.onTodoListCreated = __bind(this.onTodoListCreated, this);    this.todolists = new TodoListCollection();
       Backbone.Mediator.subscribe('task:changed', this.onTaskChanged);
       Backbone.Mediator.subscribe('task:deleted', this.onTaskDeleted);
       this.todoViews = {};
@@ -1219,6 +1364,7 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.setLayout = function() {
       var size,
         _this = this;
+
       size = $(window).width();
       if (size < 700) {
         this.layout = $(this.el).layout({
@@ -1241,6 +1387,7 @@ window.require.register("views/home_view", function(exports, require, module) {
       this.previousSize = size;
       return $(window).resize(function() {
         var isBig, isSmall;
+
         size = $(window).width();
         isSmall = size < 700 && _this.previousSize > 700;
         isBig = size > 700 && _this.previousSize < 700;
@@ -1253,6 +1400,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.loadData = function(callback) {
       var _this = this;
+
       this.$("#tree").spin("small");
       request.get("tree/", function(err, data) {
         window.tree = data;
@@ -1270,12 +1418,13 @@ window.require.register("views/home_view", function(exports, require, module) {
     };
 
     /*
-        # Listeners
+    # Listeners
     */
 
 
     HomeView.prototype.onTodoListCreated = function(parentId, newName, dataTree) {
       var data;
+
       data = {
         title: newName,
         parent_id: parentId
@@ -1290,6 +1439,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.onTodoListRenamed = function(listId, newName, data) {
       var _this = this;
+
       if (newName != null) {
         data = {
           title: newName
@@ -1312,6 +1462,7 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.onTodoListSelected = function(path, id, data) {
       var _ref,
         _this = this;
+
       if ((_ref = this.tagListView) != null) {
         _ref.deselectAll();
       }
@@ -1335,10 +1486,12 @@ window.require.register("views/home_view", function(exports, require, module) {
     HomeView.prototype.onTreeLoaded = function() {
       var loadLists,
         _this = this;
+
       loadLists = function() {
         return _this.todolists.fetch({
           success: function(data) {
             var list, listView, _i, _len, _ref;
+
             _ref = data.models;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               list = _ref[_i];
@@ -1371,6 +1524,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.onTodoListDropped = function(nodeId, targetNodeId) {
       var _this = this;
+
       return TodoList.updateTodoList(nodeId, {
         parent_id: targetNodeId
       }, function() {
@@ -1383,6 +1537,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.onTaskChanged = function(tags) {
       var _ref;
+
       if ((_ref = this.tagListView) != null) {
         _ref.addTags(tags);
       }
@@ -1395,6 +1550,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.onTaskMoved = function(taskID, sourceID, targetID) {
       var newList, oldList, task;
+
       oldList = this.todoViews[sourceID].tasks;
       newList = this.todoViews[targetID].tasks;
       task = oldList.get(taskID);
@@ -1402,6 +1558,7 @@ window.require.register("views/home_view", function(exports, require, module) {
       return task.save({
         list: newList.listId
       }, {
+        ignoreMySocketNotification: true,
         success: function() {
           oldList.remove(task);
           task.view.remove();
@@ -1414,12 +1571,12 @@ window.require.register("views/home_view", function(exports, require, module) {
     };
 
     /*
-        # Functions
+    # Functions
     */
 
 
     HomeView.prototype.selectList = function(id) {
-      if (id === "all" || !(id != null)) {
+      if (id === "all" || (id == null)) {
         id = 'tree-node-all';
       }
       return this.tree.selectNode(id);
@@ -1427,6 +1584,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.selectTag = function(tag) {
       var list;
+
       this.tree.deselectAll();
       this.tagListView.selectTag(tag);
       list = new TodoList({
@@ -1438,6 +1596,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
     HomeView.prototype.renderTodolist = function(todolist) {
       var todoView, _ref;
+
       if (this.todoViews[todolist != null ? todolist.id : void 0] != null) {
         todoView = this.todoViews[todolist.id];
       } else {
@@ -1468,18 +1627,17 @@ window.require.register("views/new_task_form", function(exports, require, module
   Task = require("../models/task").Task;
 
   exports.NewTaskForm = (function(_super) {
-
     __extends(NewTaskForm, _super);
 
     function NewTaskForm(taskList) {
       this.taskList = taskList;
       this.taskCreationHandler = __bind(this.taskCreationHandler, this);
-
       NewTaskForm.__super__.constructor.call(this);
     }
 
     NewTaskForm.prototype.initialize = function() {
       var _this = this;
+
       this.newTaskForm = $('.new-task');
       this.newTaskFormButton = this.newTaskForm.find("button.add-task");
       this.newTaskFormInput = this.newTaskForm.find(".description");
@@ -1497,14 +1655,16 @@ window.require.register("views/new_task_form", function(exports, require, module
     };
 
     /*
-            Input handling
+        Input handling
     */
 
 
     NewTaskForm.prototype.inputHandler = function() {
       var _this = this;
+
       this.newTaskFormInput.keyup(function(event) {
         var keyCode;
+
         _this.hasUserTyped = true;
         _this.newTaskButtonHandler();
         keyCode = event.which | event.keyCode;
@@ -1548,6 +1708,7 @@ window.require.register("views/new_task_form", function(exports, require, module
     NewTaskForm.prototype.taskCreationHandler = function(event) {
       var task,
         _this = this;
+
       this.newTaskFormButton.html('&nbsp;');
       this.newTaskFormButton.spin('tiny');
       this.hasUserTyped = false;
@@ -1558,6 +1719,7 @@ window.require.register("views/new_task_form", function(exports, require, module
       return this.taskList.tasks.insertTask(null, task, {
         success: function(data) {
           var tags;
+
           _this.clearNewTaskInput();
           _this.newTaskFormButton.html('new');
           _this.newTaskFormButton.spin();
@@ -1573,19 +1735,21 @@ window.require.register("views/new_task_form", function(exports, require, module
     };
 
     /*
-            ./end Input handling
+        ./end Input handling
     */
 
 
     /*
-            Toggle handling
+        Toggle handling
     */
 
 
     NewTaskForm.prototype.initializeShortcut = function() {
       var _this = this;
+
       $(document).keydown(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         if (keyCode === 84 && event.altKey) {
           return event.preventDefault();
@@ -1593,6 +1757,7 @@ window.require.register("views/new_task_form", function(exports, require, module
       });
       return $(document).keyup(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         if (keyCode === 84 && event.altKey) {
           return _this.toggleTaskForm(true);
@@ -1602,6 +1767,7 @@ window.require.register("views/new_task_form", function(exports, require, module
 
     NewTaskForm.prototype.handleDefaultFormState = function() {
       var isListEmpty;
+
       isListEmpty = this.taskList.tasks.length === 0;
       if (this.taskList.todoListView.model.get('id') != null) {
         return this.showTaskForm();
@@ -1629,7 +1795,7 @@ window.require.register("views/new_task_form", function(exports, require, module
     };
 
     /*
-            ./end Toggle handling
+        ./end Toggle handling
     */
 
 
@@ -1647,7 +1813,6 @@ window.require.register("views/taglist_view", function(exports, require, module)
   request = require('../lib/request');
 
   exports.TagListView = (function(_super) {
-
     __extends(TagListView, _super);
 
     TagListView.prototype.id = 'tags';
@@ -1659,6 +1824,7 @@ window.require.register("views/taglist_view", function(exports, require, module)
 
     TagListView.prototype.render = function() {
       var tag, _i, _len, _ref, _results;
+
       this.$el = this.el = $("#tags");
       this.el.html(null);
       _ref = this.tagList;
@@ -1687,6 +1853,7 @@ window.require.register("views/taglist_view", function(exports, require, module)
 
     TagListView.prototype.addTags = function(tags) {
       var tag, _i, _len, _results;
+
       _results = [];
       for (_i = 0, _len = tags.length; _i < _len; _i++) {
         tag = tags[_i];
@@ -1704,8 +1871,10 @@ window.require.register("views/taglist_view", function(exports, require, module)
 
     TagListView.prototype.checkForDeletion = function() {
       var _this = this;
+
       return request.get('tasks/tags', function(err, remoteTags) {
         var tag, _i, _len, _ref, _results;
+
         _ref = _this.tagList;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -1738,7 +1907,6 @@ window.require.register("views/task_view", function(exports, require, module) {
   helpers = require("../helpers");
 
   exports.TaskLine = (function(_super) {
-
     __extends(TaskLine, _super);
 
     TaskLine.prototype.className = "task clearfix";
@@ -1759,7 +1927,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     /*
-        # Initializers
+    # Initializers
     */
 
 
@@ -1771,15 +1939,10 @@ window.require.register("views/task_view", function(exports, require, module) {
       this.model = model;
       this.list = list;
       this.onDescriptionChanged = __bind(this.onDescriptionChanged, this);
-
       this.onDownButtonClicked = __bind(this.onDownButtonClicked, this);
-
       this.onUpButtonClicked = __bind(this.onUpButtonClicked, this);
-
       this.onDelButtonClicked = __bind(this.onDelButtonClicked, this);
-
       this.onTodoButtonClicked = __bind(this.onTodoButtonClicked, this);
-
       TaskLine.__super__.constructor.call(this);
       this.saving = false;
       this.id = this.model._id;
@@ -1791,6 +1954,7 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.render = function() {
       var _this = this;
+
       template = require('./templates/task');
       $(this.el).html(template({
         model: this.model
@@ -1819,7 +1983,7 @@ window.require.register("views/task_view", function(exports, require, module) {
           return _this.todoButton.html("todo");
         }
       });
-      if (!(this.list.tasks.listId != null)) {
+      if (this.list.tasks.listId == null) {
         this.$el.unbind('dragstart');
         this.$el.unbind('dragover');
         this.$el.unbind('drop');
@@ -1836,7 +2000,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     /*
-            Drag'n'Drop management
+        Drag'n'Drop management
     */
 
 
@@ -1849,6 +2013,7 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onDragOver = function(event) {
       var index, limit, offsetY, pageY, targetOffsetTop, y;
+
       if (event.preventDefault) {
         event.preventDefault();
       }
@@ -1870,6 +2035,7 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onDrop = function(event) {
       var condition, draggedItemID, index, limit, newIndex, nextTask, nextTaskID, offsetY, pageY, previousTask, previousTaskID, targetOffsetTop, y;
+
       if (event.stopPropagation) {
         event.stopPropagation();
       }
@@ -1905,6 +2071,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     TaskLine.prototype.onReorder = function(draggedItem, newIndex) {
       var children, childrenTasks, index, isReordered, oldIndex, separator,
         _this = this;
+
       if (!this.list.isSaving) {
         isReordered = this.model.collection.reorder(draggedItem.model, newIndex);
         if ((this.model.collection.listId != null) && isReordered) {
@@ -1924,6 +2091,7 @@ window.require.register("views/task_view", function(exports, require, module) {
           separator.insertAfter(draggedItem.$el);
           draggedItem.descriptionField.focus();
           return draggedItem.model.save(null, {
+            ignoreMySocketNotification: true,
             success: function() {
               _this.list.isSaving = false;
               draggedItem.saving = false;
@@ -1942,13 +2110,16 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.setListeners = function() {
       var _this = this;
+
       this.descriptionField.keypress(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         return keyCode !== 13 && keyCode !== 9;
       });
       this.descriptionField.keydown(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         if (keyCode === 38 && event.metaKey) {
           _this.onCtrlUpKeyup();
@@ -1959,6 +2130,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       });
       this.descriptionField.keyup(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         if (event.ctrlKey) {
           if (keyCode === 38) {
@@ -1993,6 +2165,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       });
       return this.descriptionField.bind('blur paste beforeunload', function(event) {
         var el;
+
         el = _this.descriptionField;
         if (el.data('before') !== el.val() && !_this.isDeleting && !_this.saving) {
           el.data('before', el.val());
@@ -2003,7 +2176,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     /*
-        # Listeners
+    # Listeners
     */
 
 
@@ -2017,12 +2190,14 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
       var _this = this;
+
       this.showLoading();
       this.model.url = "todolists/" + this.model.list + "/tasks/" + this.model.id;
       this.model.done = !this.model.done;
       return this.model.save({
         done: this.model.done
       }, {
+        ignoreMySocketNotification: true,
         success: function() {
           _this.hideLoading();
           if (!_this.model.done) {
@@ -2044,9 +2219,11 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onUpButtonClicked = function(event) {
       var _this = this;
+
       return this.onDescriptionChanged(null, -1, {
         success: function() {
           var newIndex;
+
           newIndex = (_this.list.$el.children('.task').index(_this.$el)) - 1;
           if ((newIndex != null) && newIndex >= 0) {
             return _this.onReorder(_this, newIndex);
@@ -2057,9 +2234,11 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onDownButtonClicked = function(event) {
       var _this = this;
+
       return this.onDescriptionChanged(null, -1, {
         success: function() {
           var newIndex, taskListLength, tasks;
+
           tasks = _this.list.$el.children('.task');
           taskListLength = tasks.length;
           newIndex = (tasks.index(_this.$el)) + 2;
@@ -2072,6 +2251,7 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onDescriptionChanged = function(event, keyCode, callback) {
       var _this = this;
+
       if (!(keyCode === 8 || this.descriptionField.val().length === 0)) {
         this.saving = true;
         this.model.description = this.descriptionField.val();
@@ -2079,8 +2259,12 @@ window.require.register("views/task_view", function(exports, require, module) {
         return this.model.save({
           description: this.model.description
         }, {
+          patch: true,
+          type: 'PUT',
+          ignoreMySocketNotification: true,
           success: function() {
             var tags;
+
             tags = _this.model.extractTags();
             Backbone.Mediator.publish('task:changed', tags);
             _this.model.set('tags', tags);
@@ -2116,6 +2300,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     TaskLine.prototype.onEnterKeyup = function(isShiftKeyPressed) {
       var insertAfter, task,
         _this = this;
+
       if (this.model.collection.listId != null) {
         this.showLoading();
         task = new Task({
@@ -2142,6 +2327,7 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.onBackspaceKeyup = function() {
       var description, previous;
+
       description = this.descriptionField.val();
       if (description.length === 0 && this.firstDel) {
         this.isDeleting = true;
@@ -2169,7 +2355,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     };
 
     /*
-        # Functions
+    # Functions
     */
 
 
@@ -2201,6 +2387,7 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.delTask = function(callback) {
       var _this = this;
+
       this.showLoading();
       return this.model.collection.removeTask(this.model, {
         success: function() {
@@ -2245,11 +2432,13 @@ window.require.register("views/task_view", function(exports, require, module) {
   
 });
 window.require.register("views/tasks_view", function(exports, require, module) {
-  var Task, TaskCollection, TaskLine, helpers,
+  var SocketListener, Task, TaskCollection, TaskLine, helpers,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   TaskCollection = require("../collections/tasks").TaskCollection;
+
+  SocketListener = require("lib/socket_listener");
 
   Task = require("../models/task").Task;
 
@@ -2258,7 +2447,6 @@ window.require.register("views/tasks_view", function(exports, require, module) {
   helpers = require("../helpers");
 
   exports.TaskList = (function(_super) {
-
     __extends(TaskList, _super);
 
     TaskList.prototype.className = "task clearfix";
@@ -2267,6 +2455,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     function TaskList(todoListView, el, options) {
       var id;
+
       this.todoListView = todoListView;
       this.el = el;
       TaskList.__super__.constructor.call(this);
@@ -2275,11 +2464,13 @@ window.require.register("views/tasks_view", function(exports, require, module) {
         id = this.todoListView.model.id;
       }
       this.tasks = new TaskCollection(this, id, options);
+      SocketListener.watch(this.tasks);
       this.isSaving = false;
     }
 
     TaskList.prototype.addTaskLine = function(task) {
       var taskLine;
+
       taskLine = new TaskLine(task, this);
       this.$el.append(taskLine.render());
       return this.$el.append($('<div class="separator"></div>'));
@@ -2291,6 +2482,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     TaskList.prototype.addTaskLineAsFirstRow = function(task) {
       var taskLine;
+
       taskLine = new TaskLine(task, this);
       return this.$el.prepend(taskLine.render());
     };
@@ -2301,11 +2493,13 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     TaskList.prototype.moveToTaskList = function(task) {
       var _ref;
+
       return (_ref = this.todoListView) != null ? _ref.moveToTaskList(task) : void 0;
     };
 
     TaskList.prototype.moveUpFocus = function(taskLine, options) {
       var nextDescription, selector;
+
       selector = "#" + taskLine.model.id;
       nextDescription = taskLine.list.$(selector).prev().prev().find(".description");
       if (nextDescription.length) {
@@ -2317,6 +2511,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     TaskList.prototype.moveDownFocus = function(taskLine, options) {
       var nextDescription, selector;
+
       selector = "#" + taskLine.model.id;
       nextDescription = taskLine.list.$(selector).next().next().find(".description");
       if (nextDescription.length) {
@@ -2326,6 +2521,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     TaskList.prototype.moveFocus = function(previousField, nextField, options) {
       var cursorPosition;
+
       cursorPosition = previousField.getCursorPosition();
       nextField.focus();
       if (((options != null ? options.maxPosition : void 0) != null) && options.maxPosition) {
@@ -2337,6 +2533,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     TaskList.prototype.focusFirstTask = function() {
       var firstTask;
+
       if (this.tasks.length > 0) {
         firstTask = this.tasks.at(0);
         return this.$("#" + (firstTask.get('id')) + " .description").focus();
@@ -2345,6 +2542,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
 
     TaskList.prototype.insertTask = function(previousTaskLine, task) {
       var previousSeparator, taskLine, taskLineEl, _ref;
+
       taskLine = new TaskLine(task);
       taskLine.list = this;
       taskLineEl = $(taskLine.render());
@@ -2474,7 +2672,6 @@ window.require.register("views/todolist_view", function(exports, require, module
   slugify = require("lib/slug");
 
   exports.TodoListWidget = (function(_super) {
-
     __extends(TodoListWidget, _super);
 
     TodoListWidget.prototype.id = "todo-list";
@@ -2490,11 +2687,8 @@ window.require.register("views/todolist_view", function(exports, require, module
     function TodoListWidget(model) {
       this.model = model;
       this.removeCreationInfos = __bind(this.removeCreationInfos, this);
-
       this.displayCreationInfos = __bind(this.displayCreationInfos, this);
-
       this.creationInfosRequired = __bind(this.creationInfosRequired, this);
-
       TodoListWidget.__super__.constructor.call(this);
       if (this.model != null) {
         this.id = this.model.slug;
@@ -2511,9 +2705,17 @@ window.require.register("views/todolist_view", function(exports, require, module
 
 
     TodoListWidget.prototype.render = function() {
+      var _ref, _ref1;
+
       $(this.el).html(require('./templates/todolist'));
       this.title = this.$(".todo-list-title .description");
       this.breadcrumb = this.$(".todo-list-title .breadcrumb");
+      if ((_ref = this.taskList) != null) {
+        _ref.tasks.socketListener.stopWatching(this.taskList.tasks);
+      }
+      if ((_ref1 = this.archiveList) != null) {
+        _ref1.tasks.socketListener.stopWatching(this.archiveList.tasks);
+      }
       this.taskList = new TaskList(this, this.$("#task-list"));
       this.archiveList = new TaskList(this, this.$("#archive-list"));
       this.tasks = this.taskList.tasks;
@@ -2522,6 +2724,7 @@ window.require.register("views/todolist_view", function(exports, require, module
       this.newTaskForm = new NewTaskForm(this.taskList);
       $(document).unbind('keydown').keydown(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         if (keyCode === 16) {
           return $('.handle').addClass('jstree-draggable');
@@ -2529,6 +2732,7 @@ window.require.register("views/todolist_view", function(exports, require, module
       });
       $(document).unbind('keyup').keyup(function(event) {
         var keyCode;
+
         keyCode = event.which | event.keyCode;
         if (keyCode === 16) {
           return $('.handle').removeClass('jstree-draggable');
@@ -2538,13 +2742,14 @@ window.require.register("views/todolist_view", function(exports, require, module
     };
 
     /*
-        # Functions
+    # Functions
     */
 
 
     TodoListWidget.prototype.loadData = function() {
       var _this = this;
-      if (!(this.model != null)) {
+
+      if (this.model == null) {
         this.tasks.url = "tasks/todo";
         this.archiveTasks.url = "tasks/archives";
       } else {
@@ -2607,11 +2812,13 @@ window.require.register("views/todolist_view", function(exports, require, module
 
     TodoListWidget.prototype.refreshBreadcrump = function() {
       var _ref;
+
       this.$(".breadcrumb a").unbind();
       if ((this.model != null) && (this.model.id != null)) {
         this.breadcrumb.html(this.createBreadcrumb());
         this.$(".breadcrumb a").click(function(event) {
           var hash, id, path;
+
           event.preventDefault();
           hash = event.target.hash.substring(1);
           path = hash.split("/");
@@ -2631,6 +2838,7 @@ window.require.register("views/todolist_view", function(exports, require, module
 
     TodoListWidget.prototype.createBreadcrumb = function() {
       var breadcrumb, href, link, listName, parent, path, paths, slugs, _i, _len;
+
       paths = this.model.path;
       listName = paths.pop();
       slugs = [];
@@ -2670,7 +2878,6 @@ window.require.register("views/widgets/have_done_list", function(exports, requir
   TaskList = require("../tasks_view").TaskList;
 
   exports.HaveDoneListModal = (function(_super) {
-
     __extends(HaveDoneListModal, _super);
 
     HaveDoneListModal.prototype["class"] = "modal hide";
@@ -2680,8 +2887,7 @@ window.require.register("views/widgets/have_done_list", function(exports, requir
     HaveDoneListModal.prototype.initialize = function() {};
 
     function HaveDoneListModal() {
-      this.hide = __bind(this.hide, this);
-      HaveDoneListModal.__super__.constructor.call(this);
+      this.hide = __bind(this.hide, this);    HaveDoneListModal.__super__.constructor.call(this);
     }
 
     HaveDoneListModal.prototype.render = function() {
@@ -2740,11 +2946,10 @@ window.require.register("views/widgets/tree", function(exports, require, module)
     # Initialize jsTree tree with options : sorting, create/rename/delete,
     # unique children and json data for loading.
     */
-
     function Tree(navEl, data, homeViewCbk) {
       this._getSlugPath = __bind(this._getSlugPath, this);
-
       var _this = this;
+
       this.jstreeEl = $("#tree");
       navEl.prepend(require('../templates/tree_buttons'));
       this.widget = this.jstreeEl.jstree({
@@ -2800,6 +3005,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
         dnd: {
           "drag_finish": function(data) {
             var draggedTaskID, sourceID, targetID;
+
             draggedTaskID = $(data.o.parentNode).prop('id');
             targetID = data.r[0].id;
             sourceID = _this.getSelectedNode().prop('id');
@@ -2807,6 +3013,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
           },
           "drag_check": function(data) {
             var canDrop, draggedTask, isSameList, sourceID, targetID;
+
             draggedTask = $(data.o.parentNode);
             targetID = data.r[0].id;
             sourceID = _this.getSelectedNode().prop('id');
@@ -2835,6 +3042,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
     Tree.prototype.setListeners = function(homeViewCbk) {
       var jstreeEl, textPrompt, tree_buttons, tree_buttons_root, tree_buttons_target,
         _this = this;
+
       tree_buttons = $("#tree-buttons");
       tree_buttons_root = $("#tree-buttons-root");
       jstreeEl = this.jstreeEl;
@@ -2875,11 +3083,13 @@ window.require.register("views/widgets/tree", function(exports, require, module)
       $("#tree-remove").on("click", function(e) {
         var nodeToDelete,
           _this = this;
+
         nodeToDelete = this.parentElement.parentElement.parentElement;
         $(this).tooltip('hide');
         $('#confirm-delete-modal').modal('show');
         $("#yes-button").on("click", function(e) {
           var noteToDelete_id;
+
           noteToDelete_id = nodeToDelete.id;
           if (noteToDelete_id !== 'tree-node-all') {
             jstreeEl.jstree("remove", nodeToDelete);
@@ -2911,12 +3121,14 @@ window.require.register("views/widgets/tree", function(exports, require, module)
       textPrompt = $(".text-prompt");
       this.widget.on("create.jstree", function(e, data) {
         var nodeName, parentId;
+
         nodeName = data.inst.get_text(data.rslt.obj);
         parentId = data.rslt.parent[0].id;
         return homeViewCbk.onCreate(parentId, data.rslt.name, data);
       });
       this.widget.on("rename.jstree", function(e, data) {
         var newNodeName, oldNodeName;
+
         newNodeName = data.rslt.new_name;
         oldNodeName = data.rslt.old_name;
         if (oldNodeName !== newNodeName) {
@@ -2925,6 +3137,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
       });
       this.widget.on("select_node.jstree", function(e, data) {
         var nodeName, note_uuid, parent, path;
+
         note_uuid = data.rslt.obj[0].id;
         if (note_uuid === "tree-node-all") {
           path = "/all";
@@ -2941,6 +3154,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
       });
       this.widget.on("move_node.jstree", function(e, data) {
         var nodeId, targetNodeId;
+
         nodeId = data.rslt.o[0].id;
         targetNodeId = data.rslt.o[0].parentElement.parentElement.id;
         return homeViewCbk.onDrop(nodeId, targetNodeId);
@@ -2959,6 +3173,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
 
     Tree.prototype.selectNode = function(note_uuid) {
       var node;
+
       node = $("#" + note_uuid);
       if (node[0]) {
         this.jstreeEl.jstree("deselect_all", null);
@@ -2982,6 +3197,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
 
     Tree.prototype._getPath = function(parent, nodeName) {
       var name, nodes;
+
       if (nodeName != null) {
         nodes = [slugify(nodeName)];
       }

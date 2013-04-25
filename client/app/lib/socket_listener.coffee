@@ -12,9 +12,7 @@ class SocketListener extends CozySocketListener
         @collections.forEach (collection) =>
             return if collection is @tmpcollection
 
-            console.log collection.view
             if @shouldBeAdded task, collection
-                console.log '2dd'
                 previousTask = collection.getPreviousTask task
                 nextTask = collection.getNextTask task
                 index = collection.toArray().indexOf previousTask

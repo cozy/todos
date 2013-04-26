@@ -116,7 +116,7 @@ class exports.NewTaskForm extends Backbone.View
         isListEmpty = @taskList.tasks.length is 0
 
         # The form is shown by default if the cookie is set or
-        if @taskList.todoListView.model.get('id')?
+        if @taskList.todoListView.model?.get('id')?
             @showTaskForm()
         else
             @hideTaskForm()

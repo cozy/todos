@@ -13,8 +13,9 @@
   , "jugglingdb":       "= 0.2.0-23"
   , "jugglingdb-cozy-adapter": "0.3.1"
   , "async":            "= 0.1.22"
+  , "cozy-realtime-adapter":"= 0.0.7"
   }
-, "devDependencies": 
+, "devDependencies":
   { "request-json":     ">= 0"
   , "mocha":            "= 1.6.0"
   , "chai":             "= 1.3.0"

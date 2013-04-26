@@ -32,6 +32,9 @@ class exports.TodoListWidget extends Backbone.View
         @title = @$(".todo-list-title .description")
         @breadcrumb = @$(".todo-list-title .breadcrumb")
 
+        @taskList?.tasks.socketListener.stopWatching @taskList.tasks
+        @archiveList?.tasks.socketListener.stopWatching @archiveList.tasks
+
         @taskList = new TaskList @, @$("#task-list")
         @archiveList = new TaskList @, @$("#archive-list")
         @tasks = @taskList.tasks

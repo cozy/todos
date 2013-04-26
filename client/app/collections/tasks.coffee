@@ -61,7 +61,9 @@ class exports.TaskCollection extends Backbone.Collection
         task.collection = @
 
         task.url = "#{@url}/"
+        @socketListener.watchOne(task)
         task.save task.attributes,
+            ignoreMySocketNotification: true
             success: (data) =>
                 task.url = "#{@url}/#{task.id}/"
                 previousTask?.set "nextTask", task.id
@@ -72,6 +74,7 @@ class exports.TaskCollection extends Backbone.Collection
                     @view.insertTask previousTask.view, task
                 else if @view?
                     @view.insertTask null, task
+
                 callbacks?.success(task)
             error: =>
                 callbacks?.error
@@ -161,6 +164,7 @@ class exports.TaskCollection extends Backbone.Collection
             previousTask?.setNextTask null
 
         task.destroy
+            ignoreMySocketNotification: true
             success: =>
                 task.view.remove()
                 callbacks?.success()

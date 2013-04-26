@@ -176,6 +176,7 @@ class exports.HomeView extends Backbone.View
         task = oldList.get taskID
         task.view.showLoading()
         task.save list: newList.listId,
+            ignoreMySocketNotification: true
             success: ->
                 oldList.remove task
                 task.view.remove()

@@ -170,7 +170,9 @@ window.require.register("collections/tasks", function(exports, require, module) 
       }
       task.collection = this;
       task.url = "" + this.url + "/";
+      this.socketListener.watchOne(task);
       return task.save(task.attributes, {
+        ignoreMySocketNotification: true,
         success: function(data) {
           task.url = "" + _this.url + "/" + task.id + "/";
           if (previousTask != null) {
@@ -292,6 +294,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
         }
       }
       return task.destroy({
+        ignoreMySocketNotification: true,
         success: function() {
           task.view.remove();
           return callbacks != null ? callbacks.success() : void 0;
@@ -888,6 +891,127 @@ window.require.register("lib/slug", function(exports, require, module) {
   };
   
 });
+window.require.register("lib/socket_listener", function(exports, require, module) {
+  var SocketListener, Task,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Task = require('models/task').Task;
+
+  SocketListener = (function(_super) {
+
+    __extends(SocketListener, _super);
+
+    function SocketListener() {
+      this.onRemoteUpdate = __bind(this.onRemoteUpdate, this);
+
+      this.onRemoteCreate = __bind(this.onRemoteCreate, this);
+      return SocketListener.__super__.constructor.apply(this, arguments);
+    }
+
+    SocketListener.prototype.models = {
+      'task': Task
+    };
+
+    SocketListener.prototype.events = ['task.create', 'task.update', 'task.delete'];
+
+    SocketListener.prototype.onRemoteCreate = function(task) {
+      var k, v, _ref,
+        _this = this;
+      _ref = task.attributes;
+      for (k in _ref) {
+        v = _ref[k];
+        task[k] = v;
+      }
+      return this.collections.forEach(function(collection) {
+        var index, nextTask, previousTask;
+        if (collection === _this.tmpcollection) {
+          return;
+        }
+        if (_this.shouldBeAdded(task, collection)) {
+          previousTask = collection.getPreviousTask(task);
+          nextTask = collection.getNextTask(task);
+          index = collection.toArray().indexOf(previousTask);
+          collection.add(task, {
+            at: index + 1,
+            silent: true
+          });
+          if (previousTask != null) {
+            previousTask.set("nextTask", task.id);
+          }
+          if (nextTask != null) {
+            nextTask.set("previousTask", task.id);
+          }
+          return collection.view.insertTask(previousTask != null ? previousTask.view : void 0, task);
+        }
+      });
+    };
+
+    SocketListener.prototype.onRemoteUpdate = function(task, collection) {
+      var changed, nextTask, previousTask;
+      if (collection === this.tmpcollection) {
+        return null;
+      }
+      changed = task.changedAttributes();
+      if (changed.done != null) {
+        if (changed.done) {
+          task.view.done();
+        } else {
+          task.view.undone();
+        }
+      }
+      if (changed.description != null) {
+        task.view.descriptionField.val(changed.description);
+      }
+      if (changed.list != null) {
+        previousTask = collection.getPreviousTask(task);
+        nextTask = collection.getNextTask(task);
+        if (nextTask != null) {
+          nextTask.setPreviousTask(previousTask || null);
+        }
+        if (previousTask != null) {
+          previousTask.setNextTask(nextTask || null);
+        }
+        collection.remove(task);
+        return task.view.remove();
+      }
+    };
+
+    SocketListener.prototype.onRemoteDelete = function(id) {
+      return this.collections.forEach(function(collection) {
+        var nextTask, previousTask, task;
+        task = collection.get(id);
+        if (task != null) {
+          previousTask = collection.getPreviousTask(task);
+          nextTask = collection.getNextTask(task);
+          if (nextTask != null) {
+            nextTask.setPreviousTask(previousTask || null);
+          }
+          if (previousTask != null) {
+            previousTask.setNextTask(nextTask || null);
+          }
+          collection.remove(task);
+          return task.view.remove();
+        }
+      });
+    };
+
+    SocketListener.prototype.shouldBeAdded = function(task, collection) {
+      var doesnotexist, samedone, samelist, _ref;
+      doesnotexist = !collection.get(task.id);
+      samelist = collection.listId === task.get('list');
+      samedone = ((_ref = collection.view) != null ? _ref.isArchive() : void 0) === task.get('done');
+      return doesnotexist && samelist && samedone;
+    };
+
+    return SocketListener;
+
+  })(CozySocketListener);
+
+  module.exports = new SocketListener();
+  
+});
 window.require.register("models/models", function(exports, require, module) {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -928,13 +1052,24 @@ window.require.register("models/task", function(exports, require, module) {
       for (property in task) {
         this[property] = task[property];
       }
-      this.url = "todolists/" + task.list + "/tasks/";
-      if (this.id != null) {
-        this.url += "" + this.id + "/";
-      }
       this.setSimpleDate(task.completionDate);
       this.setListName();
     }
+
+    Task.prototype.url = function() {
+      if (this.isNew()) {
+        return "todolists/" + (this.get('list'));
+      } else {
+        return "tasks/" + this.id;
+      }
+    };
+
+    Task.prototype.parse = function(data) {
+      if (data.rows) {
+        return data.rows[0];
+      }
+      return data;
+    };
 
     Task.prototype.setSimpleDate = function(date) {
       if (!(date != null)) {
@@ -1402,6 +1537,7 @@ window.require.register("views/home_view", function(exports, require, module) {
       return task.save({
         list: newList.listId
       }, {
+        ignoreMySocketNotification: true,
         success: function() {
           oldList.remove(task);
           task.view.remove();
@@ -1924,6 +2060,7 @@ window.require.register("views/task_view", function(exports, require, module) {
           separator.insertAfter(draggedItem.$el);
           draggedItem.descriptionField.focus();
           return draggedItem.model.save(null, {
+            ignoreMySocketNotification: true,
             success: function() {
               _this.list.isSaving = false;
               draggedItem.saving = false;
@@ -2023,6 +2160,7 @@ window.require.register("views/task_view", function(exports, require, module) {
       return this.model.save({
         done: this.model.done
       }, {
+        ignoreMySocketNotification: true,
         success: function() {
           _this.hideLoading();
           if (!_this.model.done) {
@@ -2079,6 +2217,9 @@ window.require.register("views/task_view", function(exports, require, module) {
         return this.model.save({
           description: this.model.description
         }, {
+          patch: true,
+          type: 'PUT',
+          ignoreMySocketNotification: true,
           success: function() {
             var tags;
             tags = _this.model.extractTags();
@@ -2245,11 +2386,13 @@ window.require.register("views/task_view", function(exports, require, module) {
   
 });
 window.require.register("views/tasks_view", function(exports, require, module) {
-  var Task, TaskCollection, TaskLine, helpers,
+  var SocketListener, Task, TaskCollection, TaskLine, helpers,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   TaskCollection = require("../collections/tasks").TaskCollection;
+
+  SocketListener = require("lib/socket_listener");
 
   Task = require("../models/task").Task;
 
@@ -2275,6 +2418,7 @@ window.require.register("views/tasks_view", function(exports, require, module) {
         id = this.todoListView.model.id;
       }
       this.tasks = new TaskCollection(this, id, options);
+      SocketListener.watch(this.tasks);
       this.isSaving = false;
     }
 
@@ -2511,9 +2655,16 @@ window.require.register("views/todolist_view", function(exports, require, module
 
 
     TodoListWidget.prototype.render = function() {
+      var _ref, _ref1;
       $(this.el).html(require('./templates/todolist'));
       this.title = this.$(".todo-list-title .description");
       this.breadcrumb = this.$(".todo-list-title .breadcrumb");
+      if ((_ref = this.taskList) != null) {
+        _ref.tasks.socketListener.stopWatching(this.taskList.tasks);
+      }
+      if ((_ref1 = this.archiveList) != null) {
+        _ref1.tasks.socketListener.stopWatching(this.archiveList.tasks);
+      }
       this.taskList = new TaskList(this, this.$("#task-list"));
       this.archiveList = new TaskList(this, this.$("#archive-list"));
       this.tasks = this.taskList.tasks;

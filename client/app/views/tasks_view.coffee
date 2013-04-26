@@ -1,4 +1,5 @@
 {TaskCollection} = require "../collections/tasks"
+SocketListener = require "lib/socket_listener"
 {Task} = require "../models/task"
 {TaskLine} = require "../views/task_view"
 helpers = require "../helpers"
@@ -15,6 +16,7 @@ class exports.TaskList extends Backbone.View
         id =  @todoListView.model.id if @todoListView? and @todoListView.model?
 
         @tasks = new TaskCollection @, id, options
+        SocketListener.watch(@tasks)
 
         @isSaving = false
 

@@ -1615,27 +1615,17 @@ window.require.register("views/new_task_form", function(exports, require, module
     }
 
     NewTaskForm.prototype.initialize = function() {
-      var _this = this;
       this.newTaskForm = $('.new-task');
       this.newTaskFormButton = this.newTaskForm.find("button.add-task");
       this.newTaskFormInput = this.newTaskForm.find(".description");
-      this.taskList.tasks.on('reset', function(collection) {
-        _this.initializeForm();
-        return _this.taskList.tasks.off('reset');
-      });
+      this.initializeForm();
       return this.hasUserTyped = false;
     };
 
     NewTaskForm.prototype.initializeForm = function() {
-      this.initializeShortcut();
       this.handleDefaultFormState();
       return this.inputHandler();
     };
-
-    /*
-            Input handling
-    */
-
 
     NewTaskForm.prototype.inputHandler = function() {
       var _this = this;
@@ -1708,45 +1698,14 @@ window.require.register("views/new_task_form", function(exports, require, module
       });
     };
 
-    /*
-            ./end Input handling
-    */
-
-
-    /*
-            Toggle handling
-    */
-
-
-    NewTaskForm.prototype.initializeShortcut = function() {
-      var _this = this;
-      $(document).keydown(function(event) {
-        var keyCode;
-        keyCode = event.which | event.keyCode;
-        if (keyCode === 84 && event.altKey) {
-          return event.preventDefault();
-        }
-      });
-      return $(document).keyup(function(event) {
-        var keyCode;
-        keyCode = event.which | event.keyCode;
-        if (keyCode === 84 && event.altKey) {
-          return _this.toggleTaskForm(true);
-        }
-      });
-    };
-
     NewTaskForm.prototype.handleDefaultFormState = function() {
-      var isListEmpty, _ref;
-      isListEmpty = this.taskList.tasks.length === 0;
+      var _ref;
       if (((_ref = this.taskList.todoListView.model) != null ? _ref.get('id') : void 0) != null) {
         return this.showTaskForm();
       } else {
         return this.hideTaskForm();
       }
     };
-
-    NewTaskForm.prototype.toggleTaskForm = function(updatePreferences, mustFade) {};
 
     NewTaskForm.prototype.showTaskForm = function(updatePreferences, mustFade) {
       if ((mustFade != null) && mustFade) {
@@ -1763,11 +1722,6 @@ window.require.register("views/new_task_form", function(exports, require, module
         return this.newTaskForm.hide();
       }
     };
-
-    /*
-            ./end Toggle handling
-    */
-
 
     return NewTaskForm;
 

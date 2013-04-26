@@ -13,22 +13,14 @@ class exports.NewTaskForm extends Backbone.View
         @newTaskFormButton = @newTaskForm.find "button.add-task"
         @newTaskFormInput = @newTaskForm.find ".description"
 
-        # When the list is loaded the first time, we start handling the form
-        @taskList.tasks.on 'reset', (collection) =>
-            @initializeForm()
-            @taskList.tasks.off 'reset' # we only want this to be executed once
+        @initializeForm()
 
         # whether the user has written something or not in the new task form
         @hasUserTyped = false
 
     initializeForm: ->
-        @initializeShortcut()
         @handleDefaultFormState()
         @inputHandler()
-
-    ###
-        Input handling
-    ###
 
     # Form input behaviour management
     inputHandler: () ->
@@ -86,46 +78,11 @@ class exports.NewTaskForm extends Backbone.View
                 @newTaskFormButton.html 'new'
                 @newTaskFormButton.spin()
 
-    ###
-        ./end Input handling
-    ###
-
-
-
-    ###
-        Toggle handling
-    ###
-
-    # alt+t: toggle the "new task" form
-    initializeShortcut: () ->
-        # prevent the shortcut from writing in forms
-        $(document).keydown (event) ->
-            keyCode = event.which | event.keyCode
-            if keyCode is 84 && event.altKey # alt + t
-                event.preventDefault()
-
-        $(document).keyup (event) =>
-            keyCode = event.which | event.keyCode
-            if keyCode is 84 && event.altKey # alt + t
-                @toggleTaskForm(true)
-
-
-    handleDefaultFormState: () ->
-
-        # The collection must fire "reset" before the value is relevant
-        isListEmpty = @taskList.tasks.length is 0
-
-        # The form is shown by default if the cookie is set or
+    handleDefaultFormState: ->
         if @taskList.todoListView.model?.get('id')?
             @showTaskForm()
         else
             @hideTaskForm()
-
-    toggleTaskForm: (updatePreferences, mustFade) ->
-        #if @newTaskForm.is ':visible'
-            #@hideTaskForm updatePreferences, mustFade
-        #else
-            #@showTaskForm updatePreferences, mustFade
 
     showTaskForm: (updatePreferences, mustFade) ->
         if mustFade? && mustFade
@@ -133,22 +90,8 @@ class exports.NewTaskForm extends Backbone.View
         else
             @newTaskForm.show()
 
-        #@toggleButton.text 'Hide the form'
-        #if updatePreferences? && updatePreferences
-            #$.cookie 'todos_prefs:show_form', 'true'
-
     hideTaskForm: (updatePreferences, mustFade) ->
-        #@showTaskForm updatePreferences, mustFade
-
         if mustFade? && mustFade
             @newTaskForm.fadeOut 1000
         else
             @newTaskForm.hide()
-
-        #@toggleButton.text 'Show the form'
-        #if updatePreferences? && updatePreferences
-            #$.cookie 'todos_prefs:show_form', 'false'
-
-    ###
-        ./end Toggle handling
-    ###

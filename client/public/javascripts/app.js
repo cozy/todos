@@ -93,8 +93,6 @@ window.require.register("collections/tasks", function(exports, require, module) 
 
     TaskCollection.prototype.model = Task;
 
-    TaskCollection.prototype.url = 'tasks/';
-
     function TaskCollection(view, listId, options) {
       this.view = view;
       this.listId = listId;
@@ -103,8 +101,10 @@ window.require.register("collections/tasks", function(exports, require, module) 
 
       this.onReset = __bind(this.onReset, this);
 
-      TaskCollection.__super__.constructor.call(this);
-      this.url = "todolists/" + this.listId + "/tasks";
+      TaskCollection.__super__.constructor.call(this, {
+        id: this.listId
+      }, this.options);
+      this.url = "todolists/" + this.listId + "/tasks/";
       this.bind("add", this.onTaskAdded);
       this.bind("reset", this.onReset);
     }
@@ -136,10 +136,6 @@ window.require.register("collections/tasks", function(exports, require, module) 
     };
 
     TaskCollection.prototype.onTaskAdded = function(task) {
-      if (task.id != null) {
-        task.url = "" + this.url + "/" + task.id + "/";
-      }
-      task.collection = this;
       if (this.length > 1) {
         task.setPreviousTask(this.at(this.length - 2));
       }
@@ -168,13 +164,10 @@ window.require.register("collections/tasks", function(exports, require, module) 
       if (previousTask != null) {
         task.set("previousTask", previousTask.id);
       }
-      task.collection = this;
-      task.url = "" + this.url + "/";
       this.socketListener.watchOne(task);
       return task.save(task.attributes, {
         ignoreMySocketNotification: true,
         success: function(data) {
-          task.url = "" + _this.url + "/" + task.id + "/";
           if (previousTask != null) {
             previousTask.set("nextTask", task.id);
           }
@@ -1048,7 +1041,7 @@ window.require.register("models/task", function(exports, require, module) {
 
     function Task(task) {
       var property;
-      Task.__super__.constructor.call(this, task);
+      Task.__super__.constructor.apply(this, arguments);
       for (property in task) {
         this[property] = task[property];
       }
@@ -1058,7 +1051,7 @@ window.require.register("models/task", function(exports, require, module) {
 
     Task.prototype.url = function() {
       if (this.isNew()) {
-        return "todolists/" + (this.get('list'));
+        return "todolists/" + (this.get('list')) + "/tasks";
       } else {
         return "tasks/" + this.id;
       }
@@ -2657,7 +2650,7 @@ window.require.register("views/todolist_view", function(exports, require, module
           this.tasks.url = "tasks/tags/" + this.model.tag + "/todo";
           this.archiveTasks.url = "tasks/tags/" + this.model.tag + "/archives";
         } else {
-          this.archiveTasks.url += "/archives";
+          this.archiveTasks.url += "archives";
         }
       }
       $(this.archiveTasks.view.el).spin("small");

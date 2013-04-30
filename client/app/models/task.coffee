@@ -6,7 +6,7 @@ class exports.Task extends BaseModel
 
     # Copy task properties to current model.
     constructor: (task) ->
-        super(task)
+        super
 
         @[property] = task[property] for property of task
 
@@ -14,7 +14,7 @@ class exports.Task extends BaseModel
         @setListName()
 
     url: ->
-        if @isNew() then "todolists/#{@get 'list'}"
+        if @isNew() then "todolists/#{@get 'list'}/tasks"
         else "tasks/#{@id}"
 
     # because the server send a list on tasks/:id

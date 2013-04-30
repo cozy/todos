@@ -71,7 +71,7 @@ class exports.TodoListWidget extends Backbone.View
                 @tasks.url = "tasks/tags/#{@model.tag}/todo"
                 @archiveTasks.url = "tasks/tags/#{@model.tag}/archives"
             else
-                @archiveTasks.url += "/archives"
+                @archiveTasks.url += "archives"
 
         # Show laoding indicators
         $(@archiveTasks.view.el).spin "small"

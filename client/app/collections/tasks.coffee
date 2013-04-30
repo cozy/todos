@@ -4,12 +4,11 @@
 class exports.TaskCollection extends Backbone.Collection
 
     model: Task
-    url: 'tasks/'
 
     constructor: (@view, @listId, @options) ->
-        super()
+        super(id: @listId, @options)
 
-        @url = "todolists/#{@listId}/tasks"
+        @url = "todolists/#{@listId}/tasks/"
         @bind "add", @onTaskAdded
         @bind "reset", @onReset
 
@@ -37,8 +36,6 @@ class exports.TaskCollection extends Backbone.Collection
     # Prepend a task to the task list and update previousTask field of
     # previous first task.
     onTaskAdded: (task) =>
-        task.url = "#{@url}/#{task.id}/" if task.id?
-        task.collection = @
         task.setPreviousTask @at(@length - 2) if @length > 1
 
         @view.addTaskLine task
@@ -58,14 +55,12 @@ class exports.TaskCollection extends Backbone.Collection
 
         task.set "nextTask", nextTask.id if nextTask?
         task.set "previousTask", previousTask.id if previousTask?
-        task.collection = @
 
-        task.url = "#{@url}/"
+        # task.url = "#{@url}/"
         @socketListener.watchOne(task)
         task.save task.attributes,
             ignoreMySocketNotification: true
             success: (data) =>
-                task.url = "#{@url}/#{task.id}/"
                 previousTask?.set "nextTask", task.id
                 nextTask?.set "previousTask", task.id
 

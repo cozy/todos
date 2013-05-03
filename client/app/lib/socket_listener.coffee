@@ -26,8 +26,8 @@ class SocketListener extends CozySocketListener
         changed = task.changedAttributes()
 
         if changed.done?
-            if changed.done then task.view.done()
-            else task.view.undone()
+            if changed.done then task.setDone()
+            else task.setUndone()
 
         if changed.description?
             task.view.descriptionField.val changed.description

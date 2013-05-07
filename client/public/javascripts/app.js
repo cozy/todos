@@ -158,6 +158,7 @@ window.require.register("collections/tasks", function(exports, require, module) 
           nextTask = firstTask;
         }
       }
+      task.set("list", this.listId);
       if (nextTask != null) {
         task.set("nextTask", nextTask.id);
       }

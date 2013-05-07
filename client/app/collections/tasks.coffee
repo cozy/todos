@@ -53,10 +53,10 @@ class exports.TaskCollection extends Backbone.Collection
             firstTask = @at 0
             nextTask = firstTask if firstTask?
 
+        task.set "list", @listId
         task.set "nextTask", nextTask.id if nextTask?
         task.set "previousTask", previousTask.id if previousTask?
 
-        # task.url = "#{@url}/"
         @socketListener.watchOne(task)
         task.save task.attributes,
             ignoreMySocketNotification: true

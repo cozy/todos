@@ -1,7 +1,7 @@
 { "name": "cozy-todos"
 , "version": "0.5.0"
 , "engines": ["node >= 0.8.0"]
-, "main": "server.js"
+, "main": "server.coffee"
 , "dependencies":
   { "jade":             "= 0.27.6"
   , "express":          "= 3.0.6"

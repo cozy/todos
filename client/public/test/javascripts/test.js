@@ -98,7 +98,6 @@ window.require.register("test/task_collection_test", function(exports, require, 
 
   TaskCollection.prototype.addNewTask = function(id, list, description) {
     var task;
-
     task = new Task({
       id: id,
       list: list,
@@ -110,7 +109,6 @@ window.require.register("test/task_collection_test", function(exports, require, 
   describe('Task Collection', function() {
     before(function() {
       var todoList, todoListView;
-
       window.app = {};
       window.app.homeView = new HomeView();
       todoList = new TodoList({
@@ -136,7 +134,6 @@ window.require.register("test/task_collection_test", function(exports, require, 
     describe("onReset", function() {
       it("when collection is reset with a list of tasks", function() {
         var task, _i, _len, _ref;
-
         this.tasks = [
           new Task({
             id: 5,
@@ -175,7 +172,6 @@ window.require.register("test/task_collection_test", function(exports, require, 
       });
       it("and each tasks are linked to the collection", function() {
         var task, _i, _len, _ref, _results;
-
         _ref = this.tasks;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -311,7 +307,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
 
   TaskCollection.prototype.addNewTask = function(id, list, description) {
     var task;
-
     task = new Task({
       id: id,
       list: list,
@@ -323,7 +318,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
   describe('Task Model', function() {
     before(function() {
       var todoList, todoListView;
-
       window.app = {};
       window.app.homeView = new HomeView();
       todoList = new TodoList({
@@ -368,7 +362,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
       });
       it("And links are cleaned", function() {
         var nextTask, previousTask;
-
         expect(this.model.get("previousTask")).to.equal(null);
         expect(this.model.get("nextTask")).to.equal(null);
         previousTask = this.collection.at(0);
@@ -378,7 +371,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
       });
       return it("And its completion date is copied to an easily displayable date", function() {
         var completionDate;
-
         completionDate = moment(this.model.completionDate);
         return expect(this.model.simpleDate).to.equal(completionDate.format("DD/MM/YYYY"));
       });
@@ -393,7 +385,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
       });
       it("And links are back", function() {
         var nextTask, previousTask;
-
         expect(this.model.get("previousTask")).to.equal(1);
         expect(this.model.get("nextTask")).to.equal(3);
         previousTask = this.collection.at(0);
@@ -448,7 +439,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
       });
       return it("And previously set links are updated.", function() {
         var nextTask, previousTask;
-
         previousTask = this.collection.at(0);
         nextTask = this.collection.at(2);
         expect(previousTask.get("nextTask")).to.equal(nextTask.id);
@@ -465,7 +455,6 @@ window.require.register("test/task_model_test", function(exports, require, modul
       });
       return it("And previously set links are back too.", function() {
         var nextTask, previousTask;
-
         previousTask = this.collection.at(0);
         nextTask = this.collection.at(2);
         expect(previousTask.get("nextTask")).to.equal(this.model.id);
@@ -476,6 +465,7 @@ window.require.register("test/task_model_test", function(exports, require, modul
   
 });
 window.require.register("test/test-helpers", function(exports, require, module) {
+  
   module.exports = {
     expect: require('chai').expect,
     should: require('chai').should,

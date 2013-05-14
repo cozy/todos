@@ -66,6 +66,7 @@ class exports.NewTaskForm extends Backbone.View
             done: false
             description: @newTaskFormInput.val()
 
+        console.log @taskList.tasks.url
         @taskList.tasks.insertTask null, task,
             success: (data) =>
                 @clearNewTaskInput()

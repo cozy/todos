@@ -7,8 +7,8 @@ slugify = require "lib/slug"
 
 # Display todo list wrapper that contains todo task list and archive task list.
 class exports.TodoListWidget extends Backbone.View
-    id: "todo-list"
     tagName: "div"
+    id: "todo-list"
     el: "#todo-list"
 
     ### Constructor ####

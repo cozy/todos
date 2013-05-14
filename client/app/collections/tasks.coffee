@@ -9,6 +9,8 @@ class exports.TaskCollection extends Backbone.Collection
         super(id: @listId, @options)
 
         @url = "todolists/#{@listId}/tasks/"
+        console.log @url
+
         @bind "add", @onTaskAdded
         @bind "reset", @onReset
 

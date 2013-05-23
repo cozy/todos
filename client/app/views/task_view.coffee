@@ -69,14 +69,15 @@ class exports.TaskLine extends Backbone.View
             @$el.unbind 'drop'
             @$el.unbind 'dragend'
             @$el.unbind 'hover'
+            @$(".handle").addClass 'disabled'
         else
             @$(".handle").prop 'draggable', true
 
-        @$('.handle').tooltip
-            placement: "left"
-            title: "You can sort the tasks by dragging and dropping them. " + \
-                   "Hint: if you press shift, you can move a task " + \
-                   "to another list."
+            @$('.handle').tooltip
+                placement: "left"
+                title: "You can sort the tasks by dragging and dropping " + \
+                       "them. Hint: if you press shift, you can move a " + \
+                       "task to another list."
 
         @el
 

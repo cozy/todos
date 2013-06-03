@@ -5,8 +5,6 @@ exports.config =
       indentation:
         level: "error"
         value: 4
-      max_line_length:
-        value: 82
 
   # Edit the next line to change default build path.
   paths:

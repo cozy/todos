@@ -1921,13 +1921,14 @@ window.require.register("views/task_view", function(exports, require, module) {
         this.$el.unbind('drop');
         this.$el.unbind('dragend');
         this.$el.unbind('hover');
+        this.$(".handle").addClass('disabled');
       } else {
         this.$(".handle").prop('draggable', true);
+        this.$('.handle').tooltip({
+          placement: "left",
+          title: "You can sort the tasks by dragging and dropping " + "them. Hint: if you press shift, you can move a " + "task to another list."
+        });
       }
-      this.$('.handle').tooltip({
-        placement: "left",
-        title: "You can sort the tasks by dragging and dropping them. " + "Hint: if you press shift, you can move a task " + "to another list."
-      });
       return this.el;
     };
 

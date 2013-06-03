@@ -87,13 +87,10 @@ html
         shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.1)
         color: #333
 
-        .handle
-            display: inline-block
-
 .task:hover
 .task:focus
 .task:active
-    .handle
+    .handle:not(.disabled)
         display: inline-block
 
 .task button
@@ -357,7 +354,7 @@ html
 
     .task.new-task .add-task
         width: 16%
-        
+
 
     .task .description
         width: 75%

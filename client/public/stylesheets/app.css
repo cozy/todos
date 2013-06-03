@@ -5936,6 +5936,7 @@ html {
   padding: 20px 0;
 }
 #tree li {
+  position: relative;
   margin-left: 10px;
   padding: 0;
 }

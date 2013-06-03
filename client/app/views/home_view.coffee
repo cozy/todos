@@ -15,6 +15,9 @@ class exports.HomeView extends Backbone.View
     # Initializers
     ###
 
+    events:
+        "click #nav-toggler": "onNavTogglerClicked"
+
     initialize: ->
 
     constructor: ->
@@ -85,6 +88,9 @@ class exports.HomeView extends Backbone.View
     ###
     # Listeners
     ###
+
+    onNavTogglerClicked: (event) =>
+        @layout.toggle 'west'
 
     # Save todolist creation to backend. Update corresponding node metadata.
     # Then select todolist

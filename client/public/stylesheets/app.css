@@ -5862,6 +5862,19 @@ html {
 #tags a:hover {
   font-weight: normal;
 }
+#nav-toggler {
+  position: absolute;
+  z-index: 50;
+  float: right;
+  right: 0;
+  font-weight: bold;
+  display: none;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  width: 60px;
+  height: 60px;
+}
 /* responsive */
 @media (max-width: 1200px) {
   .task .description {
@@ -5895,6 +5908,12 @@ html {
   .ui-layout-toggler {
     display: none;
   }
+  #nav-toggler {
+    display: inline;
+  }
+  #handle {
+    display: none;
+  }
 }
 @font-face {
   font-family: main;
@@ -5921,7 +5940,6 @@ html {
   padding: 20px 0;
 }
 #tree li {
-  position: relative;
   margin-left: 10px;
   padding: 0;
 }
@@ -6066,6 +6084,11 @@ html {
 }
 #home-view .ui-layout-toggler:hover {
   background-color: #fe8800;
+}
+@media (max-width: 700px) {
+  #home-view .ui-layout-resizer {
+    display: none;
+  }
 }
 /* ==|== non-semantic helper classes ========================================
    Please define your styles before this section.

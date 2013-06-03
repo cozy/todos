@@ -1313,6 +1313,10 @@ window.require.register("views/home_view", function(exports, require, module) {
     */
 
 
+    HomeView.prototype.events = {
+      "click #nav-toggler": "onNavTogglerClicked"
+    };
+
     HomeView.prototype.initialize = function() {};
 
     function HomeView() {
@@ -1333,6 +1337,8 @@ window.require.register("views/home_view", function(exports, require, module) {
       this.onTodoListRenamed = __bind(this.onTodoListRenamed, this);
 
       this.onTodoListCreated = __bind(this.onTodoListCreated, this);
+
+      this.onNavTogglerClicked = __bind(this.onNavTogglerClicked, this);
       this.todolists = new TodoListCollection();
       Backbone.Mediator.subscribe('task:changed', this.onTaskChanged);
       Backbone.Mediator.subscribe('task:deleted', this.onTaskDeleted);
@@ -1403,6 +1409,10 @@ window.require.register("views/home_view", function(exports, require, module) {
         # Listeners
     */
 
+
+    HomeView.prototype.onNavTogglerClicked = function(event) {
+      return this.layout.toggle('west');
+    };
 
     HomeView.prototype.onTodoListCreated = function(parentId, newName, dataTree) {
       var data;
@@ -2479,7 +2489,7 @@ window.require.register("views/templates/home", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<div id="nav" class="ui-layout-west"><div id="tags"></div><div class="title"><img src="img/my-tasks.png"/></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="content" class="ui-layout-center"><div id="todo-list"></div></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="no-button btn btn-info">No</button></div></div>');
+  buf.push('<div id="nav" class="ui-layout-west"><div id="tags"></div><div class="title"><img src="img/my-tasks.png"/></div><div id="tree"></div><div id="tree-loading-indicator"></div></div><div id="content" class="ui-layout-center"><button id="nav-toggler">nav</button><div id="todo-list"></div></div><div id="confirm-delete-modal" tabindex="-1" role="dialog" aria-hidden="true" class="modal hide fade in"><div class="modal-header"><h3 id="confirm-delete-modal-label">Warning!</h3></div><div class="modal-body"><p> \nYou are about to delete this list, its tasks and its sub lists. Do\nyou want to continue?</p></div><div class="modal-footer"><button id="yes-button" data-dismiss="modal" aria-hidden="true" class="btn">Yes</button><button data-dismiss="modal" aria-hidden="true" class="no-button btn btn-info">No</button></div></div>');
   }
   return buf.join("");
   };
@@ -2507,7 +2517,7 @@ window.require.register("views/templates/task", function(exports, require, modul
   var interp;
   buf.push('<button class="btn btn-info todo-button">todo</button><input');
   buf.push(attrs({ 'type':("text"), 'contenteditable':("true"), 'value':("" + (model.description) + ""), "class": ('description') }, {"type":true,"contenteditable":true,"value":true}));
-  buf.push('/><div class="handle">&nbsp;</div><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
+  buf.push('/><div class="task-buttons"><button class="up-task-button btn">up</button><button class="down-task-button btn">down</button><button class="del-task-button btn">X</button></div><div class="task-infos">');
   if ( model.done)
   {
   buf.push('<span class="task-date">' + escape((interp = model.fullDate) == null ? '' : interp) + '</span>');

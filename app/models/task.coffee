@@ -117,6 +117,10 @@ module.exports = (compound, Task) ->
             firstTask = task if not task.previousTask?
         firstTask
 
+    Task.getLastTaskFromList = (tasks) ->
+        for task in tasks
+            return task if not task.nextTask?
+
     # Set given task as first task of todo task list.
     Task.setFirstTask = (task, callback) ->
         Task.retrieveTodoList task.list, (err, tasks) ->
@@ -150,6 +154,46 @@ module.exports = (compound, Task) ->
                     task.save (err) ->
                         return callback err, null if err
                         updateLinks task
+
+    # Set given task as last of todo task list
+    Task.setLastTask = (task, callback) ->
+        Task.retrieveTodoList task.list, (err, tasks) ->
+            return callback err, null if err
+
+            # Case where the given task is already the last task
+            if not tasks.length or
+            (tasks.length is 1 and tasks[0].id is task.id)
+                console.log 'case1'
+                if task.id? then callback null, task
+                else task.save (err) -> callback err, task
+
+            # Case where the given task is not the last task
+            else
+                console.log 'case2'
+                lastTask = Task.getLastTaskFromList tasks
+                updateLinks = (task) ->
+                    lastTask.nextTask = task.id
+                    task.nextTask = null
+                    task.previousTask = lastTask.id
+
+                    lastTask.save (err) ->
+                        return callback err, null if err
+
+                        task.save (err) ->
+                            return callback err, null if err
+
+                            callback null, task
+
+                if task.id?
+                    console.log 'case2.1'
+                    updateLinks task
+                else
+                    console.log 'case 2.2'
+                    task.save (err) ->
+                        return callback err, null if err
+                        updateLinks task
+
+
 
 
     # Change next task ID of previous task with current task ID.
@@ -222,20 +266,22 @@ module.exports = (compound, Task) ->
         task.nextTask = null
         task.extractTags()
 
-        if not task.done
-            if not task.previousTask?
-                Task.setFirstTask task, (err, task) ->
-                    return callback err if err
-                    callback err, task
-            else
-                Task.create task, (err, task) ->
-                    return callback err if err
-                    Task.insertTask task, (err) ->
-                        callback err, task
+        if task.done
+            return Task.create task, callback
+
+        # not previous not next, probably from note, add last
+        unless task.previous or task.next
+            console.log 'recognized as @note'
+            return Task.setLastTask task, callback
+
+        if task.previous
+            return Task.setFirstTask task, callback
+
         else
-            Task.create task, (err, task) ->
+            return Task.create task, (err, task) ->
                 return callback err if err
-                callback err, task
+                Task.insertTask task, callback
+
 
     # Change next task ID of previous task with next task ID of current task.
     Task.removePreviousLink = (task, callback) ->

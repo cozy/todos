@@ -5577,7 +5577,7 @@ html {
 .task {
   padding: 0 2%;
 }
-.task input {
+.task .description {
   padding-left: 1%;
   border: 1px solid transparent;
   -webkit-border-radius: 0px;
@@ -5587,9 +5587,17 @@ html {
   -webkit-box-shadow: none;
   box-shadow: none;
   font-family: styled, helvetica;
+  margin-left: 1%;
+  font-size: 16px;
+  height: 22px;
+  width: 88%;
+  padding: 4px 1%;
+  background-color: #fcfcfc;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
-.task input:hover,
-.task input.hovered {
+.task .description:hover,
+.task .description.hovered {
   padding-left: 1%;
   border: 1px solid #fe8800;
   -webkit-border-radius: 0px;
@@ -5614,8 +5622,8 @@ html {
   -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
   filter: alpha(opacity=50);
 }
-.task input:focus,
-.task input:active {
+.task .description:focus,
+.task .description:active {
   padding-left: 1%;
   border: 1px solid rgba(82,168,236,0.8);
   -webkit-border-radius: 0px;
@@ -5672,15 +5680,15 @@ html {
   text-decoration: line-through;
   margin-top: 0px;
 }
-.task .description {
-  margin-left: 1%;
-  font-size: 16px;
-  height: 22px;
-  width: 88%;
-  padding: 4px 1%;
-  background-color: #fcfcfc;
-  margin-top: 2px;
-  margin-bottom: 4px;
+#task-list input.description {
+  display: none;
+}
+div.description {
+  line-height: 22px;
+  display: inline-block;
+}
+div.description span.inline-tag {
+  color: #34a6ff;
 }
 .info {
   font-size: 10px;

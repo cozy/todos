@@ -40,11 +40,12 @@ class exports.TaskLine extends Backbone.View
     # Render wiew and bind it to model.
     render: ->
         template = require './templates/task'
+
         $(@el).html template(model: @model)
         @el.id = @model.id
         @done() if @model.done
 
-        @descriptionField = @$ ".description"
+        @descriptionField = @$ "input.description"
         @buttons = @$ ".task-buttons"
         @setListeners()
 
@@ -79,7 +80,30 @@ class exports.TaskLine extends Backbone.View
                        "them. Hint: if you press shift, you can move a " + \
                        "task to another list."
 
+            @handleFieldSwapManagement()
+
         @el
+
+    ###
+        Nice tag displaying management
+    ###
+    handleFieldSwapManagement: ->
+        @displayTagsNicely()
+        @$('input.description').focus =>
+            @$('input.description').show()
+            @$('div.description').hide()
+        @$('input.description').focusout =>
+            @$('input.description').hide()
+            @$('div.description').show()
+        @$('input.description').keyup =>
+            @displayTagsNicely()
+
+    displayTagsNicely: ->
+        pattern = /(#[a-z]+)/ig
+        replacement = '<span class="inline-tag">$1</span>'
+        taggedDescription = @$('input.description').val()
+        taggedDescription = taggedDescription.replace pattern, replacement
+        @$('div.description').html taggedDescription
 
     ###
         Drag'n'Drop management
@@ -224,8 +248,13 @@ class exports.TaskLine extends Backbone.View
     onMouseOver: (event) ->
         if event.type is 'mouseenter'
             @$el.children('.description').addClass('hovered')
+            @$('div.description').hide()
+            @$('input.description').show()
         else
             @$el.children('.description').removeClass('hovered')
+            if not @$('input.description').is ':focus'
+                @$('input.description').hide()
+                @$('div.description').show()
 
     # On todo button clicked, update task state and send modifications to
     # backend.

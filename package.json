@@ -27,10 +27,10 @@
   }
 , "cozy-permissions":
   { "Task":
-    {"description": "Creates and edit your tasks."
+    {"description": "Creates and edits your tasks."
     }
   , "TodoList":
-    {"description": "Creates and edit your todo lists which contains your tasks."
+    {"description": "Creates and edits your todo lists which contains your tasks."
     }
   , "Tree":
     {"description": "Sorts your todo lists within a tree structure."

@@ -935,9 +935,6 @@ window.require.register("lib/socket_listener", function(exports, require, module
         if (_this.shouldBeAdded(task, collection)) {
           previousTask = collection.getPreviousTask(task);
           nextTask = collection.getNextTask(task);
-          if (!previousTask && !nextTask) {
-            previousTask = collection.last();
-          }
           index = collection.toArray().indexOf(previousTask);
           collection.add(task, {
             at: index + 1,

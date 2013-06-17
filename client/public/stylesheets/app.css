@@ -5680,7 +5680,8 @@ html {
   text-decoration: line-through;
   margin-top: 0px;
 }
-#task-list input.description {
+#task-list input.description,
+#archive-list input.description {
   display: none;
 }
 div.description {

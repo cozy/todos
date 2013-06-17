@@ -1,5 +1,6 @@
 { "name": "cozy-todos"
 , "version": "0.5.0"
+, "description": "Cozy Todos is a simple task management application that helps you to focus by not wasting time in your todo-lists. Adding tasks is easy as typing in a text editor, but UI is explicit as it should be in a web app."
 , "engines": ["node >= 0.8.0"]
 , "main": "server.coffee"
 , "dependencies":
@@ -23,5 +24,16 @@
   }
 , "scripts":
   { "test": "cake tests"
+  }
+, "cozy-permissions":
+  { "Task":
+    {"description": "Used to manage your tasks"
+    }
+  , "TodoList":
+    {"description": "Used to sort your tasks"
+    }
+  , "Tree":
+    {"description": "Used to sort your todo lists"
+    }
   }
 }

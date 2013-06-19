@@ -967,6 +967,7 @@ window.require.register("lib/socket_listener", function(exports, require, module
       }
       if (changed.description != null) {
         task.view.descriptionField.val(changed.description);
+        task.view.displayTagsNicely();
       }
       if (changed.list != null) {
         previousTask = collection.getPreviousTask(task);
@@ -1919,6 +1920,7 @@ window.require.register("views/task_view", function(exports, require, module) {
         this.done();
       }
       this.descriptionField = this.$("input.description");
+      this.descriptionFieldFormatted = this.$("div.description");
       this.buttons = this.$(".task-buttons");
       this.setListeners();
       this.$(".task-buttons").hide();
@@ -1965,15 +1967,15 @@ window.require.register("views/task_view", function(exports, require, module) {
       var _this = this;
 
       this.displayTagsNicely();
-      this.$('input.description').focus(function() {
-        _this.$('input.description').show();
-        return _this.$('div.description').hide();
+      this.descriptionField.focus(function() {
+        _this.descriptionField.show();
+        return _this.descriptionFieldFormatted.hide();
       });
-      this.$('input.description').focusout(function() {
-        _this.$('input.description').hide();
-        return _this.$('div.description').show();
+      this.descriptionField.focusout(function() {
+        _this.descriptionField.hide();
+        return _this.descriptionFieldFormatted.show();
       });
-      return this.$('input.description').keyup(function() {
+      return this.descriptionField.keyup(function() {
         return _this.displayTagsNicely();
       });
     };
@@ -1983,9 +1985,9 @@ window.require.register("views/task_view", function(exports, require, module) {
 
       pattern = /(#[a-z]+)/ig;
       replacement = '<span class="inline-tag">$1</span>';
-      taggedDescription = this.$('input.description').val();
+      taggedDescription = this.descriptionField.val();
       taggedDescription = taggedDescription.replace(pattern, replacement);
-      return this.$('div.description').html(taggedDescription);
+      return this.descriptionFieldFormatted.html(taggedDescription);
     };
 
     /*
@@ -2172,13 +2174,13 @@ window.require.register("views/task_view", function(exports, require, module) {
     TaskLine.prototype.onMouseOver = function(event) {
       if (event.type === 'mouseenter') {
         this.$el.children('.description').addClass('hovered');
-        this.$('div.description').hide();
-        return this.$('input.description').show();
+        this.descriptionFieldFormatted.hide();
+        return this.descriptionField.show();
       } else {
         this.$el.children('.description').removeClass('hovered');
-        if (!this.$('input.description').is(':focus')) {
-          this.$('input.description').hide();
-          return this.$('div.description').show();
+        if (!this.descriptionField.is(':focus')) {
+          this.descriptionField.hide();
+          return this.descriptionFieldFormatted.show();
         }
       }
     };

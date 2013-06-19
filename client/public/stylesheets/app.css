@@ -5578,7 +5578,6 @@ html {
   padding: 0 2%;
 }
 .task .description {
-  padding-left: 1%;
   border: 1px solid transparent;
   -webkit-border-radius: 0px;
   border-radius: 0px;
@@ -5591,10 +5590,21 @@ html {
   font-size: 16px;
   height: 22px;
   width: 88%;
-  padding: 4px 1%;
+  padding: 4px 9px;
   background-color: #fcfcfc;
   margin-top: 2px;
   margin-bottom: 4px;
+}
+.task div.description {
+  line-height: 22px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+}
+.task div.description span.inline-tag {
+  color: #34a6ff;
 }
 .task .description:hover,
 .task .description.hovered {
@@ -5683,13 +5693,6 @@ html {
 #task-list input.description,
 #archive-list input.description {
   display: none;
-}
-div.description {
-  line-height: 22px;
-  display: inline-block;
-}
-div.description span.inline-tag {
-  color: #34a6ff;
 }
 .info {
   font-size: 10px;

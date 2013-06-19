@@ -46,6 +46,7 @@ class exports.TaskLine extends Backbone.View
         @done() if @model.done
 
         @descriptionField = @$ "input.description"
+        @descriptionFieldFormatted = @$ "div.description"
         @buttons = @$ ".task-buttons"
         @setListeners()
 
@@ -89,21 +90,21 @@ class exports.TaskLine extends Backbone.View
     ###
     handleFieldSwapManagement: ->
         @displayTagsNicely()
-        @$('input.description').focus =>
-            @$('input.description').show()
-            @$('div.description').hide()
-        @$('input.description').focusout =>
-            @$('input.description').hide()
-            @$('div.description').show()
-        @$('input.description').keyup =>
+        @descriptionField.focus =>
+            @descriptionField.show()
+            @descriptionFieldFormatted.hide()
+        @descriptionField.focusout =>
+            @descriptionField.hide()
+            @descriptionFieldFormatted.show()
+        @descriptionField.keyup =>
             @displayTagsNicely()
 
     displayTagsNicely: ->
         pattern = /(#[a-z]+)/ig
         replacement = '<span class="inline-tag">$1</span>'
-        taggedDescription = @$('input.description').val()
+        taggedDescription = @descriptionField.val()
         taggedDescription = taggedDescription.replace pattern, replacement
-        @$('div.description').html taggedDescription
+        @descriptionFieldFormatted.html taggedDescription
 
     ###
         Drag'n'Drop management
@@ -248,13 +249,13 @@ class exports.TaskLine extends Backbone.View
     onMouseOver: (event) ->
         if event.type is 'mouseenter'
             @$el.children('.description').addClass('hovered')
-            @$('div.description').hide()
-            @$('input.description').show()
+            @descriptionFieldFormatted.hide()
+            @descriptionField.show()
         else
             @$el.children('.description').removeClass('hovered')
-            if not @$('input.description').is ':focus'
-                @$('input.description').hide()
-                @$('div.description').show()
+            if not @descriptionField.is ':focus'
+                @descriptionField.hide()
+                @descriptionFieldFormatted.show()
 
     # On todo button clicked, update task state and send modifications to
     # backend.

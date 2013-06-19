@@ -970,7 +970,7 @@ window.require.register("lib/socket_listener", function(exports, require, module
       }
       if (changed.description != null) {
         task.view.descriptionField.val(changed.description);
-        task.view.descriptionFieldFormatted.val(changed.description);
+        task.view.displayTagsNicely();
       }
       if (changed.list != null) {
         previousTask = collection.getPreviousTask(task);

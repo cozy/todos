@@ -36,6 +36,7 @@ class SocketListener extends CozySocketListener
 
         if changed.description?
             task.view.descriptionField.val changed.description
+            task.view.displayTagsNicely()
 
         if changed.list?
             previousTask = collection.getPreviousTask task

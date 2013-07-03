@@ -70,7 +70,6 @@ class exports.TaskLine extends Backbone.View
             @$el.unbind 'dragover'
             @$el.unbind 'drop'
             @$el.unbind 'dragend'
-            @$el.unbind 'hover'
             @$(".handle").addClass 'disabled'
         else
             @$(".handle").prop 'draggable', true
@@ -81,7 +80,7 @@ class exports.TaskLine extends Backbone.View
                        "them. Hint: if you press shift, you can move a " + \
                        "task to another list."
 
-            @handleFieldSwapManagement()
+        @handleFieldSwapManagement()
 
         @el
 
@@ -399,7 +398,6 @@ class exports.TaskLine extends Backbone.View
     # Remove object from view and unbind listeners.
     remove: ->
         @unbind()
-        console.log @$el.prev()
         @$el.prev().remove() if @$el.prev().hasClass 'separator'
         @$el.remove()
 

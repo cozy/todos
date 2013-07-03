@@ -5608,7 +5608,6 @@ html {
 }
 .task .description:hover,
 .task .description.hovered {
-  padding-left: 1%;
   border: 1px solid #fe8800;
   -webkit-border-radius: 0px;
   border-radius: 0px;
@@ -5634,7 +5633,6 @@ html {
 }
 .task .description:focus,
 .task .description:active {
-  padding-left: 1%;
   border: 1px solid rgba(82,168,236,0.8);
   -webkit-border-radius: 0px;
   border-radius: 0px;

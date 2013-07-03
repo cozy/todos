@@ -102,7 +102,6 @@ window.require.register("collections/tasks", function(exports, require, module) 
         id: this.listId
       }, this.options);
       this.url = "todolists/" + this.listId + "/tasks/";
-      console.log(this.url);
       this.bind("add", this.onTaskAdded);
       this.bind("reset", this.onReset);
     }
@@ -1710,7 +1709,6 @@ window.require.register("views/new_task_form", function(exports, require, module
         done: false,
         description: this.newTaskFormInput.val()
       });
-      console.log(this.taskList.tasks.url);
       return this.taskList.tasks.insertTask(null, task, {
         success: function(data) {
           var tags;
@@ -1945,7 +1943,6 @@ window.require.register("views/task_view", function(exports, require, module) {
         this.$el.unbind('dragover');
         this.$el.unbind('drop');
         this.$el.unbind('dragend');
-        this.$el.unbind('hover');
         this.$(".handle").addClass('disabled');
       } else {
         this.$(".handle").prop('draggable', true);
@@ -2370,7 +2367,6 @@ window.require.register("views/task_view", function(exports, require, module) {
 
     TaskLine.prototype.remove = function() {
       this.unbind();
-      console.log(this.$el.prev());
       if (this.$el.prev().hasClass('separator')) {
         this.$el.prev().remove();
       }

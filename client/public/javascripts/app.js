@@ -1953,8 +1953,8 @@ window.require.register("views/task_view", function(exports, require, module) {
           placement: "left",
           title: "You can sort the tasks by dragging and dropping " + "them. Hint: if you press shift, you can move a " + "task to another list."
         });
-        this.handleFieldSwapManagement();
       }
+      this.handleFieldSwapManagement();
       return this.el;
     };
 

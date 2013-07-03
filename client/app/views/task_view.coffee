@@ -81,7 +81,7 @@ class exports.TaskLine extends Backbone.View
                        "them. Hint: if you press shift, you can move a " + \
                        "task to another list."
 
-            @handleFieldSwapManagement()
+        @handleFieldSwapManagement()
 
         @el
 

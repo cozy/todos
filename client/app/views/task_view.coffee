@@ -46,11 +46,11 @@ class exports.TaskLine extends Backbone.View
         @done() if @model.done
 
         @descriptionField = @$ "input.description"
+        @descriptionField.show()
         @descriptionFieldFormatted = @$ "span.description"
         @buttons = @$ ".task-buttons"
         @setListeners()
 
-        @$(".task-buttons").hide()
         @descriptionField.data 'before', @descriptionField.val()
         @todoButton = @$ ".todo-button"
 
@@ -91,10 +91,11 @@ class exports.TaskLine extends Backbone.View
         @displayTagsNicely()
         @descriptionField.focus =>
             @descriptionField.show()
-            @descriptionFieldFormatted.hide()
+            #@descriptionFieldFormatted.hide()
         @descriptionField.focusout =>
-            @descriptionField.hide()
-            @descriptionFieldFormatted.show()
+            @descriptionField.show()
+            #@descriptionField.hide()
+            #@descriptionFieldFormatted.show()
         @descriptionField.keyup =>
             @displayTagsNicely()
 
@@ -246,15 +247,15 @@ class exports.TaskLine extends Backbone.View
     ###
 
     onMouseOver: (event) ->
-        if event.type is 'mouseenter'
-            @$el.children('.description').addClass('hovered')
-            @descriptionFieldFormatted.hide()
-            @descriptionField.show()
-        else
-            @$el.children('.description').removeClass('hovered')
-            if not @descriptionField.is ':focus'
-                @descriptionField.hide()
-                @descriptionFieldFormatted.show()
+        #if event.type is 'mouseenter'
+            #@$el.children('.description').addClass('hovered')
+            ##@descriptionFieldFormatted.hide()
+            #@descriptionField.show()
+        #else
+            #@$el.children('.description').removeClass('hovered')
+            #if not @descriptionField.is ':focus'
+                #@descriptionField.hide()
+                #@descriptionFieldFormatted.show()
 
     # On todo button clicked, update task state and send modifications to
     # backend.

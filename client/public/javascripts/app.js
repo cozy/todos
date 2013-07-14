@@ -1868,6 +1868,7 @@ window.require.register("views/task_view", function(exports, require, module) {
         this.done();
       }
       this.descriptionField = this.$("input.description");
+      this.descriptionField.show();
       this.descriptionFieldFormatted = this.$("span.description");
       this.buttons = this.$(".task-buttons");
       this.setListeners();
@@ -1914,12 +1915,10 @@ window.require.register("views/task_view", function(exports, require, module) {
       var _this = this;
       this.displayTagsNicely();
       this.descriptionField.focus(function() {
-        _this.descriptionField.show();
-        return _this.descriptionFieldFormatted.hide();
+        return _this.descriptionField.show();
       });
       this.descriptionField.focusout(function() {
-        _this.descriptionField.hide();
-        return _this.descriptionFieldFormatted.show();
+        return _this.descriptionField.show();
       });
       return this.descriptionField.keyup(function() {
         return _this.displayTagsNicely();
@@ -2108,19 +2107,7 @@ window.require.register("views/task_view", function(exports, require, module) {
     */
 
 
-    TaskLine.prototype.onMouseOver = function(event) {
-      if (event.type === 'mouseenter') {
-        this.$el.children('.description').addClass('hovered');
-        this.descriptionFieldFormatted.hide();
-        return this.descriptionField.show();
-      } else {
-        this.$el.children('.description').removeClass('hovered');
-        if (!this.descriptionField.is(':focus')) {
-          this.descriptionField.hide();
-          return this.descriptionFieldFormatted.show();
-        }
-      }
-    };
+    TaskLine.prototype.onMouseOver = function(event) {};
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
       var _this = this;

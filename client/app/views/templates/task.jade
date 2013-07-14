@@ -1,13 +1,7 @@
 button.btn.btn-info.todo-button todo
-div.description #{model.description}
-input.description(type="text",contenteditable="true",
-                  value="#{model.description}")
+span.description #{model.description}
+input.description(type="text", value="#{model.description}")
 .handle &nbsp;
-.task-buttons
-    button.up-task-button.btn up
-    button.down-task-button.btn down
-    button.del-task-button.btn X
-
 
 .task-infos
     if model.done

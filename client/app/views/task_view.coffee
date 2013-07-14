@@ -46,7 +46,7 @@ class exports.TaskLine extends Backbone.View
         @done() if @model.done
 
         @descriptionField = @$ "input.description"
-        @descriptionFieldFormatted = @$ "div.description"
+        @descriptionFieldFormatted = @$ "span.description"
         @buttons = @$ ".task-buttons"
         @setListeners()
 

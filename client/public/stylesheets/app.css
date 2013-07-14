@@ -5578,51 +5578,49 @@ html {
   padding: 0 2%;
 }
 .task .description {
+  display: inline-block;
+  height: 22px;
+  line-height: 22px;
+  width: 88%;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  margin-left: 1%;
+  padding: 4px 9px;
   border: 1px solid transparent;
   -webkit-border-radius: 0px;
   border-radius: 0px;
+  font-family: styled, helvetica;
+  font-size: 16px;
+  background-color: #fcfcfc;
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
   -webkit-box-shadow: none;
   box-shadow: none;
-  font-family: styled, helvetica;
-  margin-left: 1%;
-  font-size: 16px;
-  height: 22px;
-  width: 88%;
-  padding: 4px 9px;
-  background-color: #fcfcfc;
-  margin-top: 2px;
-  margin-bottom: 4px;
-}
-.task div.description {
-  line-height: 22px;
-  display: inline-block;
   white-space: nowrap;
   overflow: hidden;
   -o-text-overflow: ellipsis;
   text-overflow: ellipsis;
 }
-.task div.description span.inline-tag {
+.task .description span.inline-tag {
   color: #34a6ff;
+}
+.task span.description {
+  margin-bottom: 0px;
+  border: 1px solid transparent;
+}
+.task input.description {
+  display: inline-block;
+  margin-bottom: 4px;
 }
 .task .description:hover,
 .task .description.hovered {
   border: 1px solid #fe8800;
-  -webkit-border-radius: 0px;
-  border-radius: 0px;
-  -moz-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
   color: #333;
 }
 .task .handle {
-  width: 25px;
-  height: 32px;
-  line-height: 35px;
   text-align: center;
   display: none;
+  width: 30px;
   background: url("../img/todos-handle.png") no-repeat center center;
   -webkit-background-size: 20px 20px;
   -moz-background-size: 20px 20px;

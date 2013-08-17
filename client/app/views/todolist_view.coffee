@@ -101,7 +101,8 @@ class exports.TodoListWidget extends Backbone.View
 
     # Add task to todo task list.
     moveToTaskList: (task) ->
-        @tasks.onTaskAdded task
+        @archiveTasks.remove task, silent: true
+        @tasks.insertTask null, task
 
     # Force task saving if task was modified.
     blurAllTaskDescriptions: ->

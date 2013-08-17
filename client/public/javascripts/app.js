@@ -161,6 +161,8 @@ window.require.register("collections/tasks", function(exports, require, module) 
       }
       if (previousTask != null) {
         task.set("previousTask", previousTask.id);
+      } else {
+        task.set("previousTask", null);
       }
       this.socketListener.watchOne(task);
       return task.save(task.attributes, {
@@ -172,14 +174,22 @@ window.require.register("collections/tasks", function(exports, require, module) 
           if (nextTask != null) {
             nextTask.set("previousTask", task.id);
           }
-          _this.add(task, {
-            at: index + 1,
-            silent: true
-          });
-          if ((previousTask != null) && (_this.view != null)) {
-            _this.view.insertTask(previousTask.view, task);
-          } else if (_this.view != null) {
-            _this.view.insertTask(null, task);
+          if (previousTask != null) {
+            _this.add(task, {
+              at: index + 1,
+              silent: true
+            });
+            if (_this.view != null) {
+              _this.view.insertTask(previousTask.view, task);
+            }
+          } else {
+            _this.add(task, {
+              at: 0,
+              silent: true
+            });
+            if (_this.view != null) {
+              _this.view.insertTask(null, task);
+            }
           }
           return callbacks != null ? callbacks.success(task) : void 0;
         },
@@ -233,7 +243,10 @@ window.require.register("collections/tasks", function(exports, require, module) 
       var index, newNextTask, newPreviousTask, oldNextTask, oldPreviousTask;
       index = this.toArray().indexOf(task);
       oldPreviousTask = this.getPreviousTask(task);
+      console.log(task);
       oldNextTask = this.getNextTask(task);
+      console.log(this);
+      console.log(oldNextTask);
       if (oldPreviousTask != null) {
         oldPreviousTask.setNextTask(oldNextTask);
       } else {
@@ -1109,8 +1122,7 @@ window.require.register("models/task", function(exports, require, module) {
       var nextTask, previousTask;
       if (this.collection.view.isArchive()) {
         this.view.remove();
-        this.collection.view.moveToTaskList(this);
-        return this.setNextTask(this.collection.at(0));
+        return this.collection.view.moveToTaskList(this);
       } else {
         previousTask = this.collection.getPreviousTodoTask(this);
         nextTask = this.collection.getNextTodoTask(this);
@@ -2692,7 +2704,10 @@ window.require.register("views/todolist_view", function(exports, require, module
     };
 
     TodoListWidget.prototype.moveToTaskList = function(task) {
-      return this.tasks.onTaskAdded(task);
+      this.archiveTasks.remove(task, {
+        silent: true
+      });
+      return this.tasks.insertTask(null, task);
     };
 
     TodoListWidget.prototype.blurAllTaskDescriptions = function() {

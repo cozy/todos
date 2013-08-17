@@ -5581,7 +5581,7 @@ html {
   display: inline-block;
   height: 22px;
   line-height: 22px;
-  width: 88%;
+  width: 90%;
   margin-top: 2px;
   margin-bottom: 4px;
   margin-left: 1%;
@@ -5618,18 +5618,23 @@ html {
   border: 1px solid #fe8800;
   color: #333;
 }
-.task .handle {
-  text-align: center;
+.task .toolbar {
   display: none;
-  width: 30px;
-  background: url("../img/todos-handle.png") no-repeat center center;
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  background-size: 20px 20px;
+  float: right;
+  position: absolute;
+  background-color: #fff;
+  left: 98%;
+}
+.task .toolbar .handle {
+  text-align: center;
   opacity: 0.5;
   -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
   filter: alpha(opacity=50);
 }
+.task .toolbar .del-task-button {
+  cursor: pointer;
+}
+.task .description:focus,
 .task .description:focus,
 .task .description:active {
   border: 1px solid rgba(82,168,236,0.8);
@@ -5641,10 +5646,8 @@ html {
   box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
   color: #333;
 }
-.task:hover .handle:not(.disabled),
-.task:focus .handle:not(.disabled),
-.task:active .handle:not(.disabled) {
-  display: inline-block;
+.done .toolbar .handle {
+  display: none;
 }
 .task button {
   float: left;
@@ -5703,7 +5706,6 @@ html {
   border-color: #777;
 }
 .task.new-task {
-  position: relative;
   display: none;
 }
 .task.new-task .add-task {
@@ -5879,12 +5881,15 @@ html {
 /* responsive */
 @media (max-width: 1200px) {
   .task .description {
-    width: 86%;
+    width: 90%;
   }
 }
 @media (max-width: 960px) {
   .task .description {
-    width: 82%;
+    width: 88%;
+  }
+  .task .toolbar {
+    left: 95%;
   }
 }
 @media (max-width: 700px) {
@@ -5904,7 +5909,7 @@ html {
     width: 16%;
   }
   .task .description {
-    width: 75%;
+    width: 70%;
   }
   .ui-layout-toggler {
     display: none;
@@ -5914,6 +5919,14 @@ html {
   }
   #handle {
     display: none;
+  }
+}
+@media (max-width: 500px) {
+  .task .description {
+    width: 70%;
+  }
+  .task .toolbar {
+    left: 94%;
   }
 }
 @font-face {

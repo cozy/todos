@@ -19,6 +19,7 @@ class exports.TaskLine extends Backbone.View
         "dragend": "onDragEnd"
         "hover": "onMouseOver"
 
+
     ###
     # Initializers
     ###
@@ -247,11 +248,14 @@ class exports.TaskLine extends Backbone.View
     ###
 
     onMouseOver: (event) ->
-        #if event.type is 'mouseenter'
+        @$('.toolbar').show()
+        if event.type is 'mouseenter'
+            @$('.toolbar').show()
             #@$el.children('.description').addClass('hovered')
             ##@descriptionFieldFormatted.hide()
             #@descriptionField.show()
-        #else
+        else
+            @$('.toolbar').hide()
             #@$el.children('.description').removeClass('hovered')
             #if not @descriptionField.is ':focus'
                 #@descriptionField.hide()

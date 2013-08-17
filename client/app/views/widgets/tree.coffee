@@ -72,7 +72,8 @@ class exports.Tree
                 show_only_matches: true
             dnd:
                 "drag_finish": (data) =>
-                    draggedTaskID = $(data.o.parentNode).prop 'id'
+                    draggedTaskID =
+                        $(data.o.parentNode.parentNode.parentNode).prop 'id'
                     targetID = data.r[0].id
                     sourceID = @getSelectedNode().prop 'id'
                     homeViewCbk.onTaskMoved draggedTaskID, sourceID, targetID
@@ -80,7 +81,9 @@ class exports.Tree
                 "drag_check": (data) =>
                     draggedTask = $(data.o.parentNode)
                     targetID = data.r[0].id
+                    console.log data.r[0]
                     sourceID = @getSelectedNode().prop 'id'
+                    console.log @getSelectedNode()
 
                     canDrop =
                         after: false
@@ -90,7 +93,7 @@ class exports.Tree
                     isSameList = sourceID is targetID
 
                     # if the action is: drag task to list
-                    if not isSameList and draggedTask.hasClass 'task'
+                    if not isSameList and draggedTask.hasClass 'handle'
                         canDrop.inside = true
 
                     return canDrop

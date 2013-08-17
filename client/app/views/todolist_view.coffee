@@ -89,19 +89,12 @@ class exports.TodoListWidget extends Backbone.View
                 if @$(".task:not(.done)").length > 0
                     @$(".task:first .description").focus()
 
-                    @displayCreationInfos()
-
                 @$(@tasks.view.el).spin()
             error: =>
                 @$(@tasks.view.el).spin()
 
     creationInfosRequired: =>
         @tasks.length is 1 and @model? and @model.get("id")?
-
-    displayCreationInfos: =>
-        if @creationInfosRequired()
-            @taskList.$el.append '<p class="info">To add a new ' + \
-                'task, focus on a task then type enter.</p>'
 
     removeCreationInfos: =>
         @$el.remove '.info'

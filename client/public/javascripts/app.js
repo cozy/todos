@@ -1872,7 +1872,6 @@ window.require.register("views/task_view", function(exports, require, module) {
       this.descriptionFieldFormatted = this.$("span.description");
       this.buttons = this.$(".task-buttons");
       this.setListeners();
-      this.$(".task-buttons").hide();
       this.descriptionField.data('before', this.descriptionField.val());
       this.todoButton = this.$(".todo-button");
       this.todoButton.hover(function() {
@@ -2107,7 +2106,14 @@ window.require.register("views/task_view", function(exports, require, module) {
     */
 
 
-    TaskLine.prototype.onMouseOver = function(event) {};
+    TaskLine.prototype.onMouseOver = function(event) {
+      this.$('.toolbar').show();
+      if (event.type === 'mouseenter') {
+        return this.$('.toolbar').show();
+      } else {
+        return this.$('.toolbar').hide();
+      }
+    };
 
     TaskLine.prototype.onTodoButtonClicked = function(event) {
       var _this = this;
@@ -2510,9 +2516,9 @@ window.require.register("views/templates/task", function(exports, require, modul
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<button class="btn btn-info todo-button">todo</button><span class="description">' + escape((interp = model.description) == null ? '' : interp) + '</span><input');
+  buf.push('<div class="toolbar"><span class="handle"><i class="icon-move"></i></span><br/><span class="del-task-button"><i class="icon-trash"></i></span></div><button class="btn btn-info todo-button">todo</button><span class="description">' + escape((interp = model.description) == null ? '' : interp) + '</span><input');
   buf.push(attrs({ 'type':("text"), 'value':("" + (model.description) + ""), "class": ('description') }, {"type":true,"value":true}));
-  buf.push('/><div class="handle">&nbsp;</div><div class="task-infos">');
+  buf.push('/><div class="task-infos">');
   if ( model.done)
   {
   buf.push('<span class="task-date">' + escape((interp = model.fullDate) == null ? '' : interp) + '</span>');
@@ -2587,7 +2593,6 @@ window.require.register("views/todolist_view", function(exports, require, module
     function TodoListWidget(model) {
       this.model = model;
       this.removeCreationInfos = __bind(this.removeCreationInfos, this);
-      this.displayCreationInfos = __bind(this.displayCreationInfos, this);
       this.creationInfosRequired = __bind(this.creationInfosRequired, this);
       TodoListWidget.__super__.constructor.call(this);
       if (this.model != null) {
@@ -2669,7 +2674,6 @@ window.require.register("views/todolist_view", function(exports, require, module
         success: function() {
           if (_this.$(".task:not(.done)").length > 0) {
             _this.$(".task:first .description").focus();
-            _this.displayCreationInfos();
           }
           return _this.$(_this.tasks.view.el).spin();
         },
@@ -2681,12 +2685,6 @@ window.require.register("views/todolist_view", function(exports, require, module
 
     TodoListWidget.prototype.creationInfosRequired = function() {
       return this.tasks.length === 1 && (this.model != null) && (this.model.get("id") != null);
-    };
-
-    TodoListWidget.prototype.displayCreationInfos = function() {
-      if (this.creationInfosRequired()) {
-        return this.taskList.$el.append('<p class="info">To add a new ' + 'task, focus on a task then type enter.</p>');
-      }
     };
 
     TodoListWidget.prototype.removeCreationInfos = function() {
@@ -2898,7 +2896,7 @@ window.require.register("views/widgets/tree", function(exports, require, module)
         dnd: {
           "drag_finish": function(data) {
             var draggedTaskID, sourceID, targetID;
-            draggedTaskID = $(data.o.parentNode).prop('id');
+            draggedTaskID = $(data.o.parentNode.parentNode.parentNode).prop('id');
             targetID = data.r[0].id;
             sourceID = _this.getSelectedNode().prop('id');
             return homeViewCbk.onTaskMoved(draggedTaskID, sourceID, targetID);
@@ -2907,14 +2905,16 @@ window.require.register("views/widgets/tree", function(exports, require, module)
             var canDrop, draggedTask, isSameList, sourceID, targetID;
             draggedTask = $(data.o.parentNode);
             targetID = data.r[0].id;
+            console.log(data.r[0]);
             sourceID = _this.getSelectedNode().prop('id');
+            console.log(_this.getSelectedNode());
             canDrop = {
               after: false,
               before: false,
               inside: false
             };
             isSameList = sourceID === targetID;
-            if (!isSameList && draggedTask.hasClass('task')) {
+            if (!isSameList && draggedTask.hasClass('handle')) {
               canDrop.inside = true;
             }
             return canDrop;

@@ -5646,6 +5646,9 @@ html {
   box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
   color: #333;
 }
+.done .description {
+  padding-top: 4px;
+}
 .done .toolbar .handle {
   display: none;
 }
@@ -5688,7 +5691,6 @@ html {
 .done .description {
   color: #aaa;
   text-decoration: line-through;
-  margin-top: 0px;
 }
 .done .description .info {
   font-size: 10px;

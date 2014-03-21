@@ -4,16 +4,10 @@
 , "engines": ["node >= 0.8.0"]
 , "main": "server.coffee"
 , "dependencies":
-  { "jade":             "= 0.27.6"
-  , "express":          "= 3.0.6"
-  , "connect":          "= 2.6.1"
-  , "compound":         "= 1.1.6"
-  , "coffee-script":    "= 1.4.0"
-  , "mime":             "= 1.2.7"
-  , "qs":               "= 0.5.0"
-  , "jugglingdb":       "= 0.2.0-23"
-  , "jugglingdb-cozy-adapter": "0.3.3"
-  , "async":            "= 0.1.22"
+  { 
+    "americano": "= 0.3.6"
+  , "americano-cozy" "= 0.2.6"
+  , "async": "= 0.1.22"
   , "cozy-realtime-adapter":"= 0.11.0"
   }
 , "devDependencies":

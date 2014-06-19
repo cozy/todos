@@ -1,4 +1,4 @@
-{ "name": "cozy-todos"
+{ "name": "todos"
 , "version": "0.5.0"
 , "description": "Cozy Todos is a simple task management application that helps you to focus by not wasting time in your todo-lists. Adding tasks is easy as typing in a text editor, but UI is explicit as it should be in a web app."
 , "engines": ["node >= 0.8.0"]

@@ -200,6 +200,7 @@ input:invalid, textarea:invalid { background-color: #f0dddd; }
 
 table { border-collapse: collapse; border-spacing: 0; }
 td { vertical-align: top; }
+
 /*!
  * Bootstrap v2.0.4
  *
@@ -5183,6 +5184,7 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
+
 /*
  * CSS Styles that are needed by jScrollPane for it to operate correctly.
  *
@@ -5302,7 +5304,8 @@ a.badge:hover {
 * html .jspCorner
 {
 	margin: 0 -3px 0 0;
-}/*
+}
+/*
  * Default Layout Theme
  *
  * Created for jquery.layout 
@@ -5423,6 +5426,7 @@ p {
 
 
 
+
 ::selection {
   background: #ffa60b;
 }
@@ -5479,6 +5483,7 @@ ol {
 .spacer {
   clear: both;
 }
+
 ::selection {
   background: #ffa60b;
 }
@@ -5931,6 +5936,7 @@ html {
     left: 94%;
   }
 }
+
 @font-face {
   font-family: main;
   src: url("/fonts/signika-regular.ttf");
@@ -6107,6 +6113,7 @@ html {
     display: none;
   }
 }
+
 /* ==|== non-semantic helper classes ========================================
    Please define your styles before this section.
    ========================================================================== */
@@ -6153,3 +6160,6 @@ html {
   p, h2, h3 { orphans: 3; widows: 3; }
   h2, h3 { page-break-after: avoid; }
 }
+
+
+/*# sourceMappingURL=app.css.map*/

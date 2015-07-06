@@ -5,7 +5,7 @@ module.exports = (compound, Tree) ->
     TodoList = compound.models.TodoList
 
     # Return all tree grouped by type.
-    Tree.all = (params, callback) -> Tree.request "all", params, callback
+    Tree.all = (params, callback) -> Tree.request "byType", params, callback
 
     ###
     # Add a node corresponding to the note in the dataTree.
@@ -56,7 +56,7 @@ module.exports = (compound, Tree) ->
     # Remove all tree of type TodoList from database.
     ###
     Tree.destroyAll = (callback) ->
-        Tree.requestDestroy "all", key: "TodoList", callback
+        Tree.requestDestroy "byType", key: "TodoList", callback
 
     ###
     # Normally only one tree should be stored for this app. This function return

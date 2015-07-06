@@ -9,7 +9,7 @@ module.exports = (compound) ->
     ## Requests
 
     User.all = (callback) -> User.request "all", callback
-    Tree.defineRequest "all", requests.allType, requests.checkError
+    Tree.defineRequest "byType", requests.allType, requests.checkError
     TodoList.defineRequest "all", requests.all, requests.checkError
 
     archive = ->

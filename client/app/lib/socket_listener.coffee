@@ -15,12 +15,7 @@ class SocketListener extends CozySocketListener
             if @shouldBeAdded task, collection
                 previousTask = collection.getPreviousTask task
                 nextTask = collection.getNextTask task
-
-                if not previousTask and not nextTask
-                    previousTask = collection.last()
-
                 index = collection.toArray().indexOf previousTask
-
                 collection.add task, { at: (index + 1), silent: true }
                 previousTask?.set "nextTask", task.id
                 nextTask?.set "previousTask", task.id
@@ -36,6 +31,7 @@ class SocketListener extends CozySocketListener
 
         if changed.description?
             task.view.descriptionField.val changed.description
+            task.view.displayTagsNicely()
 
         if changed.list?
             previousTask = collection.getPreviousTask task

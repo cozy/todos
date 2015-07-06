@@ -19,6 +19,7 @@ class exports.TaskLine extends Backbone.View
         "dragend": "onDragEnd"
         "hover": "onMouseOver"
 
+
     ###
     # Initializers
     ###
@@ -40,15 +41,17 @@ class exports.TaskLine extends Backbone.View
     # Render wiew and bind it to model.
     render: ->
         template = require './templates/task'
+
         $(@el).html template(model: @model)
         @el.id = @model.id
         @done() if @model.done
 
-        @descriptionField = @$ ".description"
+        @descriptionField = @$ "input.description"
+        @descriptionField.show()
+        @descriptionFieldFormatted = @$ "span.description"
         @buttons = @$ ".task-buttons"
         @setListeners()
 
-        @$(".task-buttons").hide()
         @descriptionField.data 'before', @descriptionField.val()
         @todoButton = @$ ".todo-button"
 
@@ -68,7 +71,6 @@ class exports.TaskLine extends Backbone.View
             @$el.unbind 'dragover'
             @$el.unbind 'drop'
             @$el.unbind 'dragend'
-            @$el.unbind 'hover'
             @$(".handle").addClass 'disabled'
         else
             @$(".handle").prop 'draggable', true
@@ -79,7 +81,31 @@ class exports.TaskLine extends Backbone.View
                        "them. Hint: if you press shift, you can move a " + \
                        "task to another list."
 
+        @handleFieldSwapManagement()
+
         @el
+
+    ###
+        Nice tag displaying management
+    ###
+    handleFieldSwapManagement: ->
+        @displayTagsNicely()
+        @descriptionField.focus =>
+            @descriptionField.show()
+            #@descriptionFieldFormatted.hide()
+        @descriptionField.focusout =>
+            @descriptionField.show()
+            #@descriptionField.hide()
+            #@descriptionFieldFormatted.show()
+        @descriptionField.keyup =>
+            @displayTagsNicely()
+
+    displayTagsNicely: ->
+        pattern = /(#[a-z]+)/ig
+        replacement = '<span class="inline-tag">$1</span>'
+        taggedDescription = @descriptionField.val()
+        taggedDescription = taggedDescription.replace pattern, replacement
+        @descriptionFieldFormatted.html taggedDescription
 
     ###
         Drag'n'Drop management
@@ -222,10 +248,18 @@ class exports.TaskLine extends Backbone.View
     ###
 
     onMouseOver: (event) ->
+        @$('.toolbar').show()
         if event.type is 'mouseenter'
-            @$el.children('.description').addClass('hovered')
+            @$('.toolbar').show()
+            #@$el.children('.description').addClass('hovered')
+            ##@descriptionFieldFormatted.hide()
+            #@descriptionField.show()
         else
-            @$el.children('.description').removeClass('hovered')
+            @$('.toolbar').hide()
+            #@$el.children('.description').removeClass('hovered')
+            #if not @descriptionField.is ':focus'
+                #@descriptionField.hide()
+                #@descriptionFieldFormatted.show()
 
     # On todo button clicked, update task state and send modifications to
     # backend.
@@ -369,7 +403,6 @@ class exports.TaskLine extends Backbone.View
     # Remove object from view and unbind listeners.
     remove: ->
         @unbind()
-        console.log @$el.prev()
         @$el.prev().remove() if @$el.prev().hasClass 'separator'
         @$el.remove()
 

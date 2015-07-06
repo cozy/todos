@@ -72,7 +72,6 @@ class exports.Task extends BaseModel
         if @collection.view.isArchive()
             @view.remove()
             @collection.view.moveToTaskList @
-            @setNextTask @collection.at(0)
         else
             previousTask = @collection.getPreviousTodoTask @
             nextTask = @collection.getNextTodoTask @

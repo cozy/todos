@@ -1,4 +1,4 @@
-{ "name": "cozy-todos"
+{ "name": "todos"
 , "version": "0.5.0"
 , "description": "Cozy Todos is a simple task management application that helps you to focus by not wasting time in your todo-lists. Adding tasks is easy as typing in a text editor, but UI is explicit as it should be in a web app."
 , "engines": ["node >= 0.8.0"]
@@ -12,7 +12,7 @@
   , "mime":             "= 1.2.7"
   , "qs":               "= 0.5.0"
   , "jugglingdb":       "= 0.2.0-23"
-  , "jugglingdb-cozy-adapter": "0.3.2"
+  , "jugglingdb-cozy-adapter": "0.3.3"
   , "async":            "= 0.1.22"
   , "cozy-realtime-adapter":"= 0.11.0"
   }

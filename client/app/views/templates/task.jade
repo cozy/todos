@@ -1,13 +1,12 @@
+.toolbar
+    span.handle
+        i.icon-move
+    br
+    span.del-task-button
+        i.icon-trash
 button.btn.btn-info.todo-button todo
-input.description(type="text",contenteditable="true",
-                  value="#{model.description}")
-//-.handle
-    //-&nbsp;
-.task-buttons
-    button.up-task-button.btn up
-    button.down-task-button.btn down
-    button.del-task-button.btn X
-
+span.description #{model.description}
+input.description(type="text", value="#{model.description}")
 
 .task-infos
     if model.done

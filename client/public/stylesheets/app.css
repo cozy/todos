@@ -200,6 +200,7 @@ input:invalid, textarea:invalid { background-color: #f0dddd; }
 
 table { border-collapse: collapse; border-spacing: 0; }
 td { vertical-align: top; }
+
 /*!
  * Bootstrap v2.0.4
  *
@@ -5183,6 +5184,7 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
+
 /*
  * CSS Styles that are needed by jScrollPane for it to operate correctly.
  *
@@ -5302,7 +5304,8 @@ a.badge:hover {
 * html .jspCorner
 {
 	margin: 0 -3px 0 0;
-}/*
+}
+/*
  * Default Layout Theme
  *
  * Created for jquery.layout 
@@ -5423,6 +5426,7 @@ p {
 
 
 
+
 ::selection {
   background: #ffa60b;
 }
@@ -5479,6 +5483,7 @@ ol {
 .spacer {
   clear: both;
 }
+
 ::selection {
   background: #ffa60b;
 }
@@ -5577,46 +5582,66 @@ html {
 .task {
   padding: 0 2%;
 }
-.task input {
-  padding-left: 1%;
+.task .description {
+  display: inline-block;
+  height: 22px;
+  line-height: 22px;
+  width: 90%;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  margin-left: 1%;
+  padding: 4px 9px;
   border: 1px solid transparent;
   -webkit-border-radius: 0px;
   border-radius: 0px;
+  font-family: styled, helvetica;
+  font-size: 16px;
+  background-color: #fcfcfc;
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
   -webkit-box-shadow: none;
   box-shadow: none;
-  font-family: styled, helvetica;
+  white-space: nowrap;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
 }
-.task input:hover,
-.task input.hovered {
-  padding-left: 1%;
+.task .description span.inline-tag {
+  color: #34a6ff;
+}
+.task span.description {
+  display: none;
+  margin-bottom: 0px;
+  border: 1px solid transparent;
+}
+.task input.description {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.task .description:hover,
+.task .description.hovered {
   border: 1px solid #fe8800;
-  -webkit-border-radius: 0px;
-  border-radius: 0px;
-  -moz-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  -webkit-box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
-  box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
   color: #333;
 }
-.task .handle {
-  width: 25px;
-  height: 32px;
-  line-height: 35px;
-  text-align: center;
+.task .toolbar {
   display: none;
-  background: url("../img/todos-handle.png") no-repeat center center;
-  -webkit-background-size: 20px 20px;
-  -moz-background-size: 20px 20px;
-  background-size: 20px 20px;
+  float: right;
+  position: absolute;
+  background-color: #fff;
+  left: 98%;
+}
+.task .toolbar .handle {
+  text-align: center;
   opacity: 0.5;
   -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
   filter: alpha(opacity=50);
 }
-.task input:focus,
-.task input:active {
-  padding-left: 1%;
+.task .toolbar .del-task-button {
+  cursor: pointer;
+}
+.task .description:focus,
+.task .description:focus,
+.task .description:active {
   border: 1px solid rgba(82,168,236,0.8);
   -webkit-border-radius: 0px;
   border-radius: 0px;
@@ -5626,10 +5651,11 @@ html {
   box-shadow: inset 1px 1px 2px rgba(100,100,100,0.1);
   color: #333;
 }
-.task:hover .handle:not(.disabled),
-.task:focus .handle:not(.disabled),
-.task:active .handle:not(.disabled) {
-  display: inline-block;
+.done .description {
+  padding-top: 4px;
+}
+.done .toolbar .handle {
+  display: none;
 }
 .task button {
   float: left;
@@ -5670,19 +5696,8 @@ html {
 .done .description {
   color: #aaa;
   text-decoration: line-through;
-  margin-top: 0px;
 }
-.task .description {
-  margin-left: 1%;
-  font-size: 16px;
-  height: 22px;
-  width: 88%;
-  padding: 4px 1%;
-  background-color: #fcfcfc;
-  margin-top: 2px;
-  margin-bottom: 4px;
-}
-.info {
+.done .description .info {
   font-size: 10px;
   color: #777;
   padding-left: 20px;
@@ -5698,7 +5713,6 @@ html {
   border-color: #777;
 }
 .task.new-task {
-  position: relative;
   display: none;
 }
 .task.new-task .add-task {
@@ -5874,12 +5888,15 @@ html {
 /* responsive */
 @media (max-width: 1200px) {
   .task .description {
-    width: 86%;
+    width: 90%;
   }
 }
 @media (max-width: 960px) {
   .task .description {
-    width: 82%;
+    width: 88%;
+  }
+  .task .toolbar {
+    left: 95%;
   }
 }
 @media (max-width: 700px) {
@@ -5899,7 +5916,7 @@ html {
     width: 16%;
   }
   .task .description {
-    width: 75%;
+    width: 70%;
   }
   .ui-layout-toggler {
     display: none;
@@ -5911,6 +5928,15 @@ html {
     display: none;
   }
 }
+@media (max-width: 500px) {
+  .task .description {
+    width: 70%;
+  }
+  .task .toolbar {
+    left: 94%;
+  }
+}
+
 @font-face {
   font-family: main;
   src: url("/fonts/signika-regular.ttf");
@@ -6087,6 +6113,7 @@ html {
     display: none;
   }
 }
+
 /* ==|== non-semantic helper classes ========================================
    Please define your styles before this section.
    ========================================================================== */
@@ -6133,3 +6160,6 @@ html {
   p, h2, h3 { orphans: 3; widows: 3; }
   h2, h3 { page-break-after: avoid; }
 }
+
+
+/*# sourceMappingURL=app.css.map*/

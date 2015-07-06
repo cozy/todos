@@ -9,7 +9,6 @@ class exports.TaskCollection extends Backbone.Collection
         super(id: @listId, @options)
 
         @url = "todolists/#{@listId}/tasks/"
-        console.log @url
 
         @bind "add", @onTaskAdded
         @bind "reset", @onReset
@@ -57,7 +56,10 @@ class exports.TaskCollection extends Backbone.Collection
 
         task.set "list", @listId
         task.set "nextTask", nextTask.id if nextTask?
-        task.set "previousTask", previousTask.id if previousTask?
+        if previousTask?
+            task.set "previousTask", previousTask.id
+        else
+            task.set "previousTask", null
 
         @socketListener.watchOne(task)
         task.save task.attributes,
@@ -66,11 +68,14 @@ class exports.TaskCollection extends Backbone.Collection
                 previousTask?.set "nextTask", task.id
                 nextTask?.set "previousTask", task.id
 
-                @add task, { at: (index + 1), silent: true }
-                if previousTask? and @view?
-                    @view.insertTask previousTask.view, task
-                else if @view?
-                    @view.insertTask null, task
+                if previousTask?
+                    @add task, { at: (index + 1), silent: true }
+                    if @view?
+                        @view.insertTask previousTask.view, task
+                else
+                    @add task, { at: 0, silent: true }
+                    if @view?
+                        @view.insertTask null, task
 
                 callbacks?.success(task)
             error: =>
@@ -115,7 +120,10 @@ class exports.TaskCollection extends Backbone.Collection
         index = @toArray().indexOf task
 
         oldPreviousTask = @getPreviousTask task
+        console.log task
         oldNextTask = @getNextTask task
+        console.log @
+        console.log oldNextTask
 
         if oldPreviousTask?
             oldPreviousTask.setNextTask(oldNextTask)

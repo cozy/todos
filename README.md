@@ -31,7 +31,7 @@ You can contribute to the Cozy Todos in many ways:
 
 ## Hack
 
-Hacking the Todos app requires you [setup a dev environment](http://cozy.io/hack/getting-started/). Once it's done you can hack Cozy Todos just like it was your own app.
+Hacking the Todos app requires you [setup a dev environment](https://docs.cozy.io/en/hack/getting-started/). Once it's done you can hack Cozy Todos just like it was your own app.
 
     git clone https://github.com/mycozycloud/cozy-todos.git
 
